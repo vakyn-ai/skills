@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "vakyn-ai",
+  "description": "Claude Code skills for building with VAKYN, the decision model",
+  "owner": {
+    "name": "VAKYN"
+  },
+  "plugins": [
+    {
+      "name": "vakyn",
+      "description": "Build with VAKYN: find where it helps, write questions, convert prompts and tool-calling apps, design workflows, test on your data",
+      "source": "./",
+      "category": "development",
+      "homepage": "https://github.com/vakyn-ai/skills"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "vakyn",
+  "description": "Build with VAKYN: find where it helps, write questions, convert prompts and tool-calling apps, design workflows, test on your data",
+  "version": "0.0.1",
+  "author": {
+    "name": "VAKYN"
+  },
+  "homepage": "https://github.com/vakyn-ai/skills",
+  "repository": "https://github.com/vakyn-ai/skills",
+  "license": "MIT",
+  "keywords": ["vakyn", "decision-model", "noul", "choice", "score", "tool-calling", "skills"]
+}
