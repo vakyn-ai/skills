@@ -1,0 +1,20 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "channel": "email",
+    "message": "I was charged twice for my March order. Please refund one of the charges."
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which team should handle state.message?",
+      "criteria": {
+        "billing": "Charges, invoices, refunds and payment methods",
+        "access": "Signing in, passwords, two-factor codes and account permissions",
+        "shipping": "Where a parcel is, late or lost deliveries, delivery address",
+        "product": "How the product works, bugs, broken or faulty items",
+        "other": "None of these teams fits, or the message is not a support request"
+      }
+    }
+  }
+}
