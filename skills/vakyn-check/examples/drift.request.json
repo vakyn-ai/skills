@@ -1,0 +1,27 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "message": "My parcel was due on Monday and the tracking page has not moved since Friday. Where is it?"
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which team should handle state.message?",
+      "criteria": {
+        "billing": "Charges, invoices, refunds and payment methods",
+        "access": "Signing in, passwords, two-factor codes and account permissions",
+        "shipping": "Where a parcel is, late or lost deliveries, delivery address",
+        "product": "How the product works, bugs, broken or faulty items",
+        "other": "None of these teams fits, or the message is not a support request"
+      }
+    },
+    "wants_refund": {
+      "type": "noul",
+      "instructions": "Does state.message ask for money back?",
+      "criteria": {
+        "true": "The customer asks for a refund, a credit or a charge to be reversed",
+        "false": "No money back is asked for, including questions about a price, an invoice or a charge"
+      }
+    }
+  }
+}

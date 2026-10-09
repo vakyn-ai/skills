@@ -1,6 +1,6 @@
 ---
 name: vakyn-check
-description: "Prove a VAKYN setup on the person's own data and get it ready to go live. Use when someone wants to test VAKYN against their current chat model on a sample of their records (\"does it agree with GPT on my tickets?\", \"smoke test before the full run\"); has a side-by-side log from a converted app and asks whether to switch; wants confidence thresholds chosen from labeled examples for a target error rate (\"what threshold for 2% errors?\"); or asks for a go-live or production readiness review of VAKYN code (batching, limits, 429, timeouts, keys, logging, fallback, monitoring)."
+description: "Prove a VAKYN setup on the person's own data and keep it right. Use to test VAKYN against their chat model on a sample (\"smoke test\", \"does it agree with GPT?\"); summarize a side-by-side log; pick thresholds from labels (\"what threshold for 2% errors?\"); check calibration or reliability (\"is 0.9 really 90%?\"); run a drift or regression check after a model upgrade or prompt change, or a CI check for question changes; or review VAKYN code before go-live (limits, 429, timeouts, keys, logging, fallback). Wording fixes: vakyn-questions."
 ---
 
 # VAKYN check: test on your data, then go live
@@ -20,11 +20,13 @@ the official SDK; see the [SDK guide](../vakyn/references/sdk.md)). The files in
 | Wants to try VAKYN on their records next to their chat model | [Smoke test](references/smoke-test.md) |
 | Has a side-by-side log from a converted app | [Log summary](references/log-summary.md) |
 | Has labeled records and asks where to set the threshold | [Thresholds](references/thresholds.md) |
+| Asks whether confidence means what it says ("is 0.9 really 90%?") | [Calibration](references/calibration.md) |
+| Changed the model file, server, questions or state builder; wants a CI check | [Drift check](references/drift.md) |
 | Is about to go live, or shows VAKYN code for review | [Go-live review](references/go-live.md) |
 | Gets odd answers on many records | Fix the question first: `vakyn-questions` skill |
 
 Usual order: smoke test → side by side in the app (`vakyn-convert`) → log summary → label the
-disagreements → thresholds → go-live review.
+disagreements → thresholds and calibration → go-live review → drift check after every change.
 
 ## Smoke test (about 30 records)
 
@@ -67,6 +69,24 @@ pick the lowest threshold that meets the target, check it on the held-out part, 
 the sample can prove it. Starting values, until labels exist, are on the same page. `noul` uses distance from 0.5 or separate yes / no cut-offs; `choice` and
 `score` use `confidence`. Template: [thresholds.py](examples/thresholds.py) on
 [labeled.sample.jsonl](examples/labeled.sample.jsonl).
+
+## Calibration
+
+On the same labeled file: group records by confidence (`noul`: by the `noul` value, both sides),
+and per group show count, mean confidence, share right, gap and a 95% range; then the calibration
+error (weighted mean gap) in plain words, per question. Mark groups with too few records and
+read nothing from them; under 50 records, say it cannot judge calibration yet
+([sample sizes](references/thresholds.md#starting-values-and-sample-sizes)). Only their own labeled
+records from the real flow; never public benchmarks. Template: [calibration.py](examples/calibration.py).
+
+## Drift check
+
+Save a reference batch once (100–300 representative records, answers stored with question hash,
+model name, model file, request id) at concurrency 1 or 2. Re-run it after any change to the model
+file, server, question text or state builder; report picks changed, mean change, threshold
+crossings, picks per option and the changed records biggest first. Moves within the noise
+tolerance do not count. Pass or fail against the person's limits; in CI on pull requests that touch
+questions. Template: [drift.py](examples/drift.py), [drift-ci.yml](examples/drift-ci.yml).
 
 ## Go-live review
 

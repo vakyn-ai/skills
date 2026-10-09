@@ -55,8 +55,9 @@ missing and the fix (with the code change). Limits and errors:
 ## Changes
 
 16. **Re-check after any change**: model file, question wording, options, state builder or the
-    threshold itself. Run the smoke test and the [threshold check](thresholds.md) again before
-    the change goes live.
+    threshold itself. Run the [drift check](drift.md) on a stored reference batch, and the
+    [threshold check](thresholds.md) again, before the change goes live; a CI job can run the drift
+    check on every pull request that touches the questions.
 17. **The model name is pinned or logged**, so answers can be tied to the model that gave them.
 
 ## Output
