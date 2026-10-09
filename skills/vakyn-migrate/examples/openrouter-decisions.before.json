@@ -1,0 +1,20 @@
+{
+  "model": "typesafe/jev-1.13",
+  "state": "Hi, I returned the cargo bike on Tuesday but the deposit is still not back on my card. It's been five days.",
+  "questions": {
+    "refund": {"type": "noul", "instructions": "Does state ask for money back?"},
+    "team": {
+      "type": "choice",
+      "instructions": "Which desk should answer state?",
+      "criteria": {
+        "repairs": "Broken parts, flat tires, brakes, gears",
+        "bookings": "Reserving, changing or cancelling a rental",
+        "billing": "Charges, deposits, refunds",
+        "other": "None of these fits"
+      }
+    }
+  },
+  "provider": {"data_collection": "deny"},
+  "session_id": "desk-7f2c",
+  "user": "agent-12"
+}

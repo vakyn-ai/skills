@@ -1,0 +1,16 @@
+{
+  "model": "gpt-6-luna",
+  "input": "Hi, I returned the cargo bike on Tuesday but the deposit is still not back on my card. It's been five days.",
+  "questions": [
+    {"type": "predicate", "name": "refund", "instructions": "Does the customer ask for money back?"},
+    {"type": "choice", "name": "team", "instructions": "Which desk should answer this message?",
+     "choices": [
+       {"value": "repairs", "description": "Broken parts, flat tires, brakes, gears"},
+       {"value": "bookings", "description": "Reserving, changing or cancelling a rental"},
+       {"value": "billing", "description": "Charges, deposits, refunds"},
+       {"value": "other", "description": "None of these fits"}
+     ]},
+    {"type": "score", "name": "urgency", "instructions": "How soon does this message need a reply?",
+     "levels": [{"label": "This week"}, {"label": "Today"}, {"label": "Within the hour"}]}
+  ]
+}

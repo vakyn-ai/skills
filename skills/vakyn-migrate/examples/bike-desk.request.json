@@ -1,0 +1,24 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "message": "The chain on the e-bike I rented this morning snapped two km from your shop. I'm stuck on the river path, can someone come out? Also I want the half day refunded."
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which desk should answer state.message?",
+      "criteria": {
+        "repairs": "Broken parts, flat tires, brakes, gears",
+        "bookings": "Reserving, changing or cancelling a rental",
+        "billing": "Charges, deposits, refunds",
+        "other": "None of these fits"
+      }
+    },
+    "refund": {"type": "noul", "instructions": "Does state.message ask for money back?"},
+    "urgency": {
+      "type": "score",
+      "instructions": "How soon does state.message need a reply?",
+      "criteria": ["This week", "Today", "Within the hour"]
+    }
+  }
+}

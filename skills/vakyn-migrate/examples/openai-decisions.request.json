@@ -1,0 +1,29 @@
+{
+  "model": "jev-latest",
+  "state": "Hi, I returned the cargo bike on Tuesday but the deposit is still not back on my card. It's been five days.",
+  "questions": {
+    "refund": {
+      "type": "noul",
+      "instructions": "Does the customer ask for money back?"
+    },
+    "team": {
+      "type": "choice",
+      "instructions": "Which desk should answer this message?",
+      "criteria": {
+        "repairs": "Broken parts, flat tires, brakes, gears",
+        "bookings": "Reserving, changing or cancelling a rental",
+        "billing": "Charges, deposits, refunds",
+        "other": "None of these fits"
+      }
+    },
+    "urgency": {
+      "type": "score",
+      "instructions": "How soon does this message need a reply?",
+      "criteria": [
+        "This week",
+        "Today",
+        "Within the hour"
+      ]
+    }
+  }
+}

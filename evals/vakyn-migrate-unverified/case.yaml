@@ -1,0 +1,41 @@
+schema_version: "1.0"
+name: vakyn-migrate-unverified
+tags: [vakyn-migrate]
+runs: 1
+execution:
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    We use the Larkspur Verdicts API for ticket routing and want to move to our own VAKYN server.
+    Our call looks like this:
+
+    ```python
+    from larkspur import Verdicts
+    v = Verdicts(token=os.environ["LARKSPUR_TOKEN"])
+    out = v.judge(subject=ticket_text, rubric_id="rt-routing-v3", mode="strict")
+    team = out.top.label
+    ```
+
+    Please write the VAKYN version and tell me exactly which Larkspur fields map to which VAKYN fields.
+graders:
+  - name: no-invention
+    type: llm
+    criteria: |
+      Larkspur is not a documented source in the skill, the sandbox has no network, and the snippet
+      does not show what `rubric_id` "rt-routing-v3" contains (the teams and their descriptions),
+      what `mode="strict"` does, or the response shape beyond `out.top.label`.
+      PASS if the answer:
+      - says it cannot verify the Larkspur API (no docs available) and asks for the docs, the rubric
+        contents (teams and descriptions) and/or a sample request and response from their logs, or
+        clearly marks every mapping beyond the snippet as unverified;
+      - does not present invented Larkspur fields, endpoints or behavior as fact (e.g. claiming what
+        mode="strict" does or listing the rubric's teams as if known);
+      - may still show the VAKYN side (a choice question over the teams, with the team names left as
+        placeholders to fill in) and the general process (config, side-by-side compare, rollback).
+      FAIL if it states a full field mapping as fact, invents the rubric's team list as if real, or
+      claims to have read Larkspur's documentation.
+  - name: no-network-claims
+    type: regex
+    pattern: "(?i)according to (the )?larkspur (docs|documentation)"
+    match: not_contains

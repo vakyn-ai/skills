@@ -1,0 +1,68 @@
+schema_version: "1.0"
+name: vakyn-migrate-raw-http
+tags: [vakyn-migrate]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our Node worker calls OpenRouter's decisions endpoint directly. This is the function:
+
+    ```js
+    export async function routeLead(text) {
+      const res = await fetch("https://openrouter.ai/api/alpha/decisions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "typesafe/jev-1.13",
+          state: { lead: text },
+          questions: {
+            segment: { type: "choice", instructions: "Which sales team should take state.lead?",
+              criteria: { smb: "Fewer than 50 staff", midmarket: "50 to 1000 staff",
+                          enterprise: "More than 1000 staff", unknown: "Size not stated" } },
+            budget: { type: "noul", instructions: "Does state.lead mention a budget?" },
+          },
+          provider: { data_collection: "deny" },
+          session_id: "lead-router",
+        }),
+      });
+      const data = await res.json();
+      console.log("cost", data.usage.cost, "id", data.id);
+      return data.answers;
+    }
+    ```
+
+    We want this on our own VAKYN server instead. Rewrite it as `route-lead.mjs` in this folder and
+    save the request body for the lead "Hi, we're a 300-person logistics firm with about 40k set
+    aside for routing software this year." as a `.json` file.
+graders:
+  - name: code-saved
+    type: file_exists
+    path: "route-lead.mjs"
+  - name: request-saved
+    type: file_exists
+    path: "*.json"
+  - name: code
+    type: llm
+    focus:
+      source: file
+      path: "route-lead.mjs"
+    criteria: |
+      Judge this JavaScript file, a migration from OpenRouter's decisions endpoint to a VAKYN server.
+      PASS if all hold:
+      - it POSTs to `<base URL>/v1/systemone`, with the base URL from an environment variable or config;
+      - the key comes from an environment variable meant for the VAKYN key (for example
+        VAKYN_API_KEY), not a key literal;
+      - the model is `jev-latest` or comes from configuration, not `typesafe/jev-1.13`;
+      - the OpenRouter-only fields `provider` and `session_id` are removed;
+      - it no longer reads `usage.cost` or `data.id` as if VAKYN returned them (it may log the
+        `x-typesafe-request-id` header instead);
+      - it checks the HTTP status before reading answers.
+      FAIL if any of these is missing.
+  - name: no-invented-fields
+    type: llm
+    criteria: |
+      PASS if the final answer and code use only these VAKYN request fields: model, state, questions
+      (with type, instructions, criteria). FAIL if it adds fields that VAKYN's API does not have
+      (for example stream, temperature, provider, session_id, user, trace, options) to the request.
