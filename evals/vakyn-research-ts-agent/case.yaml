@@ -1,0 +1,53 @@
+schema_version: "1.0"
+name: vakyn-research-ts-agent
+tags: [vakyn-research]
+runs: 1
+context:
+  add_dirs: [fixtures]
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our shop assistant's code is in the extra working directory you were given (a read-only copy of our
+    repo). Can you audit our LLM calls in it? I want to know which of them are really decisions that
+    VAKYN could take over, and which we should leave alone. Write it up as a file.
+    Save the report in the current folder.
+graders:
+  - name: report-file
+    type: file_exists
+    path: "vakyn-research.md"
+  - name: spots
+    type: llm
+    focus:
+      source: file
+      path: "vakyn-research.md"
+    criteria: |
+      Judge the report in vakyn-research.md. The app has two
+      decision spots: the tool pick in src/agent.ts (`chatTurn` chooses one of six tools with
+      `tool_choice`, a `choice` question over the tool names) and review moderation in
+      src/moderation.ts (`moderateReview`, APPROVE or REJECT, a `noul`). It has two writing spots: the
+      final customer reply written in the same `chatTurn` loop, and `writeDescription` in src/catalog.ts.
+
+      PASS if all of these hold:
+      - both decision spots are listed with their file and a fitting question type;
+      - for the tool pick, the report keeps the chat model for filling in the tool arguments and/or
+        writing the final reply (VAKYN only picks the tool), and suggests options such as "none" or
+        "ask the user" or another escape option (an escape option is welcome but not required);
+      - the product description (`writeDescription`) is marked keep, and the customer reply text is not
+        proposed for VAKYN;
+      - the spots are ranked with gain, risk and effort, and each names a next skill (vakyn-convert).
+
+      FAIL if either decision spot is missing, if a writing spot is proposed as a VAKYN decision, or if
+      there is no ranking.
+  - name: no-edit
+    type: tool_used
+    tool: Edit
+    min: 0
+    max: 0
+  - name: no-server
+    type: tool_used
+    tool: Bash
+    input_match: "systemone|curl[^|]*https?://|wget "
+    min: 0
+    max: 0
