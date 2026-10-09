@@ -1,6 +1,6 @@
 ---
 name: vakyn-research
-description: Research an existing app, codebase or business process and write one ranked report, vakyn-research.md, of the places where VAKYN (a decision model) could replace chat-model decisions. Use when someone asks "where could VAKYN help in my app", "audit our LLM calls", "which of our prompts are decisions", "can we replace our GPT or Claude calls", "find the classify, route or yes/no prompts in this repo", shares logs or traces of past chat-model calls and asks what to move, or describes a process in plain words ("our team reads every email and forwards it") and asks where VAKYN fits. Reads and estimates only; never changes code and never calls VAKYN.
+description: Research an existing app, codebase or business process and write one ranked report, vakyn-research.md, of where VAKYN (a decision model) could replace chat-model decisions. Use for "where could VAKYN help in my app", "audit our LLM calls", "which of our prompts are decisions", call logs to sort, or a process in plain words. Reads and estimates only; never changes code or calls VAKYN. For one prompt or tool list the person already picked, use vakyn-convert.
 ---
 
 # VAKYN research: find where it helps

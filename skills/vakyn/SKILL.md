@@ -1,6 +1,6 @@
 ---
 name: vakyn
-description: Start here for anything about VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence. Use when someone asks whether VAKYN fits their problem, which model file to run, how to install or start open-server, how to get an API key, how to make a first call, or what the Jev-compatible API accepts and returns. Holds the API reference and the pre-send checklist the other vakyn skills use.
+description: Entry point for VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence. Use when someone asks whether VAKYN fits their problem, which model file to run, how to install or start open-server, get an API key or make a first call; what the Jev-compatible API accepts and returns; troubleshoots 401, 422, 429 or 503, out of GPU memory, or a server that won't start; or wants to move from hosted Jev or the TypeSafe SDK to their own server.
 ---
 
 # VAKYN: start here
@@ -28,6 +28,8 @@ for your own reasoning.
 | Make a first call | [First call](#first-call) below |
 | Know what the API accepts, returns and refuses | [API reference](references/api.md) |
 | Call it from Python or TypeScript | [SDK guide](references/sdk.md) |
+| Fix an error: `401`, `422`, `429`, `503`, out of GPU memory, server won't start | [Setup checks](references/setup.md#check), [API errors](references/api.md#errors) |
+| Move from hosted Jev or the TypeSafe SDK to their own server | [Differences from the hosted service](references/sdk.md#differences-from-the-hosted-jev-service) |
 | Find where VAKYN helps in an existing app | `vakyn-research` skill |
 | Write or fix questions | `vakyn-questions` skill |
 | Convert a prompt or a tool-calling app | `vakyn-convert` skill |
@@ -57,6 +59,9 @@ already have an app, then route with this table.
   `TYPESAFE_API_KEY` for the SDKs) or a git-ignored env file. Never ask the person to paste a key,
   never print one, never write one into a tracked file. If a key was pasted into the chat anyway,
   do not repeat it; tell them to revoke it (`vakyn keys revoke`) and create a new one.
+- **Never read or print `.env`.** No `cat`, no Read tool, no `grep` on it. Load it inside the one
+  command that needs it: `set -a; . ./.env; set +a; curl …`. To check a key is set, test it
+  without printing it: `[ -n "$VAKYN_API_KEY" ] && echo set`.
 - **Never invent answers.** If no server is reachable, say so and write the request and code
   anyway; do not make up probabilities or "expected" outputs.
 - **Check before sending.** Every request passes the [pre-send checklist](references/checklist.md).

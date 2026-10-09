@@ -1,6 +1,6 @@
 ---
 name: vakyn-questions
-description: Write and fix VAKYN questions. Use when someone is writing a VAKYN request and asks whether a judgment should be a noul (yes/no), choice or score; wants options, an escape option ("other", "none", "not enough evidence") or score levels written; asks what to put in the state; has a rule, threshold, date or sum inside a question; or got a VAKYN answer that looks wrong, unsure or confidently wrong ("why did it pick billing?", "why is the noul 0.4?") and wants the cause explained and the request rewritten. Also explains what confidence means.
+description: Write and fix VAKYN questions. Use when someone is writing a VAKYN request and asks whether a judgment should be a noul (yes/no), choice or score; wants options, an escape option ("other", "none", "not enough evidence") or score levels written; asks what to put in the state; has a rule, date or sum inside a question; or got a VAKYN answer that looks wrong, unsure or confidently wrong ("why did it pick billing?", "why is the noul 0.4?") and wants the cause and a rewrite. Also explains what confidence means.
 ---
 
 # VAKYN questions: write and fix
@@ -25,7 +25,8 @@ Field shapes, limits and errors: [API reference](../vakyn/references/api.md). Co
 | Has rules, sums, dates or thresholds in a question | [Move it into code](references/state.md#move-exact-work-into-code) |
 | Has several questions, some depending on others | [One request or two](references/question-types.md#one-request-or-two) |
 | Shows a request and an answer that looks wrong | [Diagnose and rewrite](references/diagnose.md) |
-| Asks what confidence means or where to set a threshold | [Confidence](references/confidence.md) |
+| Asks what confidence means | [Confidence](references/confidence.md) |
+| Asks where to set a threshold | the `vakyn-check` skill |
 
 ## Write a request
 

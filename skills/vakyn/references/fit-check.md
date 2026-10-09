@@ -11,7 +11,8 @@ VAKYN fits a step when **all three** hold:
    out of up to 10. If the output is a sentence, a summary or an email, it is writing, not a decision.
 2. **The evidence fits in the request.** The document and the question together stay under 32,768
    tokens (about 100 pages of plain text is too much; a ticket, a contract section, a page of a web
-   site, a log excerpt is fine). Longer material needs code to pick the relevant part first.
+   site, a log excerpt is fine). Longer material needs code to pick the relevant part first, or to
+   split it and ask per part ([long documents](../../vakyn-workflow/references/long-documents.md)).
 3. **A person could decide it by reading.** If a careful reader with the document in hand would
    agree on the answer, VAKYN can learn to give it. If it needs a database lookup, a calculation or
    live data, code does that part and passes the result in the state.

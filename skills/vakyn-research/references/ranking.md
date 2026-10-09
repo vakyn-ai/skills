@@ -20,9 +20,12 @@ Collect per spot:
 
 | Gain | When |
 |---|---|
-| High | 1,000+ calls a day, or a person waits on the answer, or it uses a large model on every call |
-| Medium | 100 to 1,000 calls a day |
-| Low | under 100 calls a day, background only |
+| High | 1,000+ calls a day; or 100 to 1,000 a day on a large model or with a person waiting on each answer |
+| Medium | 100 to 1,000 calls a day otherwise; or under 100 a day with a person waiting on each answer |
+| Low | under 100 calls a day otherwise, even on a large model |
+
+Volume comes first. Gain is the cost and wait that go away, and both grow with calls a day. A large
+model on a call that runs a few times a day costs little in total: that is not High gain by itself.
 
 VAKYN runs on the person's own server, so there is no per-call fee; the gain is the chat-model
 cost and wait time that goes away, plus a confidence on every answer. Do not quote VAKYN speed or

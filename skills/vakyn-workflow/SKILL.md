@@ -1,6 +1,6 @@
 ---
 name: vakyn-workflow
-description: Design a new VAKYN decision workflow from a plain-language task. Use when someone wants to build something new with VAKYN, such as a support-ticket or returns router, a triage of a batch of records by type and urgency, a next-tool or next-step picker for an assistant, a claim checker (is this statement backed by this document), a rubric grader, a best-match picker over search results or products, a risk flagger that sends messages to a person, or a form assistant that picks the next field. Produces the questions, the state builder, Python or TypeScript code with the official SDK, the batching and the path for unsure answers.
+description: Design a new VAKYN decision workflow from a plain-language task: the questions, state builder, Python or TypeScript code, batching and unsure path. Use for routing, categorize, triage, intent detection, moderation, guardrail, spam filter, next-tool or next-step pick for a new assistant, claim check (hallucination, grounding, fact-check), LLM-as-judge or eval grader, rubric grading, rerank or relevance filter, best match, risk flags, CI failure triage, alert triage, document intake, or form steps.
 ---
 
 # VAKYN workflow: design something new
@@ -47,7 +47,8 @@ person. Converting an existing prompt or tool-calling app is the `vakyn-convert`
    subject named (`state.message`). Rules, sums, dates and thresholds stay in code.
 5. **Write the state builder**: `build_state(record)` copies evidence from the person's data,
    each field under a plain name. No conclusions, no candidates that fail a hard rule
-   ([design](references/design.md#3-the-state-builder)).
+   ([design](references/design.md#3-the-state-builder)). Documents over 32,768 tokens: pick the
+   relevant part in code, or split and combine ([long documents](references/long-documents.md)).
 6. **Write the code** in the project's language (Python or TypeScript) with the official SDK,
    starting from the pattern's example. Batch by [dependency and volume](references/batching.md):
    independent questions in one request; dependent steps as separate requests; many records

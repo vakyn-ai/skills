@@ -25,8 +25,9 @@ then search for the wrapper's callers: each caller is a spot.
 | Raw HTTP | `/v1/chat/completions`, `/v1/messages`, `api.openai.com`, `api.anthropic.com`, `generativelanguage.googleapis.com` |
 | Others | `ollama`, `mistralai`, `cohere`, `groq`, `together`, `openrouter` |
 
-Also read config and env files (`.env.example`, `settings.py`, `config.ts`, YAML) for model names,
-and code comments, READMEs, cron and queue settings for how often each path runs.
+Also read config files (`.env.example`, `settings.py`, `config.ts`, YAML) for model names, and code
+comments, READMEs, cron and queue settings for how often each path runs. Never read `.env` itself:
+it holds keys.
 
 ## 2. Decision or writing
 
