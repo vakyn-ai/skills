@@ -19,6 +19,10 @@ Read the tool list first: [OpenAI](openai-tools.md), [Anthropic](anthropic-tools
 - **Draw the line between look-alike tools.** `get_invoice` and `refund_charge` both touch money:
   say when each is right ("…once the customer asked for money back and the charge is known").
   `open_incident` vs a personal problem: "an outage that affects many people, not one person".
+- **Say what must come first.** When one tool needs an id another tool finds, say so in both:
+  "Find a contact and their id…; needed first when the id is not known yet" and "Log a call with
+  a contact whose id is already known". Turns that need several tools still get lower confidence
+  than one-tool turns; that is the threshold doing its job.
 - **No description in the tool?** Write one from the name and what the app does with it. Ask the
   person if the name is unclear; never guess from the parameter names alone.
 - **Parameter schemas are never sent.** They add tokens and pull the pick toward tools with

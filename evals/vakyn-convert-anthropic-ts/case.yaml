@@ -32,12 +32,14 @@ graders:
     type: file_exists
     path: "toolPick.ts"
   - name: no-param-schema
-    type: regex
-    pattern: "origin_iata|passenger_ids|bag_count|input_schema"
-    match: not_contains
+    type: llm
     focus:
       source: file
       path: "next-tool.request.json"
+    criteria: |
+      PASS if this VAKYN request contains none of the tools' parameter names or schemas (for
+      example origin_iata, passenger_ids, bag_count, input_schema) and no JSON schema fields such as "properties"
+      or "required". FAIL if any appears.
   - name: request
     type: llm
     focus:

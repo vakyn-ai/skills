@@ -29,12 +29,14 @@ graders:
     type: file_exists
     path: "next-tool.request.json"
   - name: no-param-schema
-    type: regex
-    pattern: "call_notes_md|amount_eur|due_date_iso|inputSchema"
-    match: not_contains
+    type: llm
     focus:
       source: file
       path: "next-tool.request.json"
+    criteria: |
+      PASS if this VAKYN request contains none of the tools' parameter names or schemas (for
+      example call_notes_md, amount_eur, due_date_iso, inputSchema) and no JSON schema fields such as "properties"
+      or "required". FAIL if any appears.
   - name: rollout
     type: llm
     criteria: |
