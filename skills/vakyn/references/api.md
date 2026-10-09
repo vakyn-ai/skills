@@ -45,18 +45,18 @@ There is no streaming and no batch endpoint: send independent requests concurren
 {
   "model": "VAKYN-4B",
   "answers": {
-    "team":    {"type": "choice", "choice": "billing", "confidence": 0.97,
-                "probabilities": {"billing": 0.98, "access": 0.01, "other": 0.01}, "stats": {}},
-    "refund":  {"type": "noul", "noul": 0.93, "stats": {}},
+    "team":    {"type": "choice", "choice": "billing", "confidence": 1.0,
+                "probabilities": {"billing": 1.0, "access": 0.0, "other": 0.0}, "stats": {}},
+    "refund":  {"type": "noul", "noul": 1.0, "stats": {}},
     "urgency": {"type": "score", "score": 1.12, "legend": {"0": "Can wait", "1": "Today", "2": "Within the hour"},
-                "probabilities": {"0": 0.12, "1": 0.64, "2": 0.24}, "confidence": 0.64, "stats": {}}
+                "probabilities": {"0": 0.12, "1": 0.64, "2": 0.24}, "confidence": 0.46, "stats": {}}
   },
-  "usage": {"input_tokens": 98, "output_tokens": 0},
+  "usage": {"input_tokens": 87, "output_tokens": 0},
   "assets_used": null
 }
 ```
 
-(Numbers here show the shape; they are not a recorded answer.)
+(The answer VAKYN-4B gave to the request above.)
 
 - `noul`: probability that the answer is yes. There is no separate confidence: distance from 0.5
   is the confidence.
