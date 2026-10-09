@@ -33,7 +33,7 @@ make eval CASE='vakyn-limits'  # one case (one name or glob)
 | Type | Use for |
 |---|---|
 | `llm` | the main judgment: did the answer do the right thing. Write PASS and FAIL conditions. |
-| `regex` with `match: not_contains` | things that must never appear (a key, GGUF, invented numbers) |
+| `regex` with `match: not_contains` | things that must never appear in the final message (a key, GGUF, invented numbers); it cannot read a saved file, use `llm` with `focus` for that |
 | `file_exists` with `path: "*.json"` | the agent saved what it was asked to save |
 | `tool_used` | the agent used a tool; for "never used", set both `min: 0` and `max: 0` |
 
