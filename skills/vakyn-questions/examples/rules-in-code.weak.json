@@ -1,0 +1,16 @@
+{
+  "model": "jev-latest",
+  "state": "Customer: I need a quiet kettle for our office kitchen, under $50 including $6 shipping, delivered by Friday. Today is Tuesday 14 October. Products: 1) Hushpot 1.5L, $46 + $6 shipping, delivered 16 October, whisper-quiet, the quietest kettle we sell. 2) Steelbrew 1.7L, $41 + $6 shipping, delivered 24 October, quiet boil. 3) Calmkettle 1.7L, $43 + $6 shipping, delivered 17 October, quiet boil mode. 4) Rapidboil Pro, $38 + $6 shipping, delivered 15 October, 3000 W, loud.",
+  "questions": {
+    "best": {
+      "type": "choice",
+      "instructions": "Which product matches best? Answer option 1, 2, 3 or 4.",
+      "criteria": {
+        "option_1": "first product",
+        "option_2": "second product",
+        "option_3": "third product",
+        "option_4": "fourth product"
+      }
+    }
+  }
+}

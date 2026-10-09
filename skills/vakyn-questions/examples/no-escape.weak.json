@@ -1,0 +1,15 @@
+{
+  "model": "jev-latest",
+  "state": "Hi there, I run a small design studio and would love to talk about featuring your app in our newsletter. We reach about 8,000 product designers. Who is the right person to talk to about a partnership?",
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which team?",
+      "criteria": {
+        "billing": "Billing",
+        "access": "Access",
+        "product": "Product"
+      }
+    }
+  }
+}

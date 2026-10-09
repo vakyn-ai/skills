@@ -1,0 +1,19 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "channel": "support form",
+    "message": "Hi there, I run a small design studio and would love to talk about featuring your app in our newsletter. We reach about 8,000 product designers. Who is the right person to talk to about a partnership?"
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which support team should handle state.message?",
+      "criteria": {
+        "billing": "Invoices, charges, refunds and plan changes for an existing customer",
+        "access": "Signing in, passwords, two-factor codes and team permissions",
+        "product": "Bugs, errors and how-to questions about using the app",
+        "other": "Anything that is not a support request for these teams: sales, partnerships, press, job applications, spam"
+      }
+    }
+  }
+}

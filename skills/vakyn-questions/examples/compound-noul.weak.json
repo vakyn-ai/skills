@@ -1,0 +1,10 @@
+{
+  "model": "jev-latest",
+  "state": "Hello, the blender I ordered arrived yesterday and works fine, but it is the wrong color. I would like my money back please, I can send it back this week. Thanks so much for your help!",
+  "questions": {
+    "escalate": {
+      "type": "noul",
+      "instructions": "Is the customer angry and asking for a refund?"
+    }
+  }
+}

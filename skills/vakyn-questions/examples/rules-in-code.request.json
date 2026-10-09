@@ -1,0 +1,21 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "customer_request": "I need a quiet kettle for our office kitchen.",
+    "candidates": {
+      "calmkettle_17": "Calmkettle 1.7L, quiet boil mode",
+      "rapidboil_pro": "Rapidboil Pro 1.7L, 3000 W, loud"
+    }
+  },
+  "questions": {
+    "best_match": {
+      "type": "choice",
+      "instructions": "Which kettle in state.candidates best fits state.customer_request? Every candidate is already within budget and arrives in time.",
+      "criteria": {
+        "calmkettle_17": "Calmkettle 1.7L, quiet boil mode",
+        "rapidboil_pro": "Rapidboil Pro 1.7L, 3000 W, loud",
+        "no_match": "None of the candidates fits what the customer asked for"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "message": "Hello, the blender I ordered arrived yesterday and works fine, but it is the wrong color. I would like my money back please, I can send it back this week. Thanks so much for your help!"
+  },
+  "questions": {
+    "angry": {
+      "type": "noul",
+      "instructions": "Does the writer of state.message sound angry?",
+      "criteria": {
+        "true": "The message shows anger, frustration or a threat, for example blame, insults or all caps",
+        "false": "The message is calm, neutral or friendly, even if it reports a problem"
+      }
+    },
+    "refund": {
+      "type": "noul",
+      "instructions": "Does state.message ask for money back?",
+      "criteria": {
+        "true": "Asks for a refund, a chargeback or money returned",
+        "false": "Asks for something else: a replacement, store credit, a repair, or nothing"
+      }
+    }
+  }
+}

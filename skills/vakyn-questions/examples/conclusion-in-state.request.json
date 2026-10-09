@@ -1,0 +1,21 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "plan": "business, 40 seats",
+    "latest_email": "We have been comparing a few other tools this month. Our contract renews on the 1st and honestly the export issues have cost us a lot of time. Can you send me the steps to download all our data?",
+    "open_tickets": ["Export to CSV times out on large projects (open 19 days)"]
+  },
+  "questions": {
+    "churn_risk": {
+      "type": "score",
+      "instructions": "How likely is the customer in state.latest_email to leave at renewal?",
+      "criteria": [
+        "No sign of leaving: content, or asking routine questions",
+        "Mild friction: complains about a problem but shows no intent to leave",
+        "Looking around: mentions alternatives, renewal doubts or budget review",
+        "Preparing to leave: compares other tools and asks to export data or cancel",
+        "Leaving: says they are cancelling or will not renew"
+      ]
+    }
+  }
+}

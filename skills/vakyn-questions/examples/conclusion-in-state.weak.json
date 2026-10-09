@@ -1,0 +1,14 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "account_health": "Green. Customer is happy, no action needed.",
+    "latest_email": "We have been comparing a few other tools this month. Our contract renews on the 1st and honestly the export issues have cost us a lot of time. Can you send me the steps to download all our data?"
+  },
+  "questions": {
+    "churn_risk": {
+      "type": "score",
+      "instructions": "Rate the churn risk from 1 to 5.",
+      "criteria": ["1", "2", "3", "4", "5"]
+    }
+  }
+}
