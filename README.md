@@ -1,4 +1,6 @@
-# VAKYN skills for Claude Code
+# VAKYN skills
+
+For Claude Code, Codex, Cursor and OpenCode.
 
 Find the decisions a chat model makes in your app, move them to VAKYN, and check the result on
 your own data before you switch.
@@ -17,7 +19,7 @@ Does it ask for a refund?        noul   → yes       1.00
 How soon does it need a reply?   score  → today     0.64   (can wait 0.12 · within the hour 0.24)
 ```
 
-The six skills in this plugin teach Claude Code to build with it.
+These ten skills teach your coding agent to build with it.
 
 ## Install (30 seconds)
 
@@ -27,6 +29,12 @@ claude plugin install vakyn@vakyn-ai
 ```
 
 Run `/reload-plugins` in an open session, or start a new one.
+
+Codex, Cursor or OpenCode, from your project folder:
+
+```bash
+npx skills add vakyn-ai/skills --skill '*' -a codex -a cursor -a opencode
+```
 
 No VAKYN server yet? Ask Claude:
 
@@ -46,6 +54,8 @@ Make VAKYN pick the tool in agent.py.
 Build a router for our returns emails.
 Why did it pick billing for this message?
 Here's a week of side-by-side logs. Can we switch?
+Label the 40,000 rows in reviews.csv by topic and sentiment.
+Grade our support bot's replies with this rubric and gate the CI on it.
 ```
 
 Or call one directly: `/vakyn:vakyn-convert`.
@@ -73,20 +83,24 @@ Next: run vakyn-convert on the routing spot, then test it with vakyn-check on ab
 
 ## The skills
 
-| Skill | What it does |
-|---|---|
-| `vakyn` | Checks if VAKYN fits, picks a model file, sets up the server, makes a first call. |
-| `vakyn-research` | Finds the decisions in your app or process and ranks them in `vakyn-research.md`. Changes nothing. |
-| `vakyn-questions` | Picks `noul`, `choice` or `score`, writes options and levels, fixes a bad answer. |
-| `vakyn-convert` | Turns a prompt or a tool list (OpenAI, Anthropic, MCP) into VAKYN calls and Python or TypeScript code. |
-| `vakyn-workflow` | Designs a new decision workflow: route, triage, pick a tool, check a claim, rate with a rubric, pick the best match, spot risk, fill a form. |
-| `vakyn-check` | Runs a 30-record test against your chat model, reads side-by-side logs, sets confidence thresholds, reviews before go-live. |
+| | Skill | What it does |
+|---|---|---|
+| **Start** | `vakyn` | Checks if VAKYN fits, picks a model file, sets up the server, makes a first call. |
+| **Find** | `vakyn-research` | Finds the decisions in your app or process and ranks them in `vakyn-research.md`. Changes nothing. |
+| **Build** | `vakyn-questions` | Picks `noul`, `choice` or `score`, writes options and levels, fixes a bad answer. |
+| | `vakyn-convert` | Turns a prompt or a tool list (OpenAI, Anthropic, MCP) into VAKYN calls and Python or TypeScript code. |
+| | `vakyn-workflow` | Designs a new decision workflow: route, triage, pick a tool, check a claim, rate with a rubric, pick the best match, spot risk, fill a form. |
+| | `vakyn-cascade` | A cheap chat model drafts, VAKYN checks the draft against its sources, only failed drafts go to the expensive model. |
+| | `vakyn-judge` | Grades chat-model or agent outputs against your rubric, aligns it with your experts, runs in CI. |
+| | `vakyn-batch` | Runs a CSV, Parquet or SQL table through VAKYN: pilot, resume, progress, answer columns, a review file for unsure rows. |
+| | `vakyn-migrate` | Moves code from hosted decision APIs to your own server and points framework adapters at it. |
+| **Prove** | `vakyn-check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
 
 A typical path:
 
 1. `vakyn-research` finds where VAKYN fits.
-2. `vakyn-convert` moves what you have, or `vakyn-workflow` builds something new.
-3. `vakyn-check` proves it on your data before you switch.
+2. `vakyn-convert`, `vakyn-workflow`, `vakyn-cascade` or `vakyn-judge` builds it; `vakyn-batch` runs it over what you already have.
+3. `vakyn-check` proves it on your data before you switch, and again after every change.
 
 ## What the skills always do
 
@@ -133,17 +147,12 @@ claude plugin update vakyn@vakyn-ai
 </details>
 
 <details>
-<summary><strong>Other coding agents</strong></summary>
+<summary><strong>Other coding agents: details</strong></summary>
 
-Codex, Cursor and OpenCode, from your project folder:
-
-```bash
-npx skills add vakyn-ai/skills --skill '*' -a codex -a cursor -a opencode
-```
-
-The skills land in `.agents/skills/`, which all three read. Add `-g` for every project. Install
-all of them: they link to each other. Update with `npx skills update -y`, remove with
-`npx skills remove --all`. Details: [docs/install-other-agents.md](docs/install-other-agents.md).
+The skills land in `.agents/skills/`, which Codex, Cursor and OpenCode all read. Add `-g` for
+every project. Install all of them: they link to each other. Update with `npx skills update -y`,
+remove with `npx skills remove --all`. Details: [docs/install-other-agents.md](docs/install-other-agents.md).
+Want another agent? Open an issue and say which.
 
 </details>
 
