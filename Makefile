@@ -17,8 +17,10 @@ test: ## Offline checks: manifests, skills, links, voice, example requests
 test-live: ## Send every example request to VAKYN_BASE_URL (needs VAKYN_API_KEY)
 	python3 tests/live.py
 
-eval: ## Run skill evals in headless Claude Code (uses your Claude account)
-	claude plugin eval . --trust-plugin --runs $(or $(RUNS),1) --allow-tools Bash Write Edit --no-publish $(if $(CASE),--case '$(CASE)')
+eval: ## Run skill evals in headless Claude Code, then send the requests they wrote to VAKYN_BASE_URL
+	-claude plugin eval . --trust-plugin --runs $(or $(RUNS),1) -j $(or $(JOBS),4) --ablation none --allow-tools Bash Write Edit \
+		--no-publish --keep-temp --json evals/last.json $(if $(CASE),--case '$(CASE)') $(if $(TAG),--tag $(TAG))
+	python3 tests/eval_live.py evals/last.json
 
 version: ## Show current version
 	@grep '"version"' $(PLUGIN_JSON) | head -1 | sed 's/.*: *"\(.*\)".*/\1/'

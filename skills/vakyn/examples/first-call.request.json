@@ -1,0 +1,29 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "channel": "email",
+    "customer": {"plan": "team", "seats": 12},
+    "message": "Since this morning nobody on our team can sign in. We have a client demo at 3pm."
+  },
+  "questions": {
+    "outage": {
+      "type": "noul",
+      "instructions": "Does state.message say the customer cannot use the product right now?"
+    },
+    "team": {
+      "type": "choice",
+      "instructions": "Which team should handle state.message?",
+      "criteria": {
+        "billing": "Invoices, charges and refunds",
+        "access": "Sign-in, passwords and permissions",
+        "product": "Bugs and how-to questions",
+        "other": "None of these teams fits"
+      }
+    },
+    "urgency": {
+      "type": "score",
+      "instructions": "How soon does state.message need a reply?",
+      "criteria": ["Can wait a few days", "Today", "Within the hour"]
+    }
+  }
+}
