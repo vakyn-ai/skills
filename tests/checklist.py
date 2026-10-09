@@ -9,7 +9,7 @@ import re
 
 TYPES = {"noul", "choice", "score"}
 ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
-ESCAPE_WORDS = ("none", "other", "unknown", "unclear", "not_enough", "ask_user", "needs_", "no_match", "no_good", "cannot", "neither")
+ESCAPE_WORDS = ("none", "other", "unknown", "unclear", "not_enough", "ask_user", "needs_", "no_match", "no_good", "cannot", "not_in_", "neither")
 POSITIONAL_RE = re.compile(r"\b(option|item|candidate|choice)\s+\d+\b|\bthe (first|second|third|last) (option|item|one)\b", re.I)
 # Rough token estimate: ~3.5 characters per token for English JSON.
 CHARS_PER_TOKEN = 3.5
