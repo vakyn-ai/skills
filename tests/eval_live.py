@@ -47,13 +47,44 @@ def kept_dir(trace_path):
     return d if d.name.startswith("claude-eval-") and str(d).startswith("/tmp/") else None
 
 
-def remove_kept(d):
-    # The runner leaves kept sandboxes read-only (some parts mode 000); open them, then delete.
+def open_kept(d):
+    # The runner leaves kept sandboxes read-only (some parts mode 000); open them for reading.
     os.chmod(d, stat.S_IRWXU)
     for root, dirs, _ in os.walk(d):  # top-down: each dir is opened before the walk enters it
         for name in dirs:
             p = os.path.join(root, name)
             os.chmod(p, os.stat(p).st_mode | stat.S_IRWXU)
+
+
+def workspace_requests(trace_path):
+    """Yield (file_name, request) for JSON requests left in the run's folder.
+
+    Catches requests an agent wrote with a script rather than the Write tool. The runner seals
+    the agent's home under <kept>/sealed/, so look in both places.
+    """
+    d = kept_dir(trace_path)
+    if not d:
+        return
+    open_kept(d)
+    for base in (d / "sealed" / "home" / "cwd", d / "home" / "cwd"):
+        for f in sorted(base.rglob("*.json")) if base.exists() else []:
+            try:
+                body = json.loads(f.read_text())
+            except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+                continue
+            if isinstance(body, dict) and "questions" in body:
+                yield f.name, body
+
+
+def run_requests(trace_path):
+    """Requests from the trace, then the run's folder; a file's final state wins by name."""
+    found = dict(written_requests(trace_path))
+    found.update(workspace_requests(trace_path))
+    return found.items()
+
+
+def remove_kept(d):
+    open_kept(d)
     shutil.rmtree(d, ignore_errors=True)
 
 
@@ -69,7 +100,7 @@ def main(result_file):
                 continue
             if kept_dir(trace):
                 kept.add(kept_dir(trace))
-            for fname, body in written_requests(trace):
+            for fname, body in run_requests(trace):
                 checked += 1
                 errors, warnings = check(body)
                 problems = list(errors)
