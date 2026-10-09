@@ -1,0 +1,50 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "task": "Answer an employee's question using only the handbook passages retrieved for it.",
+    "input": "How many days of parental leave do I get, and is it paid?",
+    "output": "You get 16 weeks of parental leave at full pay, and you can take it any time in the first year after the birth or adoption. You can also add up to 4 weeks of unpaid leave.",
+    "sources": [
+      {
+        "id": "hb-4.2",
+        "text": "Parental leave: every employee who becomes a parent by birth or adoption may take 16 weeks of leave at full pay within 12 months of the birth or adoption."
+      },
+      {
+        "id": "hb-4.3",
+        "text": "Parental leave may be taken in up to three blocks. Tell your manager at least four weeks before each block starts."
+      }
+    ],
+    "rules": [
+      "Answers use only the sources.",
+      "Every number in the answer must appear in the sources."
+    ]
+  },
+  "questions": {
+    "answers_question": {
+      "type": "noul",
+      "instructions": "Does state.output answer the question in state.input?",
+      "criteria": {
+        "true": "Gives the amount of leave and says whether it is paid",
+        "false": "Leaves out the amount or the pay, or answers something else"
+      }
+    },
+    "grounded": {
+      "type": "choice",
+      "instructions": "Are the claims in state.output backed by state.sources?",
+      "criteria": {
+        "supported": "Every claim in the answer is stated in state.sources",
+        "unsupported": "At least one claim is not in state.sources, though none conflicts with them",
+        "contradicted": "At least one claim conflicts with state.sources",
+        "not_enough_evidence": "state.sources are empty, cut off or about another topic, so the claims cannot be checked"
+      }
+    },
+    "complete": {
+      "type": "noul",
+      "instructions": "Does state.output include every condition in state.sources that the employee needs to act on?",
+      "criteria": {
+        "true": "Mentions the limits and steps in state.sources that apply to taking the leave",
+        "false": "Leaves out a limit or step from state.sources that the employee would need"
+      }
+    }
+  }
+}

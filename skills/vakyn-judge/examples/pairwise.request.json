@@ -1,0 +1,28 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "task": "Reply to a customer of a weekly meal-kit delivery service.",
+    "input": "I want to skip next week's box. Today is Monday.",
+    "reply_a": "Done: next week's box is skipped at no charge. Your deliveries carry on the week after.",
+    "reply_b": "You can skip boxes in the app. Let us know if you have other questions.",
+    "rules": [
+      "A missing or damaged box reported within 48 hours of delivery gets a full credit or a free replacement box, the customer's pick.",
+      "A missing or damaged box reported later than 48 hours after delivery gets a 50% credit.",
+      "Credits and replacement boxes are the only remedies; never refund money to the card.",
+      "Skipping or pausing a week is free when done before Wednesday 23:59 for the next week's box.",
+      "Never ask the customer for a password, a full card number or a card security code.",
+      "Do not promise a delivery hour; give the delivery day and the 8:00-20:00 window."
+    ]
+  },
+  "questions": {
+    "better_reply": {
+      "type": "choice",
+      "instructions": "Which reply would serve the customer in state.input better, given state.rules?",
+      "criteria": {
+        "reply_a": "state.reply_a serves the customer better",
+        "reply_b": "state.reply_b serves the customer better",
+        "neither": "Both serve the customer equally well or equally badly"
+      }
+    }
+  }
+}

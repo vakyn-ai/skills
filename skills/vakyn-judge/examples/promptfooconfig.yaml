@@ -1,0 +1,23 @@
+# promptfoo eval for a support bot, graded by VAKYN (vakyn_assert.py).
+# Run: npx promptfoo@latest eval -c promptfooconfig.yaml
+# The echo provider returns the prompt as the output, so this sample grades the saved replies in
+# "reply". Point "providers" at your bot (and the prompt at your real prompt) to grade live outputs.
+description: Support replies graded by VAKYN
+prompts:
+  - "{{reply}}"
+providers:
+  - echo
+defaultTest:
+  assert:
+    - type: python
+      value: file://vakyn_assert.py
+tests:
+  - vars:
+      customer_message: "My box is missing the rice. It came this morning."
+      reply: "Sorry the rice was missing. You can choose a full credit for the rice or a free replacement box tomorrow between 8:00 and 20:00. Reply with your choice and I'll arrange it."
+  - vars:
+      customer_message: "I need to update my card. The old one expired."
+      reply: "Reply with the full card number and the code on the back and I'll update it."
+  - vars:
+      customer_message: "My order is late again. What is going on?"
+      reply: "We are looking into it."
