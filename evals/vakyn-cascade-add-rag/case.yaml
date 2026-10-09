@@ -1,0 +1,97 @@
+schema_version: "1.0"
+name: vakyn-cascade-add-rag
+tags: [vakyn-cascade]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our employee handbook bot answers HR questions. Every question goes to our big model and the
+    bill is getting heavy. Here is the code:
+
+    ```python
+    from openai import OpenAI
+
+    client = OpenAI()
+
+    def retrieve(question: str) -> list[dict]:
+        """Top handbook sections for the question: [{"section": "4.2 Parental leave", "text": "..."}]."""
+        return search_index.query(question, k=5)
+
+    def answer(question: str) -> str:
+        sections = retrieve(question)
+        resp = client.chat.completions.create(
+            model="big-model",
+            messages=[
+                {"role": "system", "content": "Answer the employee's question using only the handbook sections given."},
+                {"role": "user", "content": f"Sections: {sections}\n\nQuestion: {question}"},
+            ],
+        )
+        return resp.choices[0].message.content
+    ```
+
+    We also have access to "small-model" on the same API. Can we let the small model answer and only
+    use the big one when needed, with VAKYN checking? Write the new code as `handbook_cascade.py` in
+    this folder. Also save the VAKYN request for this sample as `draft-check.request.json`: the
+    question is "How many days of paid parental leave do I get?", the retrieved section is
+    "4.2 Parental leave: Employees with at least 6 months of service get 16 weeks of paid parental
+    leave. Leave can start up to 2 weeks before the expected birth or adoption date." and the small
+    model's draft is "You get 16 weeks of paid parental leave, and you can take it any time in the
+    first two years."
+graders:
+  - name: request-saved
+    type: file_exists
+    path: "draft-check.request.json"
+  - name: code-saved
+    type: file_exists
+    path: "handbook_cascade.py"
+  - name: request-state
+    type: llm
+    focus:
+      source: file
+      path: "draft-check.request.json"
+    criteria: |
+      This file is a VAKYN request: JSON with "model", "state" and "questions". You grade only its
+      structure. The draft answer inside it is deliberately wrong (it invents "any time in the
+      first two years"); that is the test input, not a reason to fail.
+      PASS if its "state" object contains the employee's question, the handbook text, and the
+      small model's draft answer, as separate fields. FAIL if any of the three is missing.
+  - name: request-question
+    type: llm
+    focus:
+      source: file
+      path: "draft-check.request.json"
+    criteria: |
+      This file is a VAKYN request: JSON with "model", "state" and "questions". You grade only its
+      structure. The draft answer inside it is deliberately wrong; that is the test input, not a
+      reason to fail.
+      PASS if "questions" has a question of type "choice" that asks whether the draft is backed by
+      the sources, and its "criteria" object has at least these kinds of options, each with a short
+      description: one meaning the draft is supported, one meaning it states something the sources
+      do not back, and one meaning the sources do not contain the answer. Extra options and extra
+      per-sentence questions are fine. FAIL otherwise.
+  - name: code
+    type: llm
+    focus:
+      source: file
+      path: "handbook_cascade.py"
+    criteria: |
+      Judge this Python file.
+      PASS if all hold:
+      - the small model drafts from the retrieved sections, and VAKYN (typesafe_sdk / TypeSafeClient,
+        or HTTP to /v1/systemone) checks the draft against those same sections;
+      - only a "supported" verdict at or above a confidence threshold that is a named setting
+        accepts the small model's draft;
+      - other verdicts go to the big model; the big model's answer is checked once more, and if it
+        also fails it goes to a person or review queue (or another explicit end), with no loop or
+        repeated retries;
+      - a "sources do not contain the answer" verdict has its own path (decline reply or a person)
+        or is at least handled explicitly;
+      - a side-by-side or shadow mode exists and is the default: the big model's answer is still
+        used while the small draft and VAKYN's verdict are logged; a setting switches to the cascade;
+      - it logs one JSON line per request with VAKYN's verdict, confidence and request id, whether
+        it escalated, and token usage per model;
+      - if VAKYN fails, the code falls back to the big model instead of crashing.
+      FAIL if any is missing, if the cascade (sending small drafts) is the default, or if it hard-codes
+      dollar prices it was not given.

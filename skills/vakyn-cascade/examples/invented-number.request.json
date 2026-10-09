@@ -1,0 +1,29 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "question": "I bought the annual plan last week by mistake. Can I get my money back?",
+    "sources": [
+      {
+        "id": "kb-112",
+        "text": "Refunds for annual plans. If you cancel an annual Tallyfox plan within 14 days of the purchase date, we refund the full amount to the card used for the purchase. After 14 days, annual plans are not refunded; the plan stays active until the end of the paid year. Monthly plans are never refunded. To ask for a refund, open Settings > Billing and choose Cancel plan."
+      },
+      {
+        "id": "kb-087",
+        "text": "Changing your plan. You can switch from monthly to annual billing at any time in Settings > Billing. The unused part of the current month is credited to the annual price. Switching from annual to monthly takes effect at the end of the paid year."
+      }
+    ],
+    "draft": "Yes. You are within 14 days of buying it, so cancel in Settings > Billing (Cancel plan). The full amount is back on your card within 3 business days."
+  },
+  "questions": {
+    "verdict": {
+      "type": "choice",
+      "instructions": "Is the draft answer in state.draft backed by state.sources, as an answer to state.question?",
+      "criteria": {
+        "supported": "Every sentence in the draft is stated in the sources, and the draft answers the question",
+        "unsupported": "At least one sentence in the draft states something the sources do not say or say differently: a number, a date, a step, a promise",
+        "cannot_answer_from_sources": "The sources do not contain the answer to the question, whatever the draft says",
+        "off_topic": "The draft does not answer the question that was asked"
+      }
+    }
+  }
+}

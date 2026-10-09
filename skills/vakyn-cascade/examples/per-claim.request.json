@@ -1,0 +1,77 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "question": "We are on monthly billing. How do we switch to annual and what happens to this month?",
+    "sources": [
+      {
+        "id": "kb-087",
+        "text": "Changing your plan. You can switch from monthly to annual billing at any time in Settings > Billing. The unused part of the current month is credited to the annual price. Switching from annual to monthly takes effect at the end of the paid year."
+      }
+    ],
+    "draft": "You can switch to annual billing at any time. Open Settings > Billing and choose annual. The unused part of this month is credited to the annual price. You also get 10% off the annual price when you switch. The change applies right away.",
+    "claims": {
+      "c1": "You can switch to annual billing at any time.",
+      "c2": "Open Settings > Billing and choose annual.",
+      "c3": "The unused part of this month is credited to the annual price.",
+      "c4": "You also get 10% off the annual price when you switch.",
+      "c5": "The change applies right away."
+    }
+  },
+  "questions": {
+    "verdict": {
+      "type": "choice",
+      "instructions": "Is the draft answer in state.draft backed by state.sources, as an answer to state.question?",
+      "criteria": {
+        "supported": "Every sentence in the draft is stated in the sources, and the draft answers the question",
+        "unsupported": "At least one sentence in the draft states something the sources do not say or say differently: a number, a date, a step, a promise",
+        "cannot_answer_from_sources": "The sources do not contain the answer to the question, whatever the draft says",
+        "off_topic": "The draft does not answer the question that was asked"
+      }
+    },
+    "c1": {
+      "type": "choice",
+      "instructions": "Is the sentence in state.claims.c1 backed by state.sources?",
+      "criteria": {
+        "supported": "The sources state this sentence",
+        "contradicted": "The sources state something that makes this sentence false",
+        "not_in_sources": "The sources do not say enough to back or refute this sentence"
+      }
+    },
+    "c2": {
+      "type": "choice",
+      "instructions": "Is the sentence in state.claims.c2 backed by state.sources?",
+      "criteria": {
+        "supported": "The sources state this sentence",
+        "contradicted": "The sources state something that makes this sentence false",
+        "not_in_sources": "The sources do not say enough to back or refute this sentence"
+      }
+    },
+    "c3": {
+      "type": "choice",
+      "instructions": "Is the sentence in state.claims.c3 backed by state.sources?",
+      "criteria": {
+        "supported": "The sources state this sentence",
+        "contradicted": "The sources state something that makes this sentence false",
+        "not_in_sources": "The sources do not say enough to back or refute this sentence"
+      }
+    },
+    "c4": {
+      "type": "choice",
+      "instructions": "Is the sentence in state.claims.c4 backed by state.sources?",
+      "criteria": {
+        "supported": "The sources state this sentence",
+        "contradicted": "The sources state something that makes this sentence false",
+        "not_in_sources": "The sources do not say enough to back or refute this sentence"
+      }
+    },
+    "c5": {
+      "type": "choice",
+      "instructions": "Is the sentence in state.claims.c5 backed by state.sources?",
+      "criteria": {
+        "supported": "The sources state this sentence",
+        "contradicted": "The sources state something that makes this sentence false",
+        "not_in_sources": "The sources do not say enough to back or refute this sentence"
+      }
+    }
+  }
+}

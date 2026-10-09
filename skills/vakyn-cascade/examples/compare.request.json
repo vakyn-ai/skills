@@ -1,0 +1,20 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "question": "How do I export all my invoices from last year?",
+    "reference_answer": "Open Reports > Invoices, set the date range to last year and choose Export, as CSV or PDF. If there are more than 500 invoices, you get the download link by email.",
+    "draft": "Go to Reports > Invoices, pick last year as the date range and choose Export."
+  },
+  "questions": {
+    "match": {
+      "type": "choice",
+      "instructions": "Compared with the reference answer in state.reference_answer, how does the draft in state.draft answer state.question?",
+      "criteria": {
+        "same_answer": "The draft gives the same answer with the same facts, numbers and steps as the reference; wording may differ",
+        "draft_incomplete": "The draft gives the same answer but leaves out a fact or step that the reference gives",
+        "different_answer": "The draft gives a different answer, or a different fact, number or step, than the reference",
+        "cannot_compare": "The draft or the reference does not answer the question"
+      }
+    }
+  }
+}
