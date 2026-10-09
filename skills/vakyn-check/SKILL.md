@@ -81,12 +81,21 @@ records from the real flow; never public benchmarks. Template: [calibration.py](
 
 ## Drift check
 
-Save a reference batch once (100–300 representative records, answers stored with question hash,
-model name, model file, request id) at concurrency 1 or 2. Re-run it after any change to the model
-file, server, question text or state builder; report picks changed, mean change, threshold
-crossings, picks per option and the changed records biggest first. Moves within the noise
-tolerance do not count. Pass or fail against the person's limits; in CI on pull requests that touch
-questions. Template: [drift.py](examples/drift.py), [drift-ci.yml](examples/drift-ci.yml).
+A plan or report for a drift check always says, in plain words:
+
+1. **Reference batch**: 100–300 representative records, answers saved once on the setup they
+   trust, each stored with model name, model file, question text hash and request id (so a later
+   run shows what changed).
+2. **Concurrency 1 or 2** for the save and every re-run, and why: under concurrent load numbers can
+   move slightly between runs ([measured](../vakyn/references/api.md)).
+3. **Noise tolerance** (0.05): smaller moves with the same pick are not drift.
+4. **Report**: picks changed, mean change, threshold crossings, picks per option, changed records
+   biggest first; pass or fail against limits the person sets.
+5. **When**: after any change to model file, server, question text or state builder, and in CI on
+   pull requests that touch questions (key from a secret).
+
+Details: [drift check](references/drift.md). Template: [drift.py](examples/drift.py),
+[drift-ci.yml](examples/drift-ci.yml).
 
 ## Go-live review
 
