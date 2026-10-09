@@ -36,7 +36,7 @@ Codex, Cursor or OpenCode, from your project folder:
 npx skills add vakyn-ai/skills --skill '*' -a codex -a cursor -a opencode
 ```
 
-No VAKYN server yet? Ask Claude:
+No VAKYN server yet? Ask your agent:
 
 ```
 Set up VAKYN on this machine.
@@ -46,7 +46,7 @@ It picks the model file for your hardware and walks you through install, start a
 
 ## Try it
 
-Ask in plain words. Claude picks the skill.
+Ask in plain words. Your agent picks the skill.
 
 ```
 Where could VAKYN help in this repo?
@@ -111,7 +111,7 @@ A typical path:
 - **Give unsure answers a path:** a person, a chat model, or a review queue.
 - **Run side by side first.** A converted app keeps using your chat model and logs both answers
   until you switch.
-- **Never invent answers.** If your server is not reachable, Claude says so and still writes the
+- **Never invent answers.** If your server is not reachable, the agent says so and still writes the
   request and the code.
 - **Keep your key out of the chat.** It lives in `VAKYN_API_KEY` (or `TYPESAFE_API_KEY` for the
   official SDKs).
@@ -130,7 +130,7 @@ with VAKYN's Jev-compatible API once their base URL points at your server.
 
 ## What you need
 
-- Claude Code.
+- Claude Code, Codex, Cursor or OpenCode.
 - A running VAKYN server ([open-server](https://github.com/vakyn-ai/open-server)) with a model
   file and an API key. The `vakyn` skill sets this up for you.
 
