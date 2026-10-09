@@ -1,0 +1,31 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "assistant": "Support assistant for Lumen, a reporting app. It calls one tool at a time.",
+    "user_request": "it doesnt work again",
+    "recent_turns": [
+      {
+        "role": "user",
+        "text": "it doesnt work again"
+      }
+    ],
+    "tools_already_called": [],
+    "last_tool_result": "none yet"
+  },
+  "questions": {
+    "next_tool": {
+      "type": "choice",
+      "instructions": "Which tool should the support assistant call next to handle state.user_request? Use state.last_tool_result: a tool already called does not need to be called again.",
+      "criteria": {
+        "search_help_center": "Find a help-center article that explains how a feature works",
+        "get_invoice": "Fetch an invoice, its charges and payment status, when they are not known yet",
+        "refund_charge": "Refund a card charge, once the customer asked for money back and the charge is known",
+        "send_password_reset": "Email a password reset link when the customer cannot sign in",
+        "file_bug_report": "Report a product problem to engineering, once the customer has said what is broken",
+        "handoff_to_agent": "Hand the conversation to a person: the customer asks for one or is upset",
+        "none": "No tool is needed now: answer the customer directly",
+        "ask_user": "The request does not say what is wrong or what is wanted (\"it doesn't work\"); ask the customer first"
+      }
+    }
+  }
+}

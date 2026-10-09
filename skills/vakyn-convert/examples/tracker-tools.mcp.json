@@ -1,0 +1,84 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "list_issues",
+        "title": "List issues",
+        "description": "List issues in a project, filtered by status, label or assignee.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "project": {"type": "string"},
+            "status": {"type": "string", "enum": ["open", "in_progress", "done"]},
+            "assignee_email": {"type": "string"}
+          },
+          "required": ["project"]
+        },
+        "annotations": {"readOnlyHint": true}
+      },
+      {
+        "name": "create_issue",
+        "title": "Create issue",
+        "description": "Create a new issue with a title, description and optional labels.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "project": {"type": "string"},
+            "title": {"type": "string"},
+            "body": {"type": "string"},
+            "labels": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["project", "title"]
+        }
+      },
+      {
+        "name": "update_issue_status",
+        "title": "Move issue",
+        "description": "Move an existing issue to open, in progress or done.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "issue_key": {"type": "string"},
+            "status": {"type": "string", "enum": ["open", "in_progress", "done"]}
+          },
+          "required": ["issue_key", "status"]
+        },
+        "annotations": {"idempotentHint": true}
+      },
+      {
+        "name": "add_comment",
+        "title": "Comment on issue",
+        "description": "Add a comment to an existing issue.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {"issue_key": {"type": "string"}, "text": {"type": "string"}},
+          "required": ["issue_key", "text"]
+        }
+      },
+      {
+        "name": "search_docs",
+        "title": "Search docs",
+        "description": "Full-text search over the team's design docs and runbooks.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {"query": {"type": "string"}, "limit": {"type": "integer", "default": 5}},
+          "required": ["query"]
+        },
+        "annotations": {"readOnlyHint": true}
+      },
+      {
+        "name": "get_sprint",
+        "title": "Current sprint",
+        "description": "Get the current sprint: dates, goal and the issues in it.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {"project": {"type": "string"}},
+          "required": ["project"]
+        },
+        "annotations": {"readOnlyHint": true}
+      }
+    ]
+  }
+}

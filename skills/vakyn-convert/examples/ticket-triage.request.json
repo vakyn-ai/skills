@@ -1,0 +1,36 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "ticket": {
+      "subject": "Exports broken AGAIN",
+      "body": "Third time this month the scheduled PDF export to our board has failed. Dashboards themselves load fine. If this is not fixed before our renewal next month we will move to another tool. Also please refund the September charge, we did not get what we paid for."
+    }
+  },
+  "questions": {
+    "category": {
+      "type": "choice",
+      "instructions": "Which category fits state.ticket?",
+      "criteria": {
+        "billing": "Invoices, charges, plans and refund requests, even when the refund is because of a bug",
+        "bug": "Something in Lumen is broken or gives wrong results, and no refund is asked for",
+        "account_access": "Sign-in, passwords, two-factor and user permissions",
+        "feature_request": "Asks for something Lumen does not do today",
+        "other": "Anything else: sales, partnerships, spam, or no clear request"
+      }
+    },
+    "impact": {
+      "type": "score",
+      "instructions": "How much does the problem in state.ticket stop the customer from using Lumen?",
+      "criteria": [
+        "No problem with Lumen itself: a question, a request or an admin task",
+        "A minor feature is broken or awkward; there is an easy way around it",
+        "An important feature is broken; the rest of Lumen works",
+        "The customer cannot use Lumen at all"
+      ]
+    },
+    "cancel_threat": {
+      "type": "noul",
+      "instructions": "Does state.ticket threaten to stop using Lumen?"
+    }
+  }
+}

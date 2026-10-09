@@ -1,0 +1,66 @@
+[
+  {
+    "name": "lookup_device",
+    "description": "Look up an employee's laptop or phone: model, OS version, warranty end date and who it is assigned to.",
+    "input_schema": {
+      "type": "object",
+      "properties": {"employee_id": {"type": "string"}, "serial": {"type": "string"}}
+    }
+  },
+  {
+    "name": "reset_mfa",
+    "description": "Remove the employee's registered two-factor devices so they can enroll a new phone. Use when they lost or replaced the phone that holds their codes.",
+    "input_schema": {
+      "type": "object",
+      "properties": {"employee_id": {"type": "string"}, "ticket_ref": {"type": "string"}},
+      "required": ["employee_id"]
+    }
+  },
+  {
+    "name": "request_software",
+    "description": "Ask for a software license or install for an employee. Goes to their manager for approval.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "employee_id": {"type": "string"},
+        "product": {"type": "string"},
+        "business_reason": {"type": "string"}
+      },
+      "required": ["employee_id", "product"]
+    }
+  },
+  {
+    "name": "check_vpn_status",
+    "description": "Show whether the company VPN gateways are up and whether the employee's last VPN sign-in failed.",
+    "input_schema": {
+      "type": "object",
+      "properties": {"employee_id": {"type": "string"}}
+    }
+  },
+  {
+    "name": "open_incident",
+    "description": "Open an IT incident for something that is broken for many people (an outage), not for one person's problem.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "service": {"type": "string"},
+        "impact": {"type": "string", "enum": ["one team", "one office", "company-wide"]},
+        "description": {"type": "string"}
+      },
+      "required": ["service", "description"]
+    }
+  },
+  {
+    "name": "book_device_swap",
+    "description": "Book a slot at the IT desk to swap a broken laptop or phone for a loaner.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "employee_id": {"type": "string"},
+        "office": {"type": "string"},
+        "preferred_date": {"type": "string", "format": "date"}
+      },
+      "required": ["employee_id", "office"]
+    }
+  }
+]

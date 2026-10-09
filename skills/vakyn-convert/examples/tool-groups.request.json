@@ -1,0 +1,32 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "assistant": "Operations assistant with 312 tools in 7 groups. Stage one picks the group.",
+    "user_request": "Move my 1:1 with Priya from Thursday to Friday afternoon and let her know.",
+    "recent_turns": [
+      {
+        "role": "user",
+        "text": "Move my 1:1 with Priya from Thursday to Friday afternoon and let her know."
+      }
+    ],
+    "tools_already_called": [],
+    "last_tool_result": "none yet"
+  },
+  "questions": {
+    "tool_group": {
+      "type": "choice",
+      "instructions": "Which group of tools holds the next tool the operations assistant should call for state.user_request?",
+      "criteria": {
+        "calendar": "Meetings and events: find free time, create, move or cancel a meeting, invite people",
+        "email": "Read, search, draft and send email",
+        "files": "Find, read, share and move documents and folders",
+        "crm": "Customer accounts, contacts, deals and notes in the sales system",
+        "billing": "Invoices, payments, refunds and subscription plans",
+        "hr": "Time off, org chart, onboarding and employee records",
+        "analytics": "Run reports and queries over product and sales data",
+        "none": "No tool is needed now: answer the user directly",
+        "ask_user": "The request does not say what the user wants done (\"can you sort this out\"); ask them first"
+      }
+    }
+  }
+}

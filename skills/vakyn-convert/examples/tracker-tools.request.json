@@ -1,0 +1,51 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "assistant": "Project assistant connected to the team's issue tracker. It calls one tool at a time.",
+    "user_request": "The nightly export job crashed again with an out-of-memory error. Can you log it so someone picks it up?",
+    "recent_turns": [
+      {
+        "role": "user",
+        "text": "The nightly export job crashed again with an out-of-memory error. Can you log it so someone picks it up?"
+      },
+      {
+        "role": "assistant",
+        "text": "Checking whether there is already an open issue for this."
+      }
+    ],
+    "tools_already_called": [
+      "list_issues"
+    ],
+    "last_tool_result": {
+      "tool": "list_issues",
+      "result": [
+        {
+          "key": "DATA-212",
+          "title": "Dashboard tiles load slowly",
+          "status": "open"
+        },
+        {
+          "key": "DATA-219",
+          "title": "Typo in CSV header",
+          "status": "in_progress"
+        }
+      ]
+    }
+  },
+  "questions": {
+    "next_tool": {
+      "type": "choice",
+      "instructions": "Which tool should the project assistant call next to handle state.user_request? Use state.last_tool_result: a tool already called does not need to be called again.",
+      "criteria": {
+        "list_issues": "List a project's issues by status, label or assignee",
+        "create_issue": "Create a new issue when no existing issue covers the problem",
+        "update_issue_status": "Move an existing issue to open, in progress or done",
+        "add_comment": "Add a comment to an issue that already exists",
+        "search_docs": "Search design docs and runbooks for how something works",
+        "get_sprint": "Get the current sprint: dates, goal and its issues",
+        "none": "No tool is needed now: answer the user directly",
+        "ask_user": "The request does not say what the user wants done (\"can you look at this\"); ask them first"
+      }
+    }
+  }
+}

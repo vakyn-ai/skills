@@ -1,0 +1,87 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_help_center",
+      "description": "Search Lumen's help center articles for how-to answers. Use for questions about how a feature works.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string", "description": "Search words"},
+          "locale": {"type": "string", "enum": ["en", "de", "fr"]}
+        },
+        "required": ["query"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_invoice",
+      "description": "Fetch an invoice by month or invoice number, with line items and payment status.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_number": {"type": "string"},
+          "month": {"type": "string", "description": "YYYY-MM"}
+        }
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "refund_charge",
+      "description": "Refund a card charge in full or in part. Only after the customer asked for money back.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "charge_id": {"type": "string"},
+          "amount_cents": {"type": "integer"},
+          "reason": {"type": "string"}
+        },
+        "required": ["charge_id"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "send_password_reset",
+      "description": "Email a password reset link to the account's address.",
+      "parameters": {
+        "type": "object",
+        "properties": {"account_email": {"type": "string", "format": "email"}},
+        "required": ["account_email"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "file_bug_report",
+      "description": "Open a bug report for the engineering team when something in the product is broken. Include steps to reproduce.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "steps": {"type": "array", "items": {"type": "string"}},
+          "severity": {"type": "string", "enum": ["low", "medium", "high"]}
+        },
+        "required": ["title", "steps"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "handoff_to_agent",
+      "description": "Hand the conversation to a person on the support team. Use when the customer asks for a person or is upset.",
+      "parameters": {
+        "type": "object",
+        "properties": {"summary": {"type": "string"}},
+        "required": ["summary"]
+      }
+    }
+  }
+]

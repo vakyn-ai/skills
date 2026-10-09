@@ -1,0 +1,31 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "assistant": "IT helpdesk assistant for employees. It calls one tool at a time.",
+    "user_request": "Got a new phone over the weekend and now I can't get my sign-in codes, so I'm locked out of email.",
+    "recent_turns": [
+      {
+        "role": "user",
+        "text": "Got a new phone over the weekend and now I can't get my sign-in codes, so I'm locked out of email."
+      }
+    ],
+    "tools_already_called": [],
+    "last_tool_result": "none yet"
+  },
+  "questions": {
+    "next_tool": {
+      "type": "choice",
+      "instructions": "Which tool should the helpdesk assistant call next to handle state.user_request?",
+      "criteria": {
+        "lookup_device": "Look up an employee's laptop or phone record: model, OS, warranty, owner",
+        "reset_mfa": "Clear the employee's two-factor devices so they can enroll a new or replaced phone",
+        "request_software": "Ask for a software license or install, sent to the manager for approval",
+        "check_vpn_status": "Check whether the VPN is up and whether the employee's last VPN sign-in failed",
+        "open_incident": "Open an incident for an outage that affects many people, not one person",
+        "book_device_swap": "Book an IT desk slot to swap a broken laptop or phone for a loaner",
+        "none": "No tool is needed now: answer the employee directly",
+        "ask_user": "The request does not say what the employee needs (\"can you help\"); ask them first"
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+schema_version: "1.0"
+name: vakyn-convert-mcp-side-by-side
+tags: [vakyn-convert]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our sales assistant (Python, OpenAI SDK) gets its tools from our CRM's MCP server. This is
+    what `tools/list` returns:
+
+    ```json
+    {"jsonrpc": "2.0", "id": 1, "result": {"tools": [
+      {"name": "find_contact", "description": "Find a contact by name, company or email.", "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}},
+      {"name": "log_call", "description": "Log a phone call with a contact, with notes.", "inputSchema": {"type": "object", "properties": {"contact_id": {"type": "string"}, "call_notes_md": {"type": "string"}, "duration_minutes": {"type": "integer"}}, "required": ["contact_id", "call_notes_md"]}},
+      {"name": "create_deal", "description": "Open a new deal for a company, with an amount and stage.", "inputSchema": {"type": "object", "properties": {"company_id": {"type": "string"}, "amount_eur": {"type": "number"}, "stage": {"type": "string", "enum": ["lead", "qualified", "proposal"]}}, "required": ["company_id"]}},
+      {"name": "update_deal_stage", "description": "Move an existing deal to another stage.", "inputSchema": {"type": "object", "properties": {"deal_id": {"type": "string"}, "stage": {"type": "string"}}, "required": ["deal_id", "stage"]}},
+      {"name": "schedule_follow_up", "description": "Create a follow-up task for a contact on a date.", "inputSchema": {"type": "object", "properties": {"contact_id": {"type": "string"}, "due_date_iso": {"type": "string"}}, "required": ["contact_id", "due_date_iso"]}}
+    ]}}
+    ```
+
+    Turn this into a VAKYN tool pick. How do we roll it out without breaking the assistant for the
+    sales team? Save the VAKYN request for the turn "Just got off the phone with Dana at Brightline,
+    25 minutes, she wants a proposal next week" as `next-tool.request.json` and the code as
+    `crm_tool_pick.py` in this folder.
+graders:
+  - name: request-saved
+    type: file_exists
+    path: "next-tool.request.json"
+  - name: no-param-schema
+    type: regex
+    pattern: "call_notes_md|amount_eur|due_date_iso|inputSchema"
+    match: not_contains
+    focus:
+      source: file
+      path: "next-tool.request.json"
+  - name: rollout
+    type: llm
+    criteria: |
+      Judge the answer and the code it wrote (crm_tool_pick.py).
+      PASS if all hold:
+      - the tool options come from the MCP tool names with one-line descriptions, plus a "no tool"
+        and an "ask the user" option; parameter schemas are not sent to VAKYN;
+      - the chat model still fills the picked tool's arguments (pick-then-fill);
+      - the code runs side by side by default: VAKYN and the chat model both pick, the chat model's
+        pick is the one used, and both are logged as JSON lines;
+      - switching to VAKYN picks is a config flag the team flips after reviewing the log, and the
+        answer names the vakyn-check skill (or an equivalent review of the log) for that;
+      - after the switch, unsure (low-confidence) picks go to the chat model.
+      FAIL if the code lets VAKYN act alone by default, or if the answer presents made-up VAKYN
+      answers as real results.
