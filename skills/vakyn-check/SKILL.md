@@ -1,6 +1,6 @@
 ---
 name: vakyn-check
-description: Prove a VAKYN setup on the person's own data and get it ready to go live. Use when someone wants to test VAKYN against their current chat model on a sample of their records ("does it agree with GPT on my tickets?", "smoke test before the full run"); has a side-by-side log from a converted app and asks whether to switch; wants confidence thresholds chosen from labeled examples for a target error rate ("what threshold for 2% errors?"); or asks for a go-live or production readiness review of VAKYN code (batching, limits, 429, timeouts, keys, logging, fallback, monitoring).
+description: "Prove a VAKYN setup on the person's own data and get it ready to go live. Use when someone wants to test VAKYN against their current chat model on a sample of their records (\"does it agree with GPT on my tickets?\", \"smoke test before the full run\"); has a side-by-side log from a converted app and asks whether to switch; wants confidence thresholds chosen from labeled examples for a target error rate (\"what threshold for 2% errors?\"); or asks for a go-live or production readiness review of VAKYN code (batching, limits, 429, timeouts, keys, logging, fallback, monitoring)."
 ---
 
 # VAKYN check: test on your data, then go live
@@ -11,7 +11,7 @@ threshold for unsure answers, and what the code needs before production.
 
 Write small scripts **into the person's project**, in their language (Python or TypeScript, with
 the official SDK; see the [SDK guide](../vakyn/references/sdk.md)). The files in
-[examples/](examples/) are templates to adapt, not tools to run from the plugin.
+[examples/](examples/) are templates to adapt, not tools to run from these skills.
 
 ## Pick the step
 

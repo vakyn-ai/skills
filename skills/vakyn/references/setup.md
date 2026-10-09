@@ -87,7 +87,7 @@ TYPESAFE_API_KEY=vk_...
 
 Check `.env` is in `.gitignore` before they save it. Never ask them to paste the key into the chat.
 
-Never read or print `.env`: no `cat`, no Read tool, no `grep`. Load it inside the command that
+Do not open or print `.env`: no `cat`, no `grep`, no file viewer. Load it inside the command that
 needs it, so the key never shows in the chat:
 
 ```sh

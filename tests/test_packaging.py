@@ -31,7 +31,7 @@ DROPPED_DIRS = {"__pycache__", "__pypackages__", ".git"}
 
 # Skills whose frontmatter strict YAML parsers reject today. The installer skips them with
 # "YAML parse error". Fix: put the description in double quotes. Then remove the name here.
-KNOWN_UNQUOTED = {"vakyn-convert", "vakyn-workflow"}
+KNOWN_UNQUOTED = set()
 
 
 def raw_frontmatter(path):

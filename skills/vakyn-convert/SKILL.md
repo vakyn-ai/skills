@@ -1,6 +1,6 @@
 ---
 name: vakyn-convert
-description: Convert what someone already has into VAKYN calls plus Python or TypeScript code. Use for a chat-model prompt that sorts, routes, flags or rates ("turn this triage prompt into VAKYN"), sorted into choice, noul, score, code, keep or drop; or a tool pick for an EXISTING app's tool list (OpenAI, Anthropic, MCP tools/list) where the chat model fills arguments; with side-by-side logging, a fallback for unsure picks, or a two-stage pick over 255 tools. New apps: vakyn-workflow.
+description: "Convert what someone already has into VAKYN calls plus Python or TypeScript code. Use for a chat-model prompt that sorts, routes, flags or rates (\"turn this triage prompt into VAKYN\"), sorted into choice, noul, score, code, keep or drop; or a tool pick for an EXISTING app's tool list (OpenAI, Anthropic, MCP tools/list) where the chat model fills arguments; with side-by-side logging, a fallback for unsure picks, or a two-stage pick over 255 tools. New apps: vakyn-workflow."
 ---
 
 # VAKYN convert: prompt or tool-calling app to VAKYN

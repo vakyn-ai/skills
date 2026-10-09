@@ -1,6 +1,6 @@
 ---
 name: vakyn-workflow
-description: Design a new VAKYN decision workflow from a plain-language task: the questions, state builder, Python or TypeScript code, batching and unsure path. Use for routing, categorize, triage, intent detection, moderation, guardrail, spam filter, next-tool or next-step pick for a new assistant, claim check (hallucination, grounding, fact-check), LLM-as-judge or eval grader, rubric grading, rerank or relevance filter, best match, risk flags, CI failure triage, alert triage, document intake, or form steps.
+description: "Design a new VAKYN decision workflow from a plain-language task: the questions, state builder, Python or TypeScript code, batching and unsure path. Use for routing, categorize, triage, intent detection, moderation, guardrail, spam filter, next-tool or next-step pick for a new assistant, claim check (hallucination, grounding, fact-check), LLM-as-judge or eval grader, rubric grading, rerank or relevance filter, best match, risk flags, CI failure triage, alert triage, document intake, or form steps."
 ---
 
 # VAKYN workflow: design something new

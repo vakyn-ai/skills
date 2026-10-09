@@ -1,6 +1,6 @@
 ---
 name: vakyn-research
-description: Research an existing app, codebase or business process and write one ranked report, vakyn-research.md, of where VAKYN (a decision model) could replace chat-model decisions. Use for "where could VAKYN help in my app", "audit our LLM calls", "which of our prompts are decisions", call logs to sort, or a process in plain words. Reads and estimates only; never changes code or calls VAKYN. For one prompt or tool list the person already picked, use vakyn-convert.
+description: "Research an existing app, codebase or business process and write one ranked report, vakyn-research.md, of where VAKYN (a decision model) could replace chat-model decisions. Use for \"where could VAKYN help in my app\", \"audit our LLM calls\", \"which of our prompts are decisions\", call logs to sort, or a process in plain words. Reads and estimates only; never changes code or calls VAKYN. For one prompt or tool list the person already picked, use vakyn-convert."
 ---
 
 # VAKYN research: find where it helps
@@ -15,7 +15,7 @@ You are the person's guide. This skill reads and estimates; the person picks wha
 ## Hard rules
 
 - **Read only.** Do not change, move or format any existing file. The only file you create is
-  `vakyn-research.md`. Write it in one go with the Write tool; to revise it, write it again whole.
+  `vakyn-research.md`. Write the file in one go; to revise it, write it again whole.
 - **No calls.** Do not call VAKYN, any chat model, or any API. Do not run the app or its tests.
   Real testing belongs to `vakyn-check`.
 - **Logs stay local.** Total call logs on the machine; never paste their contents into the report
