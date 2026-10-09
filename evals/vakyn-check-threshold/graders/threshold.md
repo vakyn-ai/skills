@@ -15,7 +15,7 @@ PASS only if all of these hold:
 2. The recommended cut-off is in the range above (errors at noul 0.9 and 0.1 are excluded), with
    the share handled automatically and the share sent to a person, roughly matching the facts.
 3. It shows a small table or list of candidate thresholds with coverage and error rate.
-4. It checks the chosen threshold on held-out labels, or says the labels should be split to check it.
+4. It checks the chosen threshold on held-out labels, or says the labels should be split, or that the cut-offs must be checked on a fresh labeled batch before going live.
 5. It says that about 40 automatically handled records with no errors cannot prove a 2% error rate
    (the true rate could be several percent; roughly 150 or more answered records without an error are
    needed), and asks for more labels before relying on it.
