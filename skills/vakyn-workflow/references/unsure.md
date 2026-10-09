@@ -26,8 +26,9 @@ answers, not errors: each has its own path in code.
 ## Settings, not guesses
 
 - Write each threshold as a named setting with a comment that it is tuned on the person's data.
-- Starting values: 0.6–0.7 for a `choice` that only moves work around, 0.8 or more when the action
-  is hard to undo; noul bands 0.2 / 0.8.
+- Starting values, by what a mistake costs, and how many labeled records you need:
+  [thresholds](../../vakyn-check/references/thresholds.md#starting-values-and-sample-sizes).
+  Mark them in code as starting values.
 - Confidence is not accuracy ([confidence](../../vakyn-questions/references/confidence.md)).
   The real numbers come from records where the right answer is known: the `vakyn-check` skill.
 - Many unsure answers usually mean a weak question, not a hard input. Read

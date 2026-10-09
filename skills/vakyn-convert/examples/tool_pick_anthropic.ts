@@ -15,7 +15,7 @@ import { choice, TypeSafeClient } from "@typesafe-ai/sdk";
 import { appendFileSync, readFileSync } from "node:fs";
 
 const MODE = process.env.VAKYN_TOOL_MODE ?? "side_by_side";
-const MIN_CONFIDENCE = Number(process.env.VAKYN_TOOL_MIN_CONFIDENCE ?? "0.8");
+const MIN_CONFIDENCE = Number(process.env.VAKYN_TOOL_MIN_CONFIDENCE ?? "0.8"); // starting value; set yours with vakyn-check
 const LOG_PATH = process.env.VAKYN_TOOL_LOG ?? "vakyn-tool-picks.jsonl";
 const CHAT_MODEL = process.env.CHAT_MODEL ?? "claude-haiku-4-5";
 const DRY = process.argv.includes("--dry");

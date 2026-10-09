@@ -39,8 +39,9 @@ Both picks are logged. Nothing the user sees changes. Ship this first.
 - error, an option that was not offered, or `confidence` under `VAKYN_TOOL_MIN_CONFIDENCE` → the
   chat model picks with the full tool list, as before (`used: "chat"`).
 
-The threshold starts at 0.8 as a placeholder. The real value comes from the person's own log and
-labeled turns, with the `vakyn-check` skill. Never switch the default to `vakyn` in the generated
+`VAKYN_TOOL_MIN_CONFIDENCE` defaults to the tool-pick starting value in
+[thresholds](../../vakyn-check/references/thresholds.md#starting-values-and-sample-sizes). The real
+value comes from the person's own log and labeled turns, with the `vakyn-check` skill. Never switch the default to `vakyn` in the generated
 code; the person flips it after reviewing the log.
 
 ## The log
@@ -69,6 +70,30 @@ the log; the `request_id` ties a line to the server's own records.
 
 Reading the log, the agreement rate, where the two differ and choosing the threshold are the
 `vakyn-check` skill's job. Name it when you hand over.
+
+## Prompts with several questions
+
+A converted prompt (the [sort table](prompt-sort.md)) asks several questions in one VAKYN call.
+Run it side by side the same way: the old prompt's answer is used, VAKYN's is logged next to it.
+Write **one line per question**, with the same field names plus `question`:
+
+```json
+{"ts": "2026-10-09T09:12:03Z", "request_id": "req_2f35…", "question": "cancel_threat",
+ "vakyn_pick": "yes", "vakyn_confidence": 0.76, "vakyn_probabilities": {"yes": 0.88, "no": 0.12},
+ "chat_pick": "yes", "agree": true, "mode": "side_by_side", "used": "chat"}
+```
+
+| Type | `vakyn_pick` | `vakyn_confidence` | `vakyn_probabilities` |
+|---|---|---|---|
+| `choice` | the option | `confidence` | the distribution |
+| `noul` | `"yes"` if `noul >= 0.5`, else `"no"` | `abs(2 * noul - 1)` | `{"yes": noul, "no": 1 - noul}` |
+| `score` | the most likely level index (0, 1, …) | `confidence` | the distribution by level |
+
+`chat_pick` is the old prompt's answer in the same terms: an option, `"yes"` / `"no"`, or a level
+index. When the old prompt answers in other terms (a P1–P3 priority built from a level plus rules),
+compare after the code rules and log that field as its own `question` (`priority`). All lines of
+one record share the `request_id`. When VAKYN fails, write the lines with `null` VAKYN fields.
+`vakyn-check` reads this per question.
 
 ## Checks before you hand over
 

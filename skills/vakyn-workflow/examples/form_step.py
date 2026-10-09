@@ -17,7 +17,7 @@ ENDINGS = {
     "needs_person": "The person is upset, confused or describing something the form cannot capture, "
                     "so hand over to a claims handler",
 }
-MIN_CONFIDENCE = 0.5  # a setting; below it, ask the empty fields in their fixed order
+MIN_CONFIDENCE = 0.6  # starting value; set yours with vakyn-check. Below it, ask the empty fields in their fixed order
 
 client = TypeSafeClient(timeout=30.0)
 

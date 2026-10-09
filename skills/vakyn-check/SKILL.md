@@ -51,18 +51,20 @@ Template: [smoke_test.py](examples/smoke_test.py) with
 ## Log summary
 
 Read the JSON-lines log (`ts`, `request_id`, `vakyn_pick`, `vakyn_confidence`,
-`vakyn_probabilities`, `chat_pick`, `agree`, `mode`, `used`; details in
-[log summary](references/log-summary.md)). Report agreement overall and per option, confusion
+`vakyn_probabilities`, `chat_pick`, `agree`, `mode`, `used`, and `question` when a converted
+prompt logs several questions; details in [log summary](references/log-summary.md)). Count the
+lines where VAKYN failed apart. Per question, report agreement overall and per option, confusion
 pairs, the share below each threshold and agreement above it, and the disagreements to label
 first. End with a recommendation and what evidence would change it. Template:
 [log_summary.py](examples/log_summary.py) on [side-by-side.sample.jsonl](examples/side-by-side.sample.jsonl).
 
 ## Thresholds
 
-From person-labeled records (50 or more; a few hundred is better) and the person's target error
+From person-labeled records ([how many](references/thresholds.md#starting-values-and-sample-sizes))
+and the person's target error
 rate: hold out about 30%, tabulate coverage and error rate per candidate threshold on the rest,
 pick the lowest threshold that meets the target, check it on the held-out part, and say how far
-the sample can prove it. `noul` uses distance from 0.5 or separate yes / no cut-offs; `choice` and
+the sample can prove it. Starting values, until labels exist, are on the same page. `noul` uses distance from 0.5 or separate yes / no cut-offs; `choice` and
 `score` use `confidence`. Template: [thresholds.py](examples/thresholds.py) on
 [labeled.sample.jsonl](examples/labeled.sample.jsonl).
 

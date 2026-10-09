@@ -26,9 +26,11 @@ Never pick a threshold from a feeling or from 0.5 by default.
 
 1. Start from what a mistake costs. An automatic refund needs a high bar; a suggested tag can take
    a low one.
-2. Keep a middle band for people: act on `noul > 0.9` or `< 0.1`, send the rest to review.
-3. Set the number on the person's own data: a few hundred records where the right answer is known,
-   run through VAKYN, accuracy checked at each confidence level. The `vakyn-check` skill does this.
+2. Keep a middle band for `noul`: act on a clear yes or a clear no, send the rest to review.
+3. Set the number on the person's own data: records where the right answer is known, run through
+   VAKYN, accuracy checked at each confidence level. The `vakyn-check` skill does this.
 
-Until then, write the code with the threshold as a named setting and an "unsure" path (a person, a
-chat model, or a review queue).
+Starting values and how many labeled records you need: one page,
+[thresholds](../../vakyn-check/references/thresholds.md#starting-values-and-sample-sizes). Until
+the real number exists, write the code with the threshold as a named setting and an "unsure" path
+(a person, a chat model, or a review queue).

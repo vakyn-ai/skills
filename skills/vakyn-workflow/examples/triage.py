@@ -28,7 +28,7 @@ QUESTIONS = {
     "urgency": Score(instructions="How soon does the repair in state.request need someone on site?", criteria=URGENCY),
 }
 MAX_IN_FLIGHT = 8  # stay below the server's queue (--max-queue)
-MIN_CONFIDENCE = 0.6  # a setting; tune it on your own labeled requests (vakyn-check)
+MIN_CONFIDENCE = 0.6  # starting value; set yours with vakyn-check
 
 
 async def triage(client, gate, record):

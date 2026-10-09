@@ -1,12 +1,15 @@
 """Summarize a side-by-side log: VAKYN and the chat model picked on the same requests.
 
 Usage:
-    python3 log_summary.py side-by-side.jsonl [--examples 10]
+    python3 log_summary.py side-by-side.jsonl [--examples 10] [--question NAME]
 
 One JSON object per line (the format the converted app writes):
     {"ts": "...", "request_id": "req_...", "vakyn_pick": "refund_order", "vakyn_confidence": 0.91,
      "vakyn_probabilities": {...}, "chat_pick": "ask_user", "agree": false,
      "mode": "side_by_side", "used": "chat"}
+A converted prompt with several questions writes one line per question and adds "question"
+(for a noul, vakyn_pick is "yes" or "no"; for a score, the level index). Lines are then summarized
+per question. Lines where VAKYN failed (vakyn_pick or vakyn_confidence null) are counted apart.
 Optional: "label" (what a person says is right). Agreement is not accuracy; only labels measure
 accuracy. Standard library only.
 """
@@ -15,18 +18,13 @@ import argparse
 import collections
 import json
 
-THRESHOLDS = [0.5, 0.7, 0.8, 0.9, 0.95]
+THRESHOLDS = [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("file")
-    ap.add_argument("--examples", type=int, default=10, help="disagreements to list for labeling")
-    a = ap.parse_args()
-
-    rows = [json.loads(line) for line in open(a.file) if line.strip()]
-    rows = [r for r in rows if r.get("mode", "side_by_side") == "side_by_side" and r.get("chat_pick") is not None]
+def summarize(rows, failed, examples):
     n = len(rows)
+    if failed:
+        print(f"VAKYN failed on {failed} requests (no answer); the chat model handled them. Left out below.")
     if not n:
         print("No side-by-side lines with both picks.")
         return
@@ -45,7 +43,7 @@ def main():
         ok = sum(r["agree"] for r in rs)
         other = collections.Counter(r["vakyn_pick"] for r in rs if not r["agree"])
         instead = ", ".join(f"{k} x{v}" for k, v in other.most_common()) or "-"
-        print(f"  {opt:<18} {len(rs):>8}  {ok / len(rs):>5.0%}  {instead}")
+        print(f"  {str(opt):<18} {len(rs):>8}  {ok / len(rs):>5.0%}  {instead}")
 
     pairs = collections.Counter((r["chat_pick"], r["vakyn_pick"]) for r in rows if not r["agree"])
     print("\nConfusion pairs (chat model -> VAKYN)")
@@ -69,9 +67,33 @@ def main():
         print("\nNo person labels yet: agreement only says they pick the same, not that either is right.")
 
     dis = sorted((r for r in rows if not r["agree"]), key=lambda r: -r["vakyn_confidence"])
-    print(f"\nDisagreements to label first (most confident VAKYN first), {min(a.examples, len(dis))} of {len(dis)}")
-    for r in dis[: a.examples]:
+    print(f"\nDisagreements to label first (most confident VAKYN first), {min(examples, len(dis))} of {len(dis)}")
+    for r in dis[:examples]:
         print(f"  {r['request_id']}  VAKYN {r['vakyn_pick']} ({r['vakyn_confidence']:.2f})  chat {r['chat_pick']}")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("file")
+    ap.add_argument("--examples", type=int, default=10, help="disagreements to list for labeling")
+    ap.add_argument("--question", help="only this question, when the lines have a \"question\" field")
+    a = ap.parse_args()
+
+    rows = [json.loads(line) for line in open(a.file) if line.strip()]
+    rows = [r for r in rows if r.get("mode", "side_by_side") == "side_by_side" and r.get("chat_pick") is not None]
+    if a.question is not None:
+        rows = [r for r in rows if r.get("question") == a.question]
+    by_question = collections.defaultdict(list)
+    for r in rows:
+        by_question[r.get("question")].append(r)
+    if not by_question:
+        print("No side-by-side lines with both picks.")
+        return
+    for q, rs in by_question.items():
+        if q is not None:
+            print(f"\n=== question: {q} ===")
+        ok = [r for r in rs if r.get("vakyn_pick") is not None and r.get("vakyn_confidence") is not None]
+        summarize(ok, len(rs) - len(ok), a.examples)
 
 
 if __name__ == "__main__":

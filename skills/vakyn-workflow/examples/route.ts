@@ -9,7 +9,7 @@ const TEAMS = {
   bugs: "Something in the app itself is broken, slow or shows an error",
   other: "Not a support request for these teams: sales, partnerships, press, job applications, spam",
 };
-const MIN_CONFIDENCE = 0.7; // a setting; tune it on your own labeled tickets (vakyn-check)
+const MIN_CONFIDENCE = 0.6; // starting value; set yours with vakyn-check
 
 type Ticket = { channel: string; plan: string; seats: number; subject: string; body: string };
 const client = new TypeSafeClient({ timeout: 30_000 });

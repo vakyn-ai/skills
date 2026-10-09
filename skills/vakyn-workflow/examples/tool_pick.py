@@ -17,7 +17,7 @@ STEPS = {
     "none": "No tool is needed: the assistant can answer from the conversation, or the user is just chatting",
     "ask_user": "Ask the user first: the request is vague or a detail the step needs is missing, such as which booking or the new date",
 }
-MIN_CONFIDENCE = 0.6  # a setting; tune it on logged conversations (vakyn-check)
+MIN_CONFIDENCE = 0.8  # starting value; set yours with vakyn-check
 
 client = TypeSafeClient(timeout=30.0)
 

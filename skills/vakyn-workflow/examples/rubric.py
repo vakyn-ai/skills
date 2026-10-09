@@ -22,7 +22,7 @@ RUBRIC = {  # criterion -> (question, levels lowest first, weight)
         "Friendly and polite",
         "Warm and personal while staying brief"], 0.2),
 }
-MIN_CONFIDENCE = 0.6  # a setting; tune it on replies your leads graded by hand
+MIN_CONFIDENCE = 0.6  # starting value; set yours with vakyn-check
 POLICY = ("Refunds: full refund within 30 days of purchase. After 30 days, store credit only. "
           "Agents may not promise dates for engineering fixes.")
 

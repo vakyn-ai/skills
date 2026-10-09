@@ -19,7 +19,7 @@ ARTICLES = [  # what your search returned; code drops what fails a hard rule bef
     {"id": "hc_311_de", "lang": "de", "published": True, "title": "Benachrichtigungen",
      "summary": "E-Mail-Arten ein- und ausschalten"},
 ]
-MIN_CONFIDENCE = 0.7  # a setting; tune it on questions where you know the right article
+MIN_CONFIDENCE = 0.6  # starting value; set yours with vakyn-check
 
 client = TypeSafeClient(timeout=30.0)
 

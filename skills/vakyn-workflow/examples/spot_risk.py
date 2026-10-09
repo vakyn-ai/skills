@@ -23,8 +23,8 @@ RISKS = {  # several risks can be true at once, so each is its own noul (not one
         criteria={"true": "Threatens a bad review, a social media post or going to the press",
                   "false": "No public complaint is mentioned"}),
 }
-FLAG = 0.8   # at or above: the risk is there
-CLEAR = 0.2  # at or below: the risk is not there; in between is unsure
+FLAG = 0.8   # at or above: the risk is there. Starting value; set yours with vakyn-check
+CLEAR = 0.2  # at or below: the risk is not there; in between is unsure. Starting value
 # Settings: a missed safety issue costs more than a false alarm, so tune them per risk on your own data.
 
 client = TypeSafeClient(timeout=30.0)

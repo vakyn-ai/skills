@@ -12,7 +12,7 @@ VERDICTS = {
     "contradicted": "The spec states facts that make the claim false",
     "not_enough_evidence": "The spec does not say enough to decide either way",
 }
-MIN_CONFIDENCE = 0.8  # a published claim needs a high bar; tune it on claims you checked by hand
+MIN_CONFIDENCE = 0.8  # starting value; set yours with vakyn-check. A published claim needs a high bar
 
 SPEC = (
     "Wavelet Go portable speaker. Battery: 14 hours at 50% volume. Charging: USB-C, 3.5 hours from "

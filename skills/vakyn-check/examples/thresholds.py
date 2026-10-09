@@ -6,11 +6,14 @@ Usage:
 Each line of labeled.jsonl is one record VAKYN answered and a person labeled:
     choice / score: {"id": "t001", "vakyn_pick": "billing", "vakyn_confidence": 0.97, "label": "billing"}
     noul:           {"id": "n001", "noul": 0.93, "label": true}
+A side-by-side log with a person's "label" added works too. Lines with a "question" field (a converted
+prompt logs one line per question) get one threshold per question; --question picks one.
 
 For each candidate threshold it prints coverage (share answered automatically) and the error rate
 on the answered records, picks the lowest threshold that meets --target on the tuning part, then
-checks that threshold on the held-out part it never saw. A side-by-side log with a person's
-"label" added to some lines works as it is. Standard library only.
+checks that threshold on the held-out part it never saw. Lines where VAKYN failed (vakyn_pick null)
+are skipped. Starting values and how many labels you need: references/thresholds.md. Standard
+library only.
 """
 
 import argparse
@@ -28,12 +31,16 @@ def load(path):
         r = json.loads(line)
         if r.get("label") is None:
             continue  # not labeled yet
+        q = r.get("question", "")
         if "noul" in r:  # yes/no: confidence is the distance from 0.5
             p = float(r["noul"])
-            rows.append({"id": r.get("id"), "pick": p >= 0.5, "conf": round(abs(2 * p - 1), 4),
+            rows.append({"id": r.get("id"), "q": q, "pick": p >= 0.5, "conf": round(abs(2 * p - 1), 4),
                          "label": bool(r["label"]), "noul": p})
         else:
-            rows.append({"id": r.get("id"), "pick": r["vakyn_pick"], "conf": float(r.get("vakyn_confidence", r.get("confidence"))),
+            conf = r.get("vakyn_confidence", r.get("confidence"))
+            if r.get("vakyn_pick") is None or conf is None:
+                continue  # VAKYN failed on this record: nothing to threshold
+            rows.append({"id": r.get("id", r.get("request_id")), "q": q, "pick": r["vakyn_pick"], "conf": float(conf),
                          "label": r["label"], "text": r.get("text", "")})
     return rows
 
@@ -113,11 +120,24 @@ def main():
     ap.add_argument("--target", type=float, default=0.02, help="highest error rate you accept on answered records")
     ap.add_argument("--holdout", type=float, default=0.3, help="share of labels kept back to check the pick")
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--question", help="only this question, when the lines have a \"question\" field")
     a = ap.parse_args()
 
     rows = load(a.file)
+    if a.question is not None:
+        rows = [r for r in rows if r["q"] == a.question]
+    questions = sorted({r["q"] for r in rows})
+    for q in questions:
+        if len(questions) > 1 or q:
+            print(f"\n=== question: {q or '(none)'} ===")
+        report([r for r in rows if r["q"] == q], a)
+    if not rows:
+        print("No labeled records.")
+
+
+def report(rows, a):
     if len(rows) < 50:
-        print(f"Only {len(rows)} labeled records. Use at least 50; a few hundred give a firmer number.")
+        print(f"Only {len(rows)} labeled records. Use at least 50 to start; a few hundred to prove a low error rate.")
     rng = random.Random(a.seed)
     rng.shuffle(rows)
     k = int(len(rows) * a.holdout)

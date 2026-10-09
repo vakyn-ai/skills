@@ -5,16 +5,40 @@ record goes to a person, a chat model or a review queue. The right number depend
 person's data and on what a mistake costs. It comes from records a person labeled, never from a
 feeling or a default. What confidence means: [confidence](../../vakyn-questions/references/confidence.md).
 
+## Starting values and sample sizes
+
+This is the one place for these numbers; other pages link here. Use the starting values in code
+until the person's labeled records give the real number, and say they are starting values.
+
+| Decision | Starting value | Unsure (goes to the unsure path) |
+|---|---|---|
+| `noul` | act on yes at `noul >= 0.8`, on no at `noul <= 0.2` | the middle band between them (the same as `abs(2 * noul - 1) < 0.6`) |
+| `choice` or `score` that only moves work around (routes, tags, sorts a queue) | `confidence >= 0.6` | below it, or the escape option |
+| `choice` or `score` that is hard to undo or seen by customers (refunds, published claims) | `confidence >= 0.8` | below it, or the escape option |
+| Tool pick in an existing app (`vakyn-convert`) | `confidence >= 0.8` | below it: the chat model picks with the full tool list, as before |
+
+Labeled records needed:
+
+- **50 to start.** Enough for a first threshold, not enough to prove it.
+- **A few hundred to prove a low error rate.** With `n` answered records and no errors, the true
+  rate could still be up to about `3 / n`. Proving 2% takes about 150 answered records with no errors.
+- **About 100 per option** for any claim about one option: a per-option threshold, or "it is
+  right on `billing`".
+
 ## What you need
 
-- **Labeled records**: VAKYN's answer plus what a person says is right. At least 50; a few hundred
-  give a firm number. A side-by-side log with a `label` field added works as it is.
+- **Labeled records**: VAKYN's answer plus what a person says is right, as many as the
+  [list above](#starting-values-and-sample-sizes) says. A side-by-side log with a `label` field
+  added works as it is.
 - **A target error rate** on the answers VAKYN handles alone, from the person: "at most 2% wrong".
 - Records from the real flow, including hard and "none" cases. Labels made by a person, not by a
   chat model.
 
 Format (one per line): `{"id", "vakyn_pick", "vakyn_confidence", "label"}` for `choice` and
-`score`; `{"id", "noul", "label": true|false}` for `noul`. Sample:
+`score`; `{"id", "noul", "label": true|false}` for `noul`. A side-by-side log from a converted
+prompt has one line per question with a `question` field
+([log format](log-summary.md#log-format)); set one threshold per question, with
+`--question <name>`. Sample:
 [labeled.sample.jsonl](../examples/labeled.sample.jsonl) (79 support tickets, real VAKYN answers).
 
 ## Which number to threshold

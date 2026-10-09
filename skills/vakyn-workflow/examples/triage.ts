@@ -23,7 +23,7 @@ const QUESTIONS = {
   urgency: score("How soon does the repair in state.request need someone on site?", URGENCY),
 };
 const MAX_IN_FLIGHT = 8; // stay below the server's queue (--max-queue)
-const MIN_CONFIDENCE = 0.6; // a setting; tune it on your own labeled requests (vakyn-check)
+const MIN_CONFIDENCE = 0.6; // starting value; set yours with vakyn-check
 
 type Rec = { unit: string; text: string };
 // Retries 429 after the delay the server asks for.

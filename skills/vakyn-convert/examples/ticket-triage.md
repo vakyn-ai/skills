@@ -31,39 +31,90 @@ they ask for a refund.
 - `category`: `billing`, confidence 0.99. The folded rule did its job: a bug complaint with a
   refund request lands in billing.
 - `impact`: 1.99, level 2 at 0.98 ("an important feature is broken; the rest works") → P2.
-- `cancel_threat`: 0.88.
+- `cancel_threat`: 0.88, at or above the yes cut-off (0.8), so `churn_risk` is true.
 
 ## Code (Python)
 
+Every decision has an unsure path: a `category` or `impact` below the threshold, or a
+`cancel_threat` in the middle band, is answered by the old prompt instead, as before.
+
 ```python
+import datetime
 import json
+import os
 
 from typesafe_sdk import TypeSafeClient
 
 vakyn = TypeSafeClient(timeout=30.0)
-REQUEST = json.load(open("ticket-triage.request.json"))  # questions as written; state per ticket
-MIN_CONFIDENCE = 0.8  # set it from your own labeled tickets with the vakyn-check skill
+REQUEST = json.load(open("ticket-triage.request.json"))  # questions as plain dicts; state per ticket
+CATEGORIES = REQUEST["questions"]["category"]["criteria"]
+MODE = os.environ.get("VAKYN_TRIAGE_MODE", "side_by_side")  # the person flips it to "vakyn" after vakyn-check
+MIN_CONFIDENCE = 0.6     # starting value; set yours with vakyn-check
+YES_AT, NO_AT = 0.8, 0.2  # starting value; set yours with vakyn-check (between them: unsure)
+
+def priority_from(level, plan):  # rules in code
+    priority = {3: 1, 2: 2}.get(level, 3)            # P1, P2, else P3
+    return max(1, priority - 1) if plan == "enterprise" else priority
+
+def ask_vakyn(ticket):
+    """VAKYN's answers, None for each one it is unsure about; (None, {}) when VAKYN fails."""
+    try:
+        r = vakyn.system_one(state={"ticket": {"subject": ticket.subject, "body": ticket.body}},
+                             questions=REQUEST["questions"])
+    except Exception:
+        return None, {}
+    cat, impact, p = r.choices["category"], r.scores["impact"], r.nouls["cancel_threat"].noul
+    return r, {
+        "category": cat.choice if cat.choice in CATEGORIES and cat.confidence >= MIN_CONFIDENCE else None,
+        "level": round(impact.score) if impact.confidence >= MIN_CONFIDENCE else None,  # 0..3
+        "churn_risk": True if p >= YES_AT else False if p <= NO_AT else None,
+    }
 
 def triage(ticket):  # ticket: your record with subject, body, plan, created_at, replied
-    r = vakyn.system_one(state={"ticket": {"subject": ticket.subject, "body": ticket.body}},
-                         questions=REQUEST["questions"])
-    category = r.choices["category"]
-    if category.choice not in REQUEST["questions"]["category"]["criteria"] or category.confidence < MIN_CONFIDENCE:
-        return old_prompt_triage(ticket)               # unsure: the chat model decides, as before
-    level = round(r.scores["impact"].score)            # 0..3
-    priority = {3: 1, 2: 2}.get(level, 3)              # P1, P2, else P3
-    if ticket.plan == "enterprise":
-        priority = max(1, priority - 1)
-    return {
-        "category": category.choice,
-        "priority": f"P{priority}",
-        "churn_risk": r.nouls["cancel_threat"].noul >= 0.5,
-        "language": detect_language(ticket.body),
-        "overdue": not ticket.replied and hours_since(ticket.created_at) > 48,
-        "vakyn_request_id": r.request_id,
-    }
+    r, v = ask_vakyn(ticket)
+    old = None
+    if MODE == "side_by_side" or not v or None in v.values():
+        old = old_prompt_triage(ticket)  # side by side, VAKYN failed, or unsure on any decision
+    log_answers(r, v, old, ticket)
+    if MODE == "side_by_side" or not v:
+        result = dict(old)                # the old prompt's answer is used, as before
+    else:
+        result = {
+            "category": v["category"] or old["category"],
+            "priority": f"P{priority_from(v['level'], ticket.plan)}" if v["level"] is not None else old["priority"],
+            "churn_risk": v["churn_risk"] if v["churn_risk"] is not None else old["churn_risk"],
+        }
+    result.update(language=detect_language(ticket.body),
+                  overdue=not ticket.replied and hours_since(ticket.created_at) > 48,
+                  vakyn_request_id=r and r.request_id)
+    return result
 # The summary and the first reply stay with the chat model, after triage, with the category given.
+
+def log_answers(r, v, old, ticket, path="vakyn-triage.jsonl"):
+    """One line per question, the format vakyn-check reads. Null fields: that side was not asked or failed."""
+    old = old or {}
+    chat = {"category": old.get("category"), "priority": old.get("priority"),
+            "cancel_threat": None if old.get("churn_risk") is None else "yes" if old["churn_risk"] else "no"}
+    mine = {q: (None, None, None) for q in chat}
+    if r is not None:
+        cat, impact, p = r.choices["category"], r.scores["impact"], r.nouls["cancel_threat"].noul
+        mine = {
+            "category": (cat.choice, cat.confidence, dict(cat.probabilities)),
+            "priority": (f"P{priority_from(round(impact.score), ticket.plan)}", impact.confidence,  # compared
+                         {str(k): x for k, x in impact.probabilities.items()}),                   # after the rules
+            "cancel_threat": ("yes" if p >= 0.5 else "no", abs(2 * p - 1), {"yes": p, "no": 1 - p}),
+        }
+    unsure = {"category": "category", "priority": "level", "cancel_threat": "churn_risk"}
+    ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    with open(path, "a") as f:
+        for q, (pick, conf, probs) in mine.items():
+            used = "vakyn" if MODE == "vakyn" and v and v[unsure[q]] is not None else "chat"
+            f.write(json.dumps({"ts": ts, "request_id": r and r.request_id, "question": q,
+                                "vakyn_pick": pick, "vakyn_confidence": conf, "vakyn_probabilities": probs,
+                                "chat_pick": chat[q], "agree": None if None in (pick, chat[q]) else pick == chat[q],
+                                "mode": MODE, "used": used}) + "\n")
 ```
 
-Run it side by side first: keep `old_prompt_triage` in use, log both results per ticket, and
-switch after the `vakyn-check` skill has compared them.
+Side by side is the default: the old prompt's answer is used, VAKYN's is logged next to it per
+question ([log format](../references/code-shape.md#prompts-with-several-questions)). Switch with
+`VAKYN_TRIAGE_MODE=vakyn` after the `vakyn-check` skill has compared them.

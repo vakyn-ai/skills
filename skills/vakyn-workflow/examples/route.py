@@ -12,7 +12,7 @@ TEAMS = {
     "bugs": "Something in the app itself is broken, slow or shows an error",
     "other": "Not a support request for these teams: sales, partnerships, press, job applications, spam",
 }
-MIN_CONFIDENCE = 0.7  # a setting; tune it on your own labeled tickets (vakyn-check)
+MIN_CONFIDENCE = 0.6  # starting value; set yours with vakyn-check
 
 client = TypeSafeClient(timeout=30.0)
 

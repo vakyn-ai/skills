@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typesafe_sdk import Choice, TypeSafeClient
 
 MODE = os.environ.get("VAKYN_TOOL_MODE", "side_by_side")
-MIN_CONFIDENCE = float(os.environ.get("VAKYN_TOOL_MIN_CONFIDENCE", "0.8"))
+MIN_CONFIDENCE = float(os.environ.get("VAKYN_TOOL_MIN_CONFIDENCE", "0.8"))  # starting value; set yours with vakyn-check
 LOG_PATH = os.environ.get("VAKYN_TOOL_LOG", "vakyn-tool-picks.jsonl")
 CHAT_MODEL = os.environ.get("CHAT_MODEL", "gpt-4.1-mini")
 DRY = "--dry" in sys.argv

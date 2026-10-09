@@ -21,8 +21,8 @@ const RISKS = {
     false: "No public complaint is mentioned",
   }),
 };
-const FLAG = 0.8; // at or above: the risk is there
-const CLEAR = 0.2; // at or below: the risk is not there; in between is unsure
+const FLAG = 0.8; // at or above: the risk is there. Starting value; set yours with vakyn-check
+const CLEAR = 0.2; // at or below: the risk is not there; in between is unsure. Starting value
 
 const client = new TypeSafeClient({ timeout: 30_000 });
 
