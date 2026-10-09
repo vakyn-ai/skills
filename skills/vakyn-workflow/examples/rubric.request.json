@@ -1,0 +1,40 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "policy": "Refunds: full refund within 30 days of purchase. After 30 days, store credit only. Agents may not promise dates for engineering fixes.",
+    "customer_message": "I bought the annual plan 10 days ago and it does not work with our scanner. I want my money back.",
+    "agent_reply": "Sorry about that! I have started a full refund to your card; you will see it in 5 to 10 business days. If you want to try again later, our scanner support list is on the help page."
+  },
+  "questions": {
+    "answers_question": {
+      "type": "score",
+      "instructions": "How fully does state.agent_reply deal with what state.customer_message asks for?",
+      "criteria": [
+        "Ignores the request or answers a different one",
+        "Touches the request but leaves the main need open",
+        "Handles the main need, with a gap a customer would notice",
+        "Handles everything the customer asked, with a clear next step"
+      ]
+    },
+    "follows_policy": {
+      "type": "score",
+      "instructions": "How well does state.agent_reply follow state.policy?",
+      "criteria": [
+        "Breaks a rule in the policy",
+        "Gets a policy detail wrong or misleading",
+        "Within the policy, with a small gap",
+        "Fully within the policy"
+      ]
+    },
+    "tone": {
+      "type": "score",
+      "instructions": "How does the tone of state.agent_reply come across to the customer?",
+      "criteria": [
+        "Rude, cold or blaming",
+        "Neutral but stiff, reads like a template",
+        "Friendly and polite",
+        "Warm and personal while staying brief"
+      ]
+    }
+  }
+}

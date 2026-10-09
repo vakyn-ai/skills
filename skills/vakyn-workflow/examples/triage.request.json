@@ -1,0 +1,33 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "building": "Elm Court, 48 flats",
+    "unit": "3B",
+    "request": "The radiator in the bedroom has been cold for two days and the flat is down to 14 degrees. We have a newborn at home."
+  },
+  "questions": {
+    "trade": {
+      "type": "choice",
+      "instructions": "Which trade is needed for the repair request in state.request?",
+      "criteria": {
+        "plumbing": "Leaks, taps, toilets, drains, water pressure",
+        "electrical": "Lights, sockets, fuses, power cuts in the flat",
+        "heating": "Radiators, boiler, hot water temperature",
+        "appliance": "Oven, fridge, washing machine or other supplied appliance",
+        "pests": "Mice, insects or other pests",
+        "general": "Doors, windows, locks, floors, walls and other fixes inside the flat",
+        "other": "None of these, or not a repair: noise complaints, parking, questions about rent"
+      }
+    },
+    "urgency": {
+      "type": "score",
+      "instructions": "How soon does the repair in state.request need someone on site?",
+      "criteria": [
+        "Routine: cosmetic or minor, fine at the next planned visit",
+        "This week: a nuisance, the flat is still usable",
+        "Within 24 hours: daily life is hard, or a vulnerable person is affected",
+        "Emergency now: danger to people or the building, such as gas smell, sparks or flooding"
+      ]
+    }
+  }
+}

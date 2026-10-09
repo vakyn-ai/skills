@@ -1,0 +1,20 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "question": "How do I stop the weekly summary emails? I still want alerts when a payment fails."
+  },
+  "questions": {
+    "article": {
+      "type": "choice",
+      "instructions": "Which help article best answers the customer question in state.question?",
+      "criteria": {
+        "hc_204": "Change your email address: update the address we send all mail to",
+        "hc_311": "Notification settings: turn each email type on or off, such as summaries, alerts and product news",
+        "hc_118": "Failed payments: why a payment fails and how to retry it",
+        "hc_402": "Unsubscribe from marketing: stop newsletters and offers with one link",
+        "hc_087": "Close your account: delete your account and all data",
+        "no_good_match": "None of these articles answers the question"
+      }
+    }
+  }
+}

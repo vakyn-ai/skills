@@ -1,0 +1,26 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "form": "Home insurance claim",
+    "filled": {
+      "policy_number": "HX-20931",
+      "claim_type": "water damage"
+    },
+    "latest_reply": "A pipe burst under the kitchen sink last night. There is water all over the floor and it is still dripping into the cupboard below."
+  },
+  "questions": {
+    "next_field": {
+      "type": "choice",
+      "instructions": "Which empty field of the form should the assistant ask about next? Ask first about what matters most for the person right now, given state.filled and state.latest_reply.",
+      "criteria": {
+        "emergency_help": "Whether the damage is still happening and the person needs an emergency repair sent now",
+        "incident_date": "The exact date and time the damage happened, when the person has not given it",
+        "damaged_items": "A list of what was damaged and roughly what it is worth",
+        "photos": "Photos of the damage",
+        "repair_quote": "A quote or invoice from a repairer",
+        "ready_to_submit": "Nothing more is needed now; the claim can be submitted",
+        "needs_person": "The person is upset, confused or describing something the form cannot capture, so hand over to a claims handler"
+      }
+    }
+  }
+}

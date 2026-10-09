@@ -1,0 +1,30 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "channel": "chat",
+    "order": {"product": "Ember 2000 fan heater", "delivered_days_ago": 9},
+    "message": "The heater you sent me started smoking last night and the plug is melted. I unplugged it and it is in the garage now. I want a full refund, and you should check the rest of this batch."
+  },
+  "questions": {
+    "refund_demand": {
+      "type": "noul",
+      "instructions": "Does state.message ask for money back?",
+      "criteria": {"true": "Asks for a refund, a chargeback or compensation in money", "false": "Asks for something else, such as a repair, a swap or information"}
+    },
+    "legal_threat": {
+      "type": "noul",
+      "instructions": "Does state.message threaten legal action?",
+      "criteria": {"true": "Mentions a lawyer, court, a claim, or reporting the company to an authority", "false": "Complains without any legal step"}
+    },
+    "safety_issue": {
+      "type": "noul",
+      "instructions": "Does state.message describe a danger to the safety of people?",
+      "criteria": {"true": "Fire, smoke, burns, electric shock, injury, a child or pet put at risk", "false": "The problem only affects the product, the order or money"}
+    },
+    "public_complaint": {
+      "type": "noul",
+      "instructions": "Does state.message threaten to complain in public?",
+      "criteria": {"true": "Threatens a bad review, a social media post or going to the press", "false": "No public complaint is mentioned"}
+    }
+  }
+}

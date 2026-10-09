@@ -1,0 +1,25 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "conversation": [
+      {"role": "user", "text": "Hi, I booked a flight to Lisbon for the 12th, booking ref KX4P2Q."},
+      {"role": "assistant", "text": "Thanks, I found booking KX4P2Q: Berlin to Lisbon on 12 May, one passenger."},
+      {"role": "user", "text": "Great. Can you move it to the 19th instead? Same time of day if possible."}
+    ],
+    "steps_done": ["find_booking"]
+  },
+  "questions": {
+    "next_step": {
+      "type": "choice",
+      "instructions": "What should the travel assistant do next for the last user message in state.conversation? A tool step needs the booking and any new date to be known.",
+      "criteria": {
+        "search_flights": "Look up available flights for a route and date, without changing a booking",
+        "change_booking": "Move an existing booking to another date or flight",
+        "cancel_booking": "Cancel an existing booking and start a refund",
+        "baggage_policy": "Look up baggage allowance and fees for a booking",
+        "none": "No tool is needed: the assistant can answer from the conversation, or the user is just chatting",
+        "ask_user": "Ask the user first: the request is vague or a detail the step needs is missing, such as which booking or the new date"
+      }
+    }
+  }
+}

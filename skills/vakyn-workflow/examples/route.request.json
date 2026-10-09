@@ -1,0 +1,22 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "channel": "web form",
+    "customer": {"plan": "business", "seats": 40},
+    "subject": "Slack alerts stopped",
+    "message": "Since we rotated our API token yesterday, the Slack alerts from your app stopped arriving. Nothing else changed on our side. Can someone take a look?"
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which support team should handle the ticket in state.subject and state.message?",
+      "criteria": {
+        "billing": "Invoices, charges, refunds, plan changes and seat counts",
+        "access": "Signing in, passwords, two-factor codes, user roles and permissions",
+        "integrations": "Connections to other tools: Slack, webhooks, API tokens, imports and exports",
+        "bugs": "Something in the app itself is broken, slow or shows an error",
+        "other": "Not a support request for these teams: sales, partnerships, press, job applications, spam"
+      }
+    }
+  }
+}
