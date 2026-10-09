@@ -135,7 +135,15 @@ claude plugin update vakyn@vakyn-ai
 <details>
 <summary><strong>Other coding agents</strong></summary>
 
-The skills are packaged for Claude Code. Want them for another agent? Open an issue and say which.
+Codex, Cursor and OpenCode, from your project folder:
+
+```bash
+npx skills add vakyn-ai/skills --skill '*' -a codex -a cursor -a opencode
+```
+
+The skills land in `.agents/skills/`, which all three read. Add `-g` for every project. Install
+all of them: they link to each other. Update with `npx skills update -y`, remove with
+`npx skills remove --all`. Details: [docs/install-other-agents.md](docs/install-other-agents.md).
 
 </details>
 
