@@ -12,7 +12,10 @@ from checklist import check
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS = sorted(p for p in (ROOT / "skills").iterdir() if p.is_dir())
-EXPECTED_SKILLS = {"vakyn", "vakyn-research", "vakyn-questions", "vakyn-convert", "vakyn-workflow", "vakyn-check"}
+EXPECTED_SKILLS = {
+    "vakyn", "vakyn-research", "vakyn-questions", "vakyn-convert", "vakyn-workflow", "vakyn-check",
+    "vakyn-cascade", "vakyn-batch", "vakyn-judge", "vakyn-migrate",
+}
 SKILL_MAX_LINES = 150
 
 # Public text: everything a user reads.
