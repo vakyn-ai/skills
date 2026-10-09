@@ -63,7 +63,9 @@ There is no streaming and no batch endpoint: send independent requests concurren
 - `choice`: the top option, its `confidence`, and `probabilities` over every option.
 - `score`: the probability-weighted level (fractional), the `legend`, and `probabilities` per level.
   Round or threshold it in code; the top level is `max(probabilities)`.
-- Values are rounded to 2 decimals. The same request always gets the same numbers.
+- Values are rounded to 2 decimals. Answers are not sampled: a request sent alone repeats exactly.
+  Under concurrent load the numbers can differ slightly between runs (measured up to 0.04 with 8
+  in flight). Keep thresholds away from knife-edges and re-check rows that sit close to one.
 
 ## Limits
 
