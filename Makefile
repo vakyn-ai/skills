@@ -19,8 +19,8 @@ test-live: ## Send every example request to VAKYN_BASE_URL (needs VAKYN_API_KEY)
 
 eval: ## Run skill evals in headless Claude Code, then send the requests they wrote to VAKYN_BASE_URL
 	-claude plugin eval . --trust-plugin --runs $(or $(RUNS),1) -j $(or $(JOBS),4) --ablation none --allow-tools Bash Write Edit \
-		--no-publish --keep-temp --json evals/last.json $(if $(CASE),--case '$(CASE)') $(if $(TAG),--tag $(TAG))
-	python3 tests/eval_live.py evals/last.json
+		--no-publish --keep-temp --json evals/last-$(or $(TAG),$(CASE),all).json $(if $(CASE),--case '$(CASE)') $(if $(TAG),--tag $(TAG))
+	python3 tests/eval_live.py evals/last-$(or $(TAG),$(CASE),all).json
 
 version: ## Show current version
 	@grep '"version"' $(PLUGIN_JSON) | head -1 | sed 's/.*: *"\(.*\)".*/\1/'
