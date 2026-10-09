@@ -9,7 +9,9 @@ works too.
 | TypeScript / JavaScript | `npm install @typesafe-ai/sdk` | same variables, or `baseURL` / `apiKey` |
 | Anything else | HTTP `POST /v1/systemone` | `Authorization: Bearer $VAKYN_API_KEY` |
 
-Base URL is the server root without `/v1`. Model: `jev-latest` (the SDK default).
+Base URL is the server root without `/v1`. Model: `jev-latest` (the SDK default). Both SDKs also
+read `TYPESAFE_DEFAULT_MODEL`: leave it unset, or set it to the loaded model's name from
+`/v1/models`.
 
 ## Python
 

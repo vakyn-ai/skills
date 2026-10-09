@@ -1,6 +1,6 @@
 ---
 name: vakyn
-description: "Entry point for VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence. Use when someone asks whether VAKYN fits their problem, which model file to run, how to install or start open-server, get an API key or make a first call; what the Jev-compatible API accepts and returns; troubleshoots 401, 422, 429 or 503, out of GPU memory, or a server that won't start; or wants to move from hosted Jev or the TypeSafe SDK to their own server."
+description: "Entry point for VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence. Use when someone asks whether VAKYN fits their problem, which model file to run, how to install or start open-server, get an API key or make a first call; what the Jev-compatible API accepts and returns; troubleshoots 401, 422, 429 or 503, out of GPU memory, or a server that won't start. To move from hosted Jev, TypeSafe, OpenRouter or another decision API to their own server, use vakyn-migrate."
 ---
 
 # VAKYN: start here
@@ -29,12 +29,15 @@ for your own reasoning.
 | Know what the API accepts, returns and refuses | [API reference](references/api.md) |
 | Call it from Python or TypeScript | [SDK guide](references/sdk.md) |
 | Fix an error: `401`, `422`, `429`, `503`, out of GPU memory, server won't start | [Setup checks](references/setup.md#check), [API errors](references/api.md#errors) |
-| Move from hosted Jev or the TypeSafe SDK to their own server | [Differences from the hosted service](references/sdk.md#differences-from-the-hosted-jev-service) |
+| Move from hosted Jev, TypeSafe, OpenRouter or another decision API to their own server | `vakyn-migrate` skill |
 | Find where VAKYN helps in an existing app | `vakyn-research` skill |
 | Write or fix questions | `vakyn-questions` skill |
 | Convert a prompt or a tool-calling app | `vakyn-convert` skill |
 | Build a new decision workflow | `vakyn-workflow` skill |
 | Test on their own data or get ready to go live | `vakyn-check` skill |
+| Run VAKYN over a file or table of records | `vakyn-batch` skill |
+| Let a cheap draft answer and VAKYN check it | `vakyn-cascade` skill |
+| Grade outputs with a rubric | `vakyn-judge` skill |
 
 When the request is vague ("help me use VAKYN"), ask what they want to decide and whether they
 already have an app, then route with this table.
