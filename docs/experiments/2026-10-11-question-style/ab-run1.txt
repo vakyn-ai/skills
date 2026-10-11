@@ -1,0 +1,18 @@
+TEST 1: field reference style (noul; 32 questions per row)
+shape   variant      correct  mean p(right)  min p(right)
+flat    state.path   32/32            0.999          0.97
+flat    backtick     32/32            0.998          0.97
+flat    plain        32/32            0.999          0.99
+flat    bare         32/32            0.999          0.98
+nested  state.path   32/32            0.997          0.96
+nested  backtick     32/32            0.997          0.94
+nested  plain        32/32            1.000          0.99
+
+TEST 2: option descriptions (choice, 20 tricky messages, 5 teams)
+variant       correct  mean p(right)
+plain         20/20            0.989
+long string   20/20            0.997
+structured    20/20            0.998
+  wrong (plain): []
+  wrong (long string): []
+  wrong (structured): []

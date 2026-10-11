@@ -1,0 +1,12 @@
+VAKYN-4B Q8_0, open-server preview, one RTX 5090, requests sent one at a time, 2026-10-11.
+
+TEST 1b: 4 similar messages, refer to one (128 questions per row)
+state.path      128/128  mean p(right) 0.990  min 0.76
+backtick        128/128  mean p(right) 0.988  min 0.68
+plain name      128/128  mean p(right) 0.996  min 0.93
+plain position  128/128  mean p(right) 0.989  min 0.76
+
+TEST 2b: harder boundaries (20 messages, 5 teams)
+plain         16/20   mean p(right) 0.824
+long string   17/20   mean p(right) 0.861
+structured    18/20   mean p(right) 0.886
