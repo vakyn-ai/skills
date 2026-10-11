@@ -22,24 +22,46 @@ graders:
   - name: code-file
     type: file_exists
     path: "grader.py"
-  - name: design
+  - name: three-scores
     type: llm
     focus:
       source: file
       path: "grader.py"
     criteria: |
-      Judge the code in grader.py. It holds the VAKYN questions, the state builder and the logic around them.
-
-      PASS only if all of these hold:
-      1. Each of the three criteria is its own `score` question with levels described in words, lowest
-         first (no bare numbers), all three in one request per application.
-      2. The weighting ("skills count most") and the total are computed in code, not asked of VAKYN.
-      3. The right-to-work field is checked in code before any VAKYN call; it is not a VAKYN question.
-      4. There is an unsure path: a named confidence threshold, and low-confidence grades go to a
-         recruiter.
-      5. The CV and the project answer are in the state under their own keys, and each question names
-         the field it judges.
-      FAIL if any point is missing, or if one overall score replaces the three criteria.
+      Judge only this one point in grader.py; ignore everything else.
+      PASS if each of the three criteria (skills, project answer clarity, relevance) has its own `score` question (splitting a two-part criterion such as SQL and spreadsheet skills into two questions is fine), each with levels written in words, lowest first, and all of them go in one request per application. FAIL if one overall score replaces them or levels are bare numbers.
+  - name: weights-in-code
+    type: llm
+    focus:
+      source: file
+      path: "grader.py"
+    criteria: |
+      Judge only this one point in grader.py; ignore everything else.
+      PASS if the weighting (skills count most) and the total are computed in Python code, not asked of VAKYN. FAIL otherwise.
+  - name: right-to-work-in-code
+    type: llm
+    focus:
+      source: file
+      path: "grader.py"
+    criteria: |
+      Judge only this one point in grader.py; ignore everything else.
+      PASS if the right-to-work field is checked in Python before any VAKYN call, and is not a VAKYN question. FAIL otherwise.
+  - name: unsure-path
+    type: llm
+    focus:
+      source: file
+      path: "grader.py"
+    criteria: |
+      Judge only this one point in grader.py; ignore everything else.
+      PASS if the code has a named confidence threshold (a constant or setting) and sends low-confidence grades to a recruiter or review list. FAIL otherwise.
+  - name: state-keys
+    type: llm
+    focus:
+      source: file
+      path: "grader.py"
+    criteria: |
+      Judge only this one point in grader.py; ignore everything else.
+      PASS if the CV and the project answer sit in the state under their own keys, and each question's instructions name the field it judges (for example state.cv). FAIL otherwise.
   - name: honest
     type: llm
     criteria: |
