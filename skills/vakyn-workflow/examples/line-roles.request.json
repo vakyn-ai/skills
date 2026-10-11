@@ -1,0 +1,242 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "pasted_text": "Trail Kettle 1.2\nA light steel kettle for camping trips. It boils a liter in four minutes on a gas stove.\nWhat's in the box\nKettle with folding handle\nMesh carry bag\nCare guide\nCare\nRinse after each use and let it dry with the lid open.\nPage 2 of 3"
+  },
+  "questions": {
+    "line_1": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"Trail Kettle 1.2\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_2": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"A light steel kettle for camping trips. It boils a liter in four minutes on a gas stove.\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_3": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"What's in the box\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_4": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"Kettle with folding handle\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_5": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"Mesh carry bag\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_6": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"Care guide\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_7": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"Care\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_8": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"Rinse after each use and let it dry with the lid open.\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    },
+    "line_9": {
+      "type": "choice",
+      "instructions": "In the pasted text, what is the line \"Page 2 of 3\"?",
+      "criteria": {
+        "heading": {
+          "is": "a title for the lines that follow",
+          "looks like": "short, no final period, followed by text or a list about it"
+        },
+        "list_item": {
+          "is": "one entry in a list of similar short items",
+          "looks like": "a noun phrase, next to lines of the same kind"
+        },
+        "paragraph": {
+          "is": "running text",
+          "looks like": "one or more full sentences ending with a period"
+        },
+        "other": {
+          "is": "something that is not content",
+          "includes": [
+            "page numbers",
+            "signatures",
+            "stray symbols"
+          ]
+        }
+      }
+    }
+  }
+}

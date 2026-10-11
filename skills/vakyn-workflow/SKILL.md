@@ -1,6 +1,6 @@
 ---
 name: vakyn-workflow
-description: "Design a new VAKYN decision workflow from a plain-language task: the questions, state builder, Python or TypeScript code, batching and unsure path. Use for routing, categorize, triage, intent detection, moderation, guardrail, spam filter, next-tool or next-step pick for a new assistant, claim check (hallucination, grounding, fact-check), LLM-as-judge or eval grader, rubric grading, rerank or relevance filter, best match, risk flags, CI failure triage, alert triage, document intake, or form steps."
+description: "Design a new VAKYN decision workflow from a plain-language task: the questions, state builder, Python or TypeScript code, batching and unsure path. Use for routing, triage, intent detection, moderation, guardrail, next-tool pick, claim check (hallucination, grounding), LLM-as-judge or rubric grading, rerank or best match, risk flags, form steps, all branch questions in one request (fan-out), extracting a value, date or span by picking instead of generating, rebuilding headings and lists in pasted text, or scoring items once to rank and filter many ways."
 ---
 
 # VAKYN workflow: design something new
@@ -8,7 +8,7 @@ description: "Design a new VAKYN decision workflow from a plain-language task: t
 The person describes a task in plain words ("someone reads every returns email and decides what
 happens to it"). You turn it into a working decision workflow: the questions, a state builder
 (what evidence, from where), the code, and what happens when VAKYN is unsure. Start from the
-closest of eight patterns; each has a request and code that were run against a VAKYN 4B.
+closest of eleven patterns; each has a request and code that were run against a VAKYN 4B.
 
 Shared material: [fit check](../vakyn/references/fit-check.md),
 [API reference](../vakyn/references/api.md), [SDK guide](../vakyn/references/sdk.md),
@@ -27,10 +27,14 @@ writing each question.
 | Pick one item from a short list | [pick the best match](references/patterns/best-match.md) | `choice` over item ids + `no_good_match` |
 | Flag what needs a person (refund, legal, safety) | [spot risk](references/patterns/spot-risk.md) | one `noul` per risk, combined in code |
 | Choose the next field or question in a form | [fill a form step](references/patterns/form-step.md) | `choice` over empty fields + endings |
+| Ask every branch's follow-up at once, read only the branch taken | [fan out](references/patterns/fan-out.md) | `choice` + branch questions with stated premises |
+| Get a value, date or sentence out of text, or rebuild headings and lists | [pick instead of generate](references/patterns/pick-value.md) | `choice` over candidates code found + `none_of_these` |
+| Rank or filter items many ways without asking again | [judgments as data](references/patterns/reusable-judgments.md) | one `score` or `noul` per dimension, stored |
 | Several of these in a row | [compose patterns](references/compose.md) | |
 
 Writing replies, summaries or tool arguments is not a decision: that stays with a chat model or a
-person. Converting an existing prompt or tool-calling app is the `vakyn-convert` skill.
+person. Copying out a value that is already in the text is a pick, not writing. Converting an
+existing prompt or tool-calling app is the `vakyn-convert` skill.
 
 ## Steps
 
@@ -43,8 +47,9 @@ person. Converting an existing prompt or tool-calling app is the `vakyn-convert`
    which questions share a request, the unsure path, the volume. Ask only what you cannot
    default (usually the options and where unsure answers go).
 4. **Design the questions** with the `vakyn-questions` rules: one judgment per question, options
-   with one-line descriptions and an escape option, score levels described lowest first, the
-   subject named (`state.message`). Rules, sums, dates and thresholds stay in code.
+   with descriptions and an escape option, score levels described lowest first, the subject
+   named in plain words ("the customer's message"). Rules, sums, dates and thresholds stay in
+   code.
 5. **Write the state builder**: `build_state(record)` copies evidence from the person's data,
    each field under a plain name. No conclusions, no candidates that fail a hard rule
    ([design](references/design.md#3-the-state-builder)). Documents over 32,768 tokens: pick the
@@ -83,6 +88,9 @@ person. Converting an existing prompt or tool-calling app is the `vakyn-convert`
 | best match | [best-match.request.json](examples/best-match.request.json) | [best_match.py](examples/best_match.py) |
 | spot risk | [spot-risk.request.json](examples/spot-risk.request.json) | [spot_risk.py](examples/spot_risk.py), [spot_risk.ts](examples/spot_risk.ts) |
 | form step | [form-step.request.json](examples/form-step.request.json) | [form_step.py](examples/form_step.py) |
+| fan out | [fan-out.request.json](examples/fan-out.request.json) | [fan_out.py](examples/fan_out.py) |
+| pick instead of generate | [pick-value.request.json](examples/pick-value.request.json), [line-roles.request.json](examples/line-roles.request.json) | [pick_value.py](examples/pick_value.py) |
+| judgments as data | [judgments.request.json](examples/judgments.request.json) | [judgments.py](examples/judgments.py) |
 
 ## Rules
 

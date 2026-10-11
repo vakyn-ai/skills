@@ -28,7 +28,8 @@ Follow the `vakyn-questions` rules ([question types](../../vakyn-questions/refer
 - one judgment per question; several facts that can all be true → one `noul` each;
 - `choice` options in snake_case with a one-line description and an escape option;
 - `score` levels described by what you would observe, lowest first;
-- each question names its subject (`state.message`), never a position.
+- each question names its subject in plain words ("the customer's message"; `state.message` also
+  works), never a position.
 
 ## 3. The state builder
 

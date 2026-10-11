@@ -1,0 +1,42 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "listing": "Bright two-room flat on the 4th floor, facing a quiet inner courtyard. Big south windows in both rooms. Kitchen redone in 2023, bathroom original but clean. Tram stop 2 minutes away. Small pets welcome."
+  },
+  "questions": {
+    "quiet": {
+      "type": "score",
+      "instructions": "How quiet does the listing say the flat is?",
+      "criteria": [
+        "Says it is noisy: busy street, bars, works nearby",
+        "Says nothing about noise",
+        "Some hint of calm: a side street or upper floor",
+        "Says it is quiet: courtyard side, quiet street, no traffic"
+      ]
+    },
+    "light": {
+      "type": "score",
+      "instructions": "How much daylight does the listing say the flat gets?",
+      "criteria": [
+        "Says it is dark: ground floor facing a wall, small windows",
+        "Says nothing about light",
+        "Some daylight: windows mentioned, no direction or size",
+        "Very bright: big windows, south or west facing, top floor"
+      ]
+    },
+    "condition": {
+      "type": "score",
+      "instructions": "What state is the flat in, from the listing?",
+      "criteria": [
+        "Needs work: damage, old fittings, renovation needed",
+        "Not described",
+        "Mixed: some parts new, some old but kept up",
+        "New or fully renovated"
+      ]
+    },
+    "pets_allowed": {
+      "type": "noul",
+      "instructions": "Does the listing say pets are allowed?"
+    }
+  }
+}

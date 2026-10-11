@@ -1,0 +1,27 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "supplier_email": "Hi Dana, thanks for the €300 deposit we received on 2 October. The remaining balance of €1,240.50 is due by 14 November. Payments after that date add a €25 late fee. Best, Marco"
+  },
+  "questions": {
+    "amount_due": {
+      "type": "choice",
+      "instructions": "Which amount in the supplier's email is the amount the customer still has to pay now?",
+      "criteria": {
+        "eur_300": "€300, in: \"thanks for the €300 deposit we received on 2 October\"",
+        "eur_1240_50": "€1,240.50, in: \"The remaining balance of €1,240.50 is due by 14 November\"",
+        "eur_25": "€25, in: \"Payments after that date add a €25 late fee\"",
+        "none_of_these": "None of these amounts is the one still to pay, or the email does not say"
+      }
+    },
+    "due_date": {
+      "type": "choice",
+      "instructions": "Which date in the supplier's email is the date the remaining payment is due?",
+      "criteria": {
+        "oct_2": "2 October, in: \"thanks for the €300 deposit we received on 2 October\"",
+        "nov_14": "14 November, in: \"The remaining balance of €1,240.50 is due by 14 November\"",
+        "none_of_these": "None of these dates is the due date, or the email does not say"
+      }
+    }
+  }
+}

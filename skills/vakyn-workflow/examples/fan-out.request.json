@@ -1,0 +1,44 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "plan": "team, 12 seats",
+    "message": "Our company card expired last week and the renewal payment failed. How do I add a new card before we lose access?"
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which team should handle the customer's message?",
+      "criteria": {
+        "billing": "Charges, invoices, refunds and failed payments",
+        "access": "Sign-in, passwords, 2FA and who can use the account",
+        "product": "Bugs and how-to questions about the product",
+        "other": "Anything that is not a support request for these teams"
+      }
+    },
+    "billing_topic": {
+      "type": "choice",
+      "instructions": "Suppose the customer's message is about billing. Which billing topic is it about? If it is not about billing at all, pick not_billing.",
+      "criteria": {
+        "refund": "Wants money back for a charge already made",
+        "invoice_fix": "An invoice or receipt has wrong details or a wrong amount",
+        "payment_failed": "A card or payment was declined or expired",
+        "plan_change": "Wants to upgrade, downgrade or cancel",
+        "not_billing": "The message is not about billing"
+      }
+    },
+    "locked_out_everyone": {
+      "type": "noul",
+      "instructions": "Suppose the customer's message is about signing in. Does it say that nobody on the customer's team can sign in, rather than one person?"
+    },
+    "bug_blocks_work": {
+      "type": "score",
+      "instructions": "Suppose the customer's message reports a bug. How much does the bug stop the customer's work?",
+      "criteria": [
+        "No bug, or a cosmetic one: work goes on as normal",
+        "Slows work down, with a workaround",
+        "Blocks one task, no workaround",
+        "Blocks the whole team's work"
+      ]
+    }
+  }
+}
