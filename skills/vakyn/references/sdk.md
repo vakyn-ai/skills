@@ -23,13 +23,13 @@ result = client.system_one(
     state={"ticket": ticket_text},
     questions={
         "team": Choice(
-            instructions="Which team should handle state.ticket?",
+            instructions="Which team should handle the ticket?",
             criteria={"billing": "Charges, invoices, refunds",
                       "access": "Sign-in and permissions",
                       "other": "None of these fits"},
         ),
-        "refund": Noul(instructions="Does state.ticket ask for money back?"),
-        "urgency": Score(instructions="How soon does state.ticket need a reply?",
+        "refund": Noul(instructions="Does the ticket ask for money back?"),
+        "urgency": Score(instructions="How soon does the ticket need a reply?",
                          criteria=["Can wait", "Today", "Within the hour"]),
     },
 )
@@ -51,13 +51,13 @@ const client = new TypeSafeClient({ timeout: 30_000 }); // reads TYPESAFE_BASE_U
 const { answers } = await client.systemOne({
   state: { ticket: ticketText },
   questions: {
-    team: choice("Which team should handle state.ticket?", {
+    team: choice("Which team should handle the ticket?", {
       billing: "Charges, invoices, refunds",
       access: "Sign-in and permissions",
       other: "None of these fits",
     }),
-    refund: noul("Does state.ticket ask for money back?"),
-    urgency: score("How soon does state.ticket need a reply?", ["Can wait", "Today", "Within the hour"]),
+    refund: noul("Does the ticket ask for money back?"),
+    urgency: score("How soon does the ticket need a reply?", ["Can wait", "Today", "Within the hour"]),
   },
 });
 console.log(answers.team.choice, answers.refund.noul, answers.urgency.score);

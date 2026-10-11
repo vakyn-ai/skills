@@ -145,11 +145,36 @@ class Checklist(unittest.TestCase):
             self.base(type="score", instructions="How?", criteria=["only one"]),
             self.base(type="noul", instructions="Is it?", criteria={"yes": "y"}),
             self.base(type="rank", instructions="x"),
+            self.base(type="choice", instructions="Which?", criteria={"a": None, "none": "n"}),
+            self.base(type="choice", instructions="Which?", criteria={"a": {}, "none": "n"}),
+            self.base(type="choice", instructions="Which?", criteria={"a": [], "none": "n"}),
+            self.base(type="score", instructions="How?", criteria=[1, 2, 3]),
+            self.base(type="score", instructions="How?", criteria=["none", {"level": ""}]),
+            self.base(type="noul", instructions={}),
+            self.base(type="noul", instructions=None),
             {"model": "jev-latest", "state": "x", "questions": {}, "stream": True},
         ]
         for req in cases:
             with self.subTest(req=req):
                 self.assertNotEqual(check(req)[0], [])
+
+    def test_structured_fields(self):
+        # The server renders objects as `key: value` lines and lists as `- item` lines.
+        req = self.base(
+            type="choice",
+            instructions={"question": "Which team should handle the customer's message?",
+                          "note": "A refund for a broken product still goes to billing."},
+            criteria={
+                "billing": {"handles": "money already charged", "includes": ["refunds", "invoices"],
+                            "not": "prices before buying (sales)"},
+                "sales": ["prices", "plans", "trials"],
+                "other": "Anything none of the teams above handle",
+            })
+        self.assertEqual(check(req), ([], []))
+        req = self.base(type="score", instructions="How angry is the customer's message?",
+                        criteria=["Calm: no complaint", {"level": "annoyed", "signs": ["sighs", "again"]},
+                                  ["furious", "threatens to leave"]])
+        self.assertEqual(check(req), ([], []))
 
     def test_warnings(self):
         cases = [

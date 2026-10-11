@@ -20,6 +20,21 @@ It does not say whether the answer is right.
 - Confidence moves when the wording of a question or its options changes. Re-check thresholds after
   every rewrite.
 
+## Reading it right
+
+- **A `noul` near 0.5 means unsure, not "some".** `noul: 0.5` on "Is the customer angry?" does
+  not mean "a bit angry"; it means VAKYN cannot tell. For "how much", ask a `score` with levels.
+- **Low confidence on a harmless preference can be fine.** "Which of these five templates fits
+  best?" may spread probability over three good ones. If any of them is acceptable, take the top
+  pick; send it to review only when a wrong pick costs something.
+- **Ignore uncertainty your code does not use.** When a request asks questions for several
+  branches up front ([fan-out](../../vakyn-workflow/references/patterns/fan-out.md)), only the
+  answers on the branch taken matter. An unsure answer on a branch the code skips is not a
+  problem.
+- **Confidence is not permission to act.** A sure answer still goes through the code rules
+  (amounts, limits, who may approve). Confidence decides between "act" and "ask a person" only
+  for actions the code already allows.
+
 ## Thresholds
 
 Never pick a threshold from a feeling or from 0.5 by default.

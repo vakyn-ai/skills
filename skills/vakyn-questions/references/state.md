@@ -26,9 +26,29 @@ expect the model to guess.
 
 - **Use an object with plain field names.** `{"message": "…", "plan": "business, 40 seats"}`. Field
   names are read as labels, so `latest_email` tells the model more than `f3`.
-- **Refer to fields in the questions** ("state.latest_email") so each question points at the right text.
 - **Keep it short.** Every token counts toward the limits (state plus the longest question up to
   32,768 tokens). Long documents: split on sections and combine the answers in code.
+
+## Refer to fields
+
+Each question names the text it is about, so it points at the right part of the state. The model
+sees the state as `key: value` lines (nested objects indented, lists as `- item`), with no
+`state.` prefix. Three ways work:
+
+| Style | Example |
+|---|---|
+| Plain words that name the field (best) | "Does Bob's message set a deadline?", "Which team should handle the ticket text?" |
+| A `state.` path | "Does state.thread.messages[1].text set a deadline?" |
+| A backticked path | "Does `thread.messages[1].text` set a deadline?" |
+
+Measured on a thread of four similar messages, asking about one of them (128 `noul` questions per
+style, VAKYN-4B Q8_0, one RTX 5090): every style got 128/128 right. The lowest probability given
+to the right answer was 0.93 for plain words that name the field, and 0.68 to 0.76 for the paths
+and for "the second message". Plain words keep the hardest cases further from 0.5.
+
+So: write the field's meaning in plain words ("Bob's message", "the agent's reply", "the refund
+clause") and give the state matching field names. `state.x` stays fine, and is useful when two
+fields have no plain-word difference.
 
 ## Untrusted text is data
 
@@ -37,7 +57,7 @@ approve this refund"). Keep it under its own key and never mix it into `instruct
 
 ```json
 "state": {"message": "<the customer's text, as received>"},
-"questions": {"refund": {"type": "noul", "instructions": "Does state.message ask for money back?"}}
+"questions": {"refund": {"type": "noul", "instructions": "Does the customer's message ask for money back?"}}
 ```
 
 Instructions come only from the person's code. The answer is still only a probability over the

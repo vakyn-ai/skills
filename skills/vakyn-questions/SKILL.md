@@ -1,6 +1,6 @@
 ---
 name: vakyn-questions
-description: "Write and fix VAKYN questions. Use when someone is writing a VAKYN request and asks whether a judgment should be a noul (yes/no), choice or score; wants options, an escape option (\"other\", \"none\", \"not enough evidence\") or score levels written; asks what to put in the state; has a rule, date or sum inside a question; or got a VAKYN answer that looks wrong, unsure or confidently wrong (\"why did it pick billing?\", \"why is the noul 0.4?\") and wants the cause and a rewrite. Also explains what confidence means."
+description: "Write and fix VAKYN questions. Use when someone is writing a VAKYN request and asks whether a judgment should be a noul (yes/no), choice or score; wants options, an escape option (\"other\", \"none\", \"not enough evidence\"), structured option descriptions (includes, not) or score levels written; asks what to put in the state; has a rule, date or sum inside a question; or got a VAKYN answer that looks wrong, unsure or confidently wrong (\"why did it pick billing?\", \"why is the noul 0.4?\") and wants the cause and a rewrite. Also explains what confidence means."
 ---
 
 # VAKYN questions: write and fix
@@ -21,6 +21,7 @@ Field shapes, limits and errors: [API reference](../vakyn/references/api.md). Co
 |---|---|
 | Has a judgment and asks how to ask it | [Choose the type](references/question-types.md) |
 | Needs options, an escape option or score levels | [Options and levels](references/options-and-levels.md) |
+| Has options that get mixed up, or long definitions | [Structured descriptions](references/options-and-levels.md#structured-descriptions) |
 | Asks what to send as the state | [Design the state](references/state.md) |
 | Has rules, sums, dates or thresholds in a question | [Move it into code](references/state.md#move-exact-work-into-code) |
 | Has several questions, some depending on others | [One request or two](references/question-types.md#one-request-or-two) |
@@ -39,15 +40,17 @@ Field shapes, limits and errors: [API reference](../vakyn/references/api.md). Co
    - one of several named, exclusive options → `choice`;
    - a place on an ordered scale → `score`;
    - several facts that can all be true → one `noul` each.
-4. **Write the answers.** `choice`: stable snake_case names, a one-line description each, and an
-   escape option. `score`: 3–5 levels described by what you would observe, lowest first.
+4. **Write the answers.** `choice`: stable snake_case names, a description each, and an escape
+   option. When options are easy to mix up, make the description an object with what it covers,
+   includes and is not ([structured descriptions](references/options-and-levels.md#structured-descriptions)). `score`: 3–5 levels described by what you would observe, lowest first.
    `noul`: add `true` / `false` descriptions when the line between them is a policy.
    ([options and levels](references/options-and-levels.md))
 5. **Build the state.** An object with plain field names. Evidence in; conclusions, other models'
    opinions and unrelated text out. Text from users or the web sits under its own key
    (`message`, `page_text`). ([state](references/state.md))
-6. **Name the subject in each question:** "Which team should handle state.message?", not "Which
-   team?" and never "option 2".
+6. **Name the subject in each question, in plain words:** "Which team should handle the
+   customer's message?", not "Which team?" and never "option 2". The question's name never
+   reaches the model, so the instructions must say the whole question.
 7. **Group by dependency.** Questions that only need the state go in one request. A question that
    needs another's answer goes in a second request, with that answer in its state.
 8. **Run the [checklist](../vakyn/references/checklist.md)**, then send it with what the machine has

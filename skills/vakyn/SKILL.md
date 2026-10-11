@@ -1,6 +1,6 @@
 ---
 name: vakyn
-description: "Entry point for VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence. Use when someone asks whether VAKYN fits their problem, which model file to run, how to install or start open-server, get an API key or make a first call; what the Jev-compatible API accepts and returns; troubleshoots 401, 422, 429 or 503, out of GPU memory, or a server that won't start. To move from hosted Jev, TypeSafe, OpenRouter or another decision API to their own server, use vakyn-migrate."
+description: "Entry point for VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence. Use when someone asks what VAKYN could do in their app, whether it fits their problem, how to turn an LLM prompt-and-parse step into a structured decision, which model file to run, how to install or start open-server, get an API key or make a first call; what the Jev-compatible API accepts; troubleshoots 401, 422, 429, 503, out of GPU memory or a server that won't start. Moving from hosted Jev, TypeSafe or OpenRouter: use vakyn-migrate."
 ---
 
 # VAKYN: start here
@@ -22,6 +22,7 @@ for your own reasoning.
 
 | The person wants to… | Do |
 |---|---|
+| Know what VAKYN could make possible in their app (no step chosen yet) | [Brainstorm](#brainstorm) below |
 | Know if VAKYN fits their problem | [Fit check](references/fit-check.md) |
 | Choose a model file for their machine | [Model choice](references/setup.md#choose-a-model-file) |
 | Install and start the server, get an API key | [Setup](references/setup.md) |
@@ -32,7 +33,7 @@ for your own reasoning.
 | Move from hosted Jev, TypeSafe, OpenRouter or another decision API to their own server | `vakyn-migrate` skill |
 | Find where VAKYN helps in an existing app | `vakyn-research` skill |
 | Write or fix questions | `vakyn-questions` skill |
-| Convert a prompt or a tool-calling app | `vakyn-convert` skill |
+| Turn a chat-model prompt-and-parse step or a tool-calling app into a structured decision | `vakyn-convert` skill |
 | Build a new decision workflow | `vakyn-workflow` skill |
 | Test on their own data or get ready to go live | `vakyn-check` skill |
 | Run VAKYN over a file or table of records | `vakyn-batch` skill |
@@ -40,7 +41,22 @@ for your own reasoning.
 | Grade outputs with a rubric | `vakyn-judge` skill |
 
 When the request is vague ("help me use VAKYN"), ask what they want to decide and whether they
-already have an app, then route with this table.
+already have an app, then route with this table. A concrete request ("route these emails", "check
+this answer against the doc") skips all questions: build it with the matching skill.
+
+## Brainstorm
+
+When someone asks what VAKYN could make possible in their app and has no step in mind:
+
+1. Look at what they shared (code, a description, the product) and find where a person or a chat
+   model reads text and picks from a few outcomes.
+2. Offer 2–3 concrete directions tied to their app, one line each: the decision, the questions'
+   types, what code does with the answer. Mix one easy win with one new capability, such as
+   asking all branch questions up front, picking a value instead of generating it, or storing
+   scores that users re-weigh (see the `vakyn-workflow` patterns).
+3. Recommend one and say why (volume, cost of a mistake, how easy it is to check).
+4. Hand off: `vakyn-research` to search their code for more spots, or `vakyn-workflow` /
+   `vakyn-convert` to build the one they pick.
 
 ## First call
 
@@ -72,4 +88,7 @@ already have an app, then route with this table.
   person's code; VAKYN answers the judgment.
 - **Unsure answers have a path.** Every design says what happens below a confidence threshold: a
   person, a chat model, or a "needs review" queue.
+- **Keys stay on the server in web apps.** Browser code calls the person's own backend; the
+  backend holds the key and calls open-server. Never put the key in front-end code, and never
+  call open-server from the browser with a key.
 - **Base URL and model.** Default base URL `http://127.0.0.1:8080` (no `/v1`); model `jev-latest`.

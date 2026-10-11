@@ -1,0 +1,38 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "message": "The card on file expired, how do I update it?"
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which team should handle the customer's message?",
+      "criteria": {
+        "billing": {
+          "handles": "money already charged or owed",
+          "includes": ["charges", "invoices", "refunds", "failed payments"],
+          "not": "prices of plans before buying (sales)"
+        },
+        "sales": {
+          "handles": "buying decisions",
+          "includes": ["prices", "plans and what they include", "discounts", "trials"],
+          "not": "charges already made (billing)"
+        },
+        "access": {
+          "handles": "getting into the product and who may",
+          "includes": ["sign-in", "passwords", "2FA", "adding or removing users"],
+          "not": "deleting an account and its data (privacy)"
+        },
+        "privacy": {
+          "handles": "personal data",
+          "includes": ["data export", "account and data deletion", "where data is stored", "data sharing"],
+          "not": "removing a user's access (access)"
+        },
+        "other": {
+          "handles": "anything none of the teams above handle",
+          "includes": ["bugs", "speed", "feature requests"]
+        }
+      }
+    }
+  }
+}

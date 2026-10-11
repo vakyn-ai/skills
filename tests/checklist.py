@@ -9,12 +9,48 @@ import re
 
 TYPES = {"noul", "choice", "score"}
 ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
-ESCAPE_WORDS = ("none", "other", "unknown", "unclear", "not_enough", "ask_user", "needs_", "no_match", "no_good", "cannot", "not_in_", "neither")
+ESCAPE_WORDS = ("none", "other", "unknown", "unclear", "not_enough", "ask_user", "needs_", "no_match", "no_good", "cannot", "not_in_", "neither", "not_")
 POSITIONAL_RE = re.compile(r"\b(option|item|candidate|choice)\s+\d+\b|\bthe (first|second|third|last) (option|item|one)\b", re.I)
 # Rough token estimate: ~3.5 characters per token for English JSON.
 CHARS_PER_TOKEN = 3.5
 MAX_STATE_PLUS_QUESTION = 32_768
 MAX_TOTAL = 65_536
+
+
+NUMBER_RE = re.compile(r"\s*\d+(\.\d+)?\s*")
+
+
+def described(v):
+    """True when v says something in words: a non-blank string, or an object or list that holds one.
+
+    The server renders objects as `key: value` lines and lists as `- item` lines, so structured
+    instructions, option descriptions and score levels are fine as long as they are not empty.
+    """
+    if isinstance(v, str):
+        return bool(v.strip())
+    if isinstance(v, dict):
+        return any(described(x) for x in v.values())
+    if isinstance(v, list):
+        return any(described(x) for x in v)
+    return False
+
+
+def bare_number(v):
+    """A level written as a number ("3" or 3) gives the model nothing to compare against."""
+    if isinstance(v, bool):
+        return False
+    return isinstance(v, (int, float)) or (isinstance(v, str) and NUMBER_RE.fullmatch(v) is not None)
+
+
+def text_of(v):
+    """All the words in a string, object or list, for the wording checks."""
+    if isinstance(v, str):
+        return v
+    if isinstance(v, dict):
+        return "\n".join(f"{k}: {text_of(x)}" for k, x in v.items())
+    if isinstance(v, list):
+        return "\n".join(text_of(x) for x in v)
+    return "" if v is None else str(v)
 
 
 def tokens(obj):
@@ -57,10 +93,10 @@ def check(req):
         if t not in TYPES:
             errors.append(f"{where}: type must be one of noul, choice, score")
             continue
-        ins = q.get("instructions")
-        if not isinstance(ins, str) or not ins.strip():
-            errors.append(f"{where}: instructions must be a non-empty string")
-            ins = ""
+        raw = q.get("instructions")
+        if not described(raw):
+            errors.append(f"{where}: instructions must be a non-empty string, object or list")
+        ins = text_of(raw)
         if POSITIONAL_RE.search(ins):
             warnings.append(f"{where}: refers to options by position; name them instead")
         c = q.get("criteria")
@@ -71,8 +107,8 @@ def check(req):
                 if len(c) < 2 or len(c) > 255:
                     errors.append(f"{where}: choice needs 2 to 255 options, has {len(c)}")
                 for k, v in c.items():
-                    if not isinstance(v, str) or not v.strip():
-                        errors.append(f"{where}.criteria.{k}: give every option a one-line description")
+                    if not described(v):
+                        errors.append(f"{where}.criteria.{k}: give every option a description (text, object or list)")
                 if not any(any(w in k.lower() for w in ESCAPE_WORDS) for k in c):
                     warnings.append(f"{where}: no escape option (none / other / not enough evidence)")
         elif t == "score":
@@ -82,15 +118,16 @@ def check(req):
                 if len(c) < 2 or len(c) > 10:
                     errors.append(f"{where}: score needs 2 to 10 levels, has {len(c)}")
                 for i, v in enumerate(c):
-                    if not isinstance(v, str) or not v.strip():
-                        errors.append(f"{where}.criteria[{i}]: describe every level in words")
-                    elif re.fullmatch(r"\s*\d+(\.\d+)?\s*", v):
+                    if bare_number(v):
                         errors.append(f"{where}.criteria[{i}]: a bare number is not a level; describe it")
+                    elif not described(v):
+                        errors.append(f"{where}.criteria[{i}]: describe every level in words")
         else:  # noul
             if c is not None:
                 if not isinstance(c, dict) or not set(c) <= {"true", "false"} or not c:
                     errors.append(f"{where}: noul criteria may only have the keys true and false")
-            if re.search(r"\b(and|or)\b", ins) and ins.count("?") <= 1 and len(ins) < 160:
+            # Only plain-string questions: structured instructions list includes and contrasts with "and".
+            if isinstance(raw, str) and re.search(r"\b(and|or)\b", ins) and ins.count("?") <= 1 and len(ins) < 160:
                 warnings.append(f"{where}: noul may hold two propositions (and/or); ask one thing")
         longest = max(longest, tokens(q))
 

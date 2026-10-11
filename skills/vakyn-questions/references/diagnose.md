@@ -26,7 +26,7 @@ Check the request for each cause, in this order. More than one can apply.
 | **No escape option** | Every option is a real category and the input fits none | Add `other` / `no_match` / `not_enough_evidence` with a description |
 | **Compound question** | `and` / `or` in a `noul`, or a score over two dimensions | Split into one question per proposition; combine in code |
 | **Conclusion in the state** | A summary, verdict, health flag or another model's opinion sits next to the evidence | Remove it; keep the evidence it was based on |
-| **Wrong subject** | The question says "it" or "the text" and the state has several texts; or it asks about the writer when the person meant the product | Name the field: "state.reply", "the customer in state.message" |
+| **Wrong subject** | The question says "it" or "the text" and the state has several texts; or it asks about the writer when the person meant the product | Name the field in plain words: "the agent's reply", "the customer who wrote the message" (`state.reply` also works) |
 | **Rule or arithmetic in the question** | Sums, dates, thresholds, lists of allowed values | Compute in code; pass the result as a fact or narrow the options |
 | **Instructions inside the data** | User text in the state tells the model what to answer | Keep user text under its own key; check the pick in code |
 | **Positions instead of names** | `option_1`, "the second product", "answer A or B" | Name options by the item's id with a description |

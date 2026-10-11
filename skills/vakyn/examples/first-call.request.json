@@ -8,11 +8,11 @@
   "questions": {
     "outage": {
       "type": "noul",
-      "instructions": "Does state.message say the customer cannot use the product right now?"
+      "instructions": "Does the customer's message say they cannot use the product right now?"
     },
     "team": {
       "type": "choice",
-      "instructions": "Which team should handle state.message?",
+      "instructions": "Which team should handle the customer's message?",
       "criteria": {
         "billing": "Invoices, charges and refunds",
         "access": "Sign-in, passwords and permissions",
@@ -22,7 +22,7 @@
     },
     "urgency": {
       "type": "score",
-      "instructions": "How soon does state.message need a reply?",
+      "instructions": "How soon does the customer's message need a reply?",
       "criteria": ["Can wait a few days", "Today", "Within the hour"]
     }
   }

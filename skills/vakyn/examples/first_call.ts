@@ -10,14 +10,14 @@ const { answers } = await client.systemOne({
     message: "Since this morning nobody on our team can sign in. We have a client demo at 3pm.",
   },
   questions: {
-    outage: noul("Does state.message say the customer cannot use the product right now?"),
-    team: choice("Which team should handle state.message?", {
+    outage: noul("Does the customer's message say they cannot use the product right now?"),
+    team: choice("Which team should handle the customer's message?", {
       billing: "Invoices, charges and refunds",
       access: "Sign-in, passwords and permissions",
       product: "Bugs and how-to questions",
       other: "None of these teams fits",
     }),
-    urgency: score("How soon does state.message need a reply?", [
+    urgency: score("How soon does the customer's message need a reply?", [
       "Can wait a few days",
       "Today",
       "Within the hour",

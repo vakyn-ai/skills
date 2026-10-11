@@ -13,9 +13,9 @@ result = client.system_one(
         "message": "Since this morning nobody on our team can sign in. We have a client demo at 3pm.",
     },
     questions={
-        "outage": Noul(instructions="Does state.message say the customer cannot use the product right now?"),
+        "outage": Noul(instructions="Does the customer's message say they cannot use the product right now?"),
         "team": Choice(
-            instructions="Which team should handle state.message?",
+            instructions="Which team should handle the customer's message?",
             criteria={
                 "billing": "Invoices, charges and refunds",
                 "access": "Sign-in, passwords and permissions",
@@ -24,7 +24,7 @@ result = client.system_one(
             },
         ),
         "urgency": Score(
-            instructions="How soon does state.message need a reply?",
+            instructions="How soon does the customer's message need a reply?",
             criteria=["Can wait a few days", "Today", "Within the hour"],
         ),
     },

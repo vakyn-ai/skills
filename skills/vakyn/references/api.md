@@ -17,12 +17,12 @@ There is no streaming and no batch endpoint: send independent requests concurren
   "model": "jev-latest",
   "state": {"ticket": "I was charged twice this month and need one refunded."},
   "questions": {
-    "team":    {"type": "choice", "instructions": "Which team should handle state.ticket?",
+    "team":    {"type": "choice", "instructions": "Which team should handle the ticket?",
                 "criteria": {"billing": "Charges, invoices, refunds",
                              "access": "Sign-in and permissions",
                              "other": "None of these fits"}},
-    "refund":  {"type": "noul", "instructions": "Does state.ticket ask for money back?"},
-    "urgency": {"type": "score", "instructions": "How soon does state.ticket need a reply?",
+    "refund":  {"type": "noul", "instructions": "Does the ticket ask for money back?"},
+    "urgency": {"type": "score", "instructions": "How soon does the ticket need a reply?",
                 "criteria": ["Can wait", "Today", "Within the hour"]}
   }
 }
@@ -32,10 +32,14 @@ There is no streaming and no batch endpoint: send independent requests concurren
 - `state`: a string, an object or an array; never null. Every question sees all of it.
 - `questions`: an object; the key is the question's name and the key you read the answer by.
   - `type`: `noul`, `choice` or `score`.
-  - `instructions`: the question, in words.
+  - `instructions`: the question, in words. A string, or an object or list (shown to the model
+    as `key: value` and `- item` lines). It must carry the whole question: the question's name
+    is never sent to the model.
   - `criteria`:
-    - `choice`: required object `{option: description}`, 1–255 options (use at least 2).
+    - `choice`: required object `{option: description}`, 1–255 options (use at least 2). The
+      option name is sent with its description; a description may be a string, object or list.
     - `score`: required list of level descriptions, lowest first, 1–10 levels (use at least 2).
+      A level may be a string, object or list.
     - `noul`: optional `{"true": "...", "false": "..."}` to define what yes and no mean.
 - No other fields. Questions in one request cannot see each other's answers.
 
@@ -48,8 +52,8 @@ There is no streaming and no batch endpoint: send independent requests concurren
     "team":    {"type": "choice", "choice": "billing", "confidence": 1.0,
                 "probabilities": {"billing": 1.0, "access": 0.0, "other": 0.0}, "stats": {}},
     "refund":  {"type": "noul", "noul": 1.0, "stats": {}},
-    "urgency": {"type": "score", "score": 1.12, "legend": {"0": "Can wait", "1": "Today", "2": "Within the hour"},
-                "probabilities": {"0": 0.12, "1": 0.64, "2": 0.24}, "confidence": 0.46, "stats": {}}
+    "urgency": {"type": "score", "score": 0.93, "legend": {"0": "Can wait", "1": "Today", "2": "Within the hour"},
+                "probabilities": {"0": 0.23, "1": 0.62, "2": 0.15}, "confidence": 0.43, "stats": {}}
   },
   "usage": {"input_tokens": 87, "output_tokens": 0},
   "assets_used": null
