@@ -1,0 +1,63 @@
+schema_version: "1.0"
+name: vakyn-questions-structured-options
+tags: [vakyn-questions]
+runs: 1
+execution:
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our VAKYN router keeps mixing up two teams. "Please remove my old user so it can't sign in" goes to
+    privacy, and "Delete all the data you have on me" sometimes goes to access. Here is the request we send:
+
+    {"model": "jev-latest",
+     "state": {"message": "<the customer's message>"},
+     "questions": {"team": {"type": "choice", "instructions": "Pick one.",
+       "criteria": {"billing": "Billing", "access": "Access", "privacy": "Privacy",
+                    "other": "Anything else"}}}}
+
+    Rewrite the request so the two teams stop getting mixed up. Save the new request as routing.json in
+    the current folder and explain what you changed. The server is not reachable from here.
+graders:
+  - name: request-file
+    type: file_exists
+    path: "routing.json"
+  - name: boundary
+    type: llm
+    focus:
+      source: file
+      path: "routing.json"
+    criteria: |
+      Judge only this one point; ignore everything else in the request.
+      PASS if the descriptions of access and privacy each say what they include and where the nearest
+      confusing case goes: removing a user's sign-in or access belongs to access, deleting or exporting
+      personal data belongs to privacy. A structured description (an object or list with includes / not)
+      or a plain string both count.
+      FAIL if access or privacy is still a bare label, or the boundary between them is not stated.
+  - name: full-question
+    type: llm
+    focus:
+      source: file
+      path: "routing.json"
+    criteria: |
+      Judge only this one point; ignore everything else in the request.
+      PASS if the instructions are a full question that names its subject (the customer's message, or
+      state.message) and says what is being decided (which team should handle it).
+      FAIL if the instructions still say only "Pick one." or something that relies on the question name
+      "team" to carry the meaning.
+  - name: escape-kept
+    type: llm
+    focus:
+      source: file
+      path: "routing.json"
+    criteria: |
+      Judge only this one point; ignore everything else in the request.
+      PASS if the request still has an escape option (other, none or similar) with a non-empty
+      description. FAIL if there is no escape option.
+  - name: honest
+    type: llm
+    criteria: |
+      Judge the final answer. The server was not reachable.
+      PASS if the answer does not present VAKYN answers, probabilities or confidence values as if they
+      came from a real call (quoting numbers from the skill's own documented examples is fine).
+      FAIL if it reports answers for this request as if it had sent it.
