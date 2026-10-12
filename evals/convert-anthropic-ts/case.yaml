@@ -1,0 +1,72 @@
+schema_version: "1.0"
+name: convert-anthropic-ts
+tags: [convert]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our travel booking assistant is TypeScript with @anthropic-ai/sdk. Each step calls
+    `anthropic.messages.create({ model, max_tokens: 1024, system, tools, messages })` with these tools:
+
+    ```ts
+    export const tools: Anthropic.Tool[] = [
+      { name: "search_flights", description: "Find flights between two airports on a date, with prices.", input_schema: { type: "object", properties: { origin_iata: { type: "string" }, destination_iata: { type: "string" }, depart_date: { type: "string" } }, required: ["origin_iata", "destination_iata", "depart_date"] } },
+      { name: "book_flight", description: "Book a flight the traveler has chosen from search results.", input_schema: { type: "object", properties: { offer_id: { type: "string" }, passenger_ids: { type: "array", items: { type: "string" } } }, required: ["offer_id"] } },
+      { name: "get_booking", description: "Show an existing booking: flights, seats, baggage and status.", input_schema: { type: "object", properties: { booking_ref: { type: "string" } }, required: ["booking_ref"] } },
+      { name: "cancel_booking", description: "Cancel an existing booking and start the refund the fare allows.", input_schema: { type: "object", properties: { booking_ref: { type: "string" } }, required: ["booking_ref"] } },
+      { name: "add_baggage", description: "Add checked bags to an existing booking.", input_schema: { type: "object", properties: { booking_ref: { type: "string" }, bag_count: { type: "integer" } }, required: ["booking_ref", "bag_count"] } },
+      { name: "contact_agent", description: "Pass the traveler to a human travel agent.", input_schema: { type: "object", properties: { reason: { type: "string" } }, required: ["reason"] } }
+    ];
+    ```
+
+    Can VAKYN pick the tool here? Convert it, in TypeScript. Save the VAKYN request for the turn
+    "I'm booked on ref QX7P2L, can I take two suitcases?" as `next-tool.request.json`, and write
+    the code as `toolPick.ts` in this folder.
+graders:
+  - name: request-saved
+    type: file_exists
+    path: "next-tool.request.json"
+  - name: code-saved
+    type: file_exists
+    path: "toolPick.ts"
+  - name: no-param-schema
+    type: llm
+    focus:
+      source: file
+      path: "next-tool.request.json"
+    criteria: |
+      PASS if this VAKYN request contains none of the tools' parameter names or schemas (for
+      example origin_iata, passenger_ids, bag_count, input_schema) and no JSON schema fields such as "properties"
+      or "required". FAIL if any appears.
+  - name: request
+    type: llm
+    focus:
+      source: file
+      path: "next-tool.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if all hold:
+      - one `choice` question with the six tool names as options plus an escape for "no tool
+        needed" (e.g. none) and one for "ask the user" (e.g. ask_user), each with a one-line description;
+      - no parameter schemas or parameter names are in it;
+      - the state holds the traveler's message under its own key and the question names it.
+      FAIL otherwise.
+  - name: code
+    type: llm
+    focus:
+      source: file
+      path: "toolPick.ts"
+    criteria: |
+      Judge this TypeScript file.
+      PASS if all hold:
+      - it calls VAKYN with the official SDK (`@typesafe-ai/sdk`, `TypeSafeClient`, `systemOne`, `choice`)
+        or plain HTTP to /v1/systemone;
+      - pick-then-fill: the chat model is then called with only the picked tool and
+        `tool_choice: { type: "tool", name: ... }`;
+      - the code checks the pick is one of the offered options, and handles none and ask_user;
+      - side by side is the default (both pick, the chat model's pick is used, both logged as JSON
+        lines with a request id); a config flag or environment variable switches to VAKYN picking;
+      - after the switch, low-confidence picks and VAKYN errors go to the chat model.
+      FAIL if any is missing, or if VAKYN acting alone is the default.

@@ -1,0 +1,89 @@
+schema_version: "1.0"
+name: convert-openai-python
+tags: [convert]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our food delivery support bot is a Python app on the OpenAI SDK. Every turn it does this:
+
+    ```python
+    resp = client.chat.completions.create(model="gpt-4.1", messages=messages, tools=TOOLS, tool_choice="auto")
+    msg = resp.choices[0].message
+    ```
+
+    and TOOLS is:
+
+    ```json
+    [
+      {"type": "function", "function": {"name": "track_order", "description": "Get the live status and ETA of a customer's order.", "parameters": {"type": "object", "properties": {"order_ref": {"type": "string"}}, "required": ["order_ref"]}}},
+      {"type": "function", "function": {"name": "cancel_order", "description": "Cancel an order that the restaurant has not started cooking.", "parameters": {"type": "object", "properties": {"order_ref": {"type": "string"}, "cancel_reason_code": {"type": "string", "enum": ["changed_mind", "too_slow", "other"]}}, "required": ["order_ref"]}}},
+      {"type": "function", "function": {"name": "report_missing_item", "description": "Record that an item was missing or wrong in a delivered order and issue credit for it.", "parameters": {"type": "object", "properties": {"order_ref": {"type": "string"}, "item_skus": {"type": "array", "items": {"type": "string"}}}, "required": ["order_ref", "item_skus"]}}},
+      {"type": "function", "function": {"name": "change_delivery_address", "description": "Change where an order is delivered, before the courier picks it up.", "parameters": {"type": "object", "properties": {"order_ref": {"type": "string"}, "new_address_line": {"type": "string"}, "new_postcode": {"type": "string"}}, "required": ["order_ref", "new_address_line"]}}},
+      {"type": "function", "function": {"name": "apply_promo_code", "description": "Apply a promo code to the customer's basket.", "parameters": {"type": "object", "properties": {"promo_code": {"type": "string"}}, "required": ["promo_code"]}}}
+    ]
+    ```
+
+    We want VAKYN to pick the tool instead. Please convert it. Save the VAKYN request for this sample
+    turn as `next-tool.request.json`: the customer wrote "My order just arrived but the guacamole
+    is missing, order FD-20931." Write the new code as `tool_pick.py` in this folder.
+graders:
+  - name: request-saved
+    type: file_exists
+    path: "next-tool.request.json"
+  - name: code-saved
+    type: file_exists
+    path: "tool_pick.py"
+  - name: no-param-schema
+    type: llm
+    focus:
+      source: file
+      path: "next-tool.request.json"
+    criteria: |
+      PASS if this VAKYN request contains none of the tools' parameter names or schemas (for
+      example new_address_line, cancel_reason_code, item_skus) and no JSON schema fields such as "properties"
+      or "required". FAIL if any appears.
+  - name: request-options
+    type: llm
+    focus:
+      source: file
+      path: "next-tool.request.json"
+    criteria: |
+      Judge only this one point in the VAKYN request; ignore everything else.
+      PASS if there is one `choice` question whose options include the five tools (track_order, cancel_order, report_missing_item, change_delivery_address, apply_promo_code) plus an option for "no tool needed" and one for "ask the user", each described in words. FAIL otherwise.
+  - name: request-no-params
+    type: llm
+    focus:
+      source: file
+      path: "next-tool.request.json"
+    criteria: |
+      Judge only this one point in the VAKYN request; ignore everything else.
+      PASS if the request contains no tool parameter schemas: no `properties`, `required` or parameter type definitions. Order numbers inside the customer's own message do not count. FAIL otherwise.
+  - name: request-state
+    type: llm
+    focus:
+      source: file
+      path: "next-tool.request.json"
+    criteria: |
+      Judge only this one point in the VAKYN request; ignore everything else.
+      PASS if the state holds the customer's message under its own key and the question names that field or refers to the customer's request. FAIL otherwise.
+  - name: code
+    type: llm
+    focus:
+      source: file
+      path: "tool_pick.py"
+    criteria: |
+      Judge this Python file.
+      PASS if all hold:
+      - it calls VAKYN with the official Python SDK (`typesafe_sdk`, `TypeSafeClient`, `system_one`
+        or an equivalent HTTP call to /v1/systemone) with a choice over the tools plus none/ask_user;
+      - pick-then-fill: when VAKYN's pick is used, the chat model is called with only that tool and
+        `tool_choice` forced to it (`{"type": "function", "function": {"name": ...}}`);
+      - the code checks VAKYN's pick is one of the offered options;
+      - side by side is the default mode: both pick, the chat model's pick is used, and both picks
+        are logged as JSON lines (with a request id, VAKYN's pick and confidence, the chat model's
+        pick); a config flag or environment variable switches to VAKYN picking;
+      - after the switch, picks below a confidence threshold (and VAKYN errors) go to the chat model.
+      FAIL if any of these is missing, or if VAKYN acting alone is the default.

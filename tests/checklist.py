@@ -1,6 +1,6 @@
 """Pre-send checklist for VAKYN requests, as code.
 
-Mirrors the checklist the skills teach (skills/vakyn/references/checklist.md). Used by the
+Mirrors the checklist the skills teach (skills/start/references/checklist.md). Used by the
 repo's tests only; the plugin itself ships no scripts.
 """
 

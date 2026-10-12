@@ -1,0 +1,56 @@
+schema_version: "1.0"
+name: research-call-logs
+tags: [research]
+runs: 1
+context:
+  add_dirs: [fixtures]
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our helpdesk worker's code is in the extra working directory you were given (a read-only copy of our
+    repo). logs/llm-calls.jsonl has every chat-model call it made in 15 minutes
+    on a normal weekday afternoon. Which calls should we move to VAKYN first? Use the real numbers,
+    not guesses, and write the ranking up as a report.
+    Save the report in the current folder.
+graders:
+  - name: report-file
+    type: file_exists
+    path: "vakyn-research.md"
+  - name: spots
+    type: llm
+    focus:
+      source: file
+      path: "vakyn-research.md"
+    criteria: |
+      Judge the report in vakyn-research.md. The log covers 15
+      minutes and holds 178 calls: `is_spam` 64 calls (gpt-4o-mini, about 390 ms, very cheap, about
+      $0.005 in the window), `route_ticket` 38 calls (gpt-4o, about 1,165 ms, about $0.077),
+      `rate_urgency` 38 calls (gpt-4o, about 735 ms, about $0.063) and `draft_reply` 38 calls (gpt-4o,
+      about 3,000 ms, about $0.133). Scaled to a day that is roughly 6,100 spam checks and 3,600 of each
+      other call, about twice the 3,000 emails a day the code comment claims.
+
+      PASS if all of these hold:
+      - the three decision spots (`is_spam`, `route_ticket`, `rate_urgency`) are listed with a question
+        type each, and `draft_reply` (and `weekly_summary` if mentioned) is marked keep, even though
+        `draft_reply` is the most costly call in the log;
+      - the volumes, wait times or costs in the report come from the log (numbers close to those above,
+        per window or scaled to a day or month) and are marked as measured or taken from the log, not
+        only the 3,000-a-day figure from the code;
+      - the ranking uses those numbers to explain the order (for example routing and urgency save the
+        most money, the spam check runs most often).
+
+      FAIL if `draft_reply` is proposed as a VAKYN decision, if the report ignores the log, or if its
+      numbers contradict the log by a wide margin.
+  - name: no-edit
+    type: tool_used
+    tool: Edit
+    min: 0
+    max: 0
+  - name: no-server
+    type: tool_used
+    tool: Bash
+    input_match: "systemone|curl[^|]*https?://|wget "
+    min: 0
+    max: 0

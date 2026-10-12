@@ -1,0 +1,69 @@
+schema_version: "1.0"
+name: batch-resume
+tags: [batch]
+runs: 1
+execution:
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    This script tags our 300,000 support emails with VAKYN. It ran for two hours last night, then my
+    laptop slept and it died at row 140,000 with nothing saved. I also had no idea how far it was.
+    Make it survive that: when I rerun it, it should continue where it stopped, and it should show me
+    progress and when it will finish. Save the fixed version as tag_emails.py in this folder and save
+    the request it sends as a .json file here.
+
+    ```python
+    import csv
+    from typesafe_sdk import TypeSafeClient, Choice, Noul
+
+    client = TypeSafeClient()
+    QUESTIONS = {
+        "category": Choice(instructions="What is the email in state.email about?", criteria={
+            "order": "An order, delivery or return",
+            "account": "Signing in or account settings",
+            "product": "How a product works or a product fault",
+            "other": "None of these"}),
+        "angry": Noul(instructions="Is the sender of state.email angry?"),
+    }
+    out = []
+    with open("emails.csv") as f:
+        for row in csv.DictReader(f):
+            r = client.system_one(state={"email": row["body"]}, questions=QUESTIONS)
+            out.append({"id": row["id"], "category": r.choices["category"].choice,
+                        "angry": r.nouls["angry"].noul})
+    with open("tagged.csv", "w") as f:
+        w = csv.DictWriter(f, fieldnames=["id", "category", "angry"])
+        w.writeheader()
+        w.writerows(out)
+    ```
+graders:
+  - name: script-file
+    type: file_exists
+    path: "tag_emails.py"
+  - name: request-file
+    type: file_exists
+    path: "*.json"
+  - name: resume
+    type: llm
+    focus:
+      source: file
+      path: "tag_emails.py"
+    criteria: |
+      Judge tag_emails.py. PASS only if all of these hold:
+      1. Each finished row is saved as it goes (appended and flushed to an output or sidecar file, or
+         committed to a database), keyed by the email id, not only at the end.
+      2. On start it reads what is already done and skips those ids, so a rerun continues; rows that
+         failed are recorded with an error (not silently dropped) and can be retried.
+      3. It prints progress with done/total (or %), a rows-per-second rate and an ETA, and an error count.
+      4. Requests are sent with bounded concurrency (at most 32 in flight) or the answer explains why it
+         stays sequential; 429 is retried after retry-after, and the timeout is raised above the
+         SDK's 10 s default.
+      5. The output keeps the confidence or probability next to each answer (category confidence and
+         the angry probability), not only the pick.
+      FAIL if any point is missing.
+  - name: honest
+    type: llm
+    criteria: |
+      Judge the final answer. PASS if it explains how to rerun to resume and does not claim a run time,
+      rows-per-second figure or ETA as measured (nothing was run against a server). FAIL otherwise.

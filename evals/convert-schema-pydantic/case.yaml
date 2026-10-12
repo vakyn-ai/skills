@@ -1,0 +1,123 @@
+schema_version: "1.0"
+name: convert-schema-pydantic
+tags: [convert]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our bike-rental support inbox runs every email through instructor and the OpenAI SDK:
+
+    ```python
+    from enum import Enum
+    import instructor
+    from openai import OpenAI
+    from pydantic import BaseModel, Field
+
+    class Department(str, Enum):
+        rentals = "rentals"
+        repairs = "repairs"
+        payments = "payments"
+
+    class Risk(str, Enum):
+        injury = "injury"
+        damage_claim = "damage_claim"
+        lost_bike = "lost_bike"
+
+    class EmailTriage(BaseModel):
+        department: Department = Field(description="rentals: bookings, changes and cancellations. repairs: a bike that broke during a rental. payments: charges, deposits and refunds.")
+        needs_callback: bool = Field(description="True when the customer asks us to phone them.")
+        frustration: int = Field(ge=1, le=5, description="1 = calm, 5 = furious")
+        risks: list[Risk] = Field(description="Every risk the email mentions.")
+        reply_draft: str = Field(description="A short first reply to the customer.")
+
+    client = instructor.from_openai(OpenAI())
+
+    def triage(email: str) -> EmailTriage:
+        return client.chat.completions.create(
+            model="gpt-4.1-mini", response_model=EmailTriage,
+            messages=[{"role": "user", "content": email}])
+    ```
+
+    Can VAKYN do the deciding here? Convert it. Save the VAKYN request for this sample email as
+    `email-triage.request.json`: "The chain snapped on the hill and I fell off, my knee is
+    bleeding. You also kept my 50 euro deposit. Call me on the number in my account, today." Write
+    the new code as `email_triage.py` in this folder. The rest of our code reads `EmailTriage`
+    objects and must keep working.
+graders:
+  - name: request-saved
+    type: file_exists
+    path: "email-triage.request.json"
+  - name: code-saved
+    type: file_exists
+    path: "email_triage.py"
+  - name: enum-to-choice
+    type: llm
+    focus:
+      source: file
+      path: "email-triage.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if it has one `choice` question for the department whose options include rentals,
+      repairs and payments, each described in words (taken from the field description), plus an
+      escape option for emails that fit none of them (for example other or none).
+      FAIL if the department is not a `choice`, an option has no description, or there is no
+      escape option.
+  - name: bool-to-noul
+    type: llm
+    focus:
+      source: file
+      path: "email-triage.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if the callback field is a `noul` question whose instructions ask, in words, whether
+      the customer asks to be phoned (the question name alone does not count, it is not sent).
+      FAIL if it is missing, not a `noul`, or its instructions do not say what is asked.
+  - name: rating-to-score
+    type: llm
+    focus:
+      source: file
+      path: "email-triage.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if frustration is a `score` question with levels ordered lowest first, every level
+      described in words (calm up to furious, with the steps between written out), and no level
+      that is only a number such as "1" or "3".
+      FAIL otherwise.
+  - name: list-to-nouls
+    type: llm
+    focus:
+      source: file
+      path: "email-triage.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if the risks list became one `noul` question per risk (injury, damage claim, lost
+      bike), each asking about that one risk in words.
+      FAIL if the risks are a single `choice`, are missing, or one noul asks about several risks.
+  - name: text-kept-out
+    type: llm
+    focus:
+      source: file
+      path: "email-triage.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if no question in it asks VAKYN to write the reply draft (or any other free text).
+      FAIL if there is a question for reply_draft.
+  - name: object-rebuilt
+    type: llm
+    focus:
+      source: file
+      path: "email_triage.py"
+    criteria: |
+      Judge this Python file.
+      PASS if all hold:
+      - it calls VAKYN (typesafe_sdk `TypeSafeClient.system_one`, or an HTTP call to /v1/systemone);
+      - code builds an `EmailTriage` object from VAKYN's answers (department from the choice,
+        needs_callback from the noul, frustration from the score level mapped to 1-5, risks
+        built from the nouls), so callers still get an `EmailTriage`;
+      - reply_draft is still written by the chat model;
+      - a confidence is kept for each VAKYN-answered field, and unsure answers (low confidence,
+        a noul near 0.5, the escape option, or a VAKYN error) go to the chat model or a review
+        path instead of being used.
+      FAIL if any of these is missing.

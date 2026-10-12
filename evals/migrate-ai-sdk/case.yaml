@@ -1,0 +1,54 @@
+schema_version: "1.0"
+name: migrate-ai-sdk
+tags: [migrate]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our Next.js app decides with the Vercel AI SDK through AI Gateway:
+
+    ```ts
+    import { experimental_decide as decide } from "ai";
+
+    export async function isSpam(comment: string) {
+      const r = await decide({
+        model: "typesafe-ai/jev",
+        state: { comment },
+        questions: { spam: { type: "boolean", instructions: "Is state.comment spam or an ad?" } },
+      });
+      return r.answers.spam.probability;
+    }
+    ```
+
+    How do we point this at our own VAKYN server at http://10.0.4.12:8080? Write the new file as
+    `spam.ts` here, plus the environment variables we need in `vakyn.env.example` (no real key).
+graders:
+  - name: code-saved
+    type: file_exists
+    path: "spam.ts"
+  - name: env-saved
+    type: file_exists
+    path: "vakyn.env.example"
+  - name: env
+    type: llm
+    focus:
+      source: file
+      path: "vakyn.env.example"
+    criteria: |
+      PASS if the file sets the TypeSafe AI SDK provider's base URL variable to the server WITH /v1,
+      i.e. `TYPESAFE_AI_BASE_URL=http://10.0.4.12:8080/v1`, and names `TYPESAFE_AI_API_KEY` with a
+      placeholder value (no real-looking key). FAIL if the base URL lacks /v1, uses only
+      TYPESAFE_BASE_URL for this provider, or contains a real-looking key.
+  - name: code
+    type: llm
+    focus:
+      source: file
+      path: "spam.ts"
+    criteria: |
+      PASS if the file keeps `experimental_decide` from "ai" with the same boolean question, and uses
+      the TypeSafe provider from `@ai-sdk/typesafe-ai` (`typeSafeAi.decisionModel(...)` or
+      `createTypeSafeAi(...)`) with model `jev-latest` (or from configuration) instead of the
+      "typesafe-ai/jev" gateway string. A baseURL passed in code must end with /v1. FAIL otherwise,
+      or if a key is written into the file.

@@ -1,0 +1,62 @@
+schema_version: "1.0"
+name: check-replay
+tags: [check]
+runs: 1
+context:
+  add_dirs: [fixtures]
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our warranty-claim workflow uses VAKYN. Every decision is stored as one line in decisions.jsonl,
+    the decision code is decide.py (policy warranty-v4), and the questions as we send them today are in
+    questions.json; all three are in the extra working directory you were given (read-only).
+
+    We want to ship warranty-v5: approve when defect_type confidence is at least 0.75 instead of 0.85,
+    and treat "wear" as a manufacturing fault when the claim is at most 6 months after purchase. Before
+    it ships, which past claims would now get a different outcome, and why? Save the script you use as
+    replay.py in the current folder.
+graders:
+  - name: script-file
+    type: file_exists
+    path: "replay.py"
+  - name: no-model-calls
+    type: llm
+    focus:
+      source: file
+      path: "replay.py"
+    criteria: |
+      Judge only this one point; ignore everything else in the code.
+      PASS if the script re-decides each case from the answers and probabilities already stored in
+      decisions.jsonl, with no call to VAKYN, a chat model or any server.
+      FAIL if it sends the claims to VAKYN or any model again, or needs a server to run.
+  - name: changed-cases
+    type: llm
+    criteria: |
+      Judge only this one point; ignore everything else in the answer.
+      With the stored answers, warranty-v5 changes exactly these claims from person to approve: w02
+      (manufacturing 0.81), w05 (manufacturing 0.78), w16 (manufacturing 0.83), w11 (wear 0.77, 5
+      months) and w18 (wear 0.89, 3 months). w03 (wear 0.90, 4 months) would also change, but its
+      answer belongs to an older question version, so listing it as stale instead of as a change is fine.
+      PASS if the answer lists those five (w03 optional) as changing outcome, each with old and new
+      outcome and the reason (the lower cut-off, the wear rule, or both), and lists no other claim as
+      changed. FAIL if a claim is missing, an unchanged claim is listed as changed, or no reasons are given.
+  - name: stale-question
+    type: llm
+    criteria: |
+      Judge only this one point; ignore everything else in the answer.
+      Claim w03 was answered with a defect_type question whose hash (0c7d2e91f4b8) differs from the
+      current one in questions.json (b41c9e07a2d3).
+      PASS if the answer notices this and says w03's stored answer cannot be replayed as is (it needs
+      to be asked again with the current question, or is set apart).
+      FAIL if w03 is treated like the others without any remark on the question version.
+  - name: changed-is-not-better
+    type: llm
+    criteria: |
+      Judge only this one point; ignore everything else in the answer.
+      PASS if the answer says a changed outcome is not proof the new version is better, and that the
+      changed claims (or labeled claims split into a development set and a reserved set) should be
+      checked against what a person says is right before warranty-v5 replaces warranty-v4.
+      FAIL if it recommends shipping warranty-v5 just because of the list of changes, or says nothing
+      about checking the changes against labels.

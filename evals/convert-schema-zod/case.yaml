@@ -1,0 +1,113 @@
+schema_version: "1.0"
+name: convert-schema-zod
+tags: [convert]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our note-taking app reads every app-store review with the Vercel AI SDK:
+
+    ```ts
+    import { openai } from "@ai-sdk/openai";
+    import { generateObject } from "ai";
+    import { z } from "zod";
+
+    export const ReviewInsight = z.object({
+      topic: z.enum(["sync", "editor", "pricing", "performance"])
+        .describe("sync: notes missing or not syncing between devices. editor: writing and formatting. pricing: plans and charges. performance: slow or crashing."),
+      wants_refund: z.boolean().describe("The reviewer asks for their money back"),
+      severity: z.enum(["low", "medium", "high"]).describe("How badly the problem hurts the reviewer"),
+      author: z.object({
+        mentions_switching: z.boolean().describe("Says they will move or have moved to another app"),
+      }),
+      reply: z.string().describe("A public reply from the team, two sentences at most"),
+    });
+
+    export async function analyze(review: string) {
+      const { object } = await generateObject({ model: openai("gpt-4.1-mini"), schema: ReviewInsight, prompt: review });
+      return object;
+    }
+    ```
+
+    Convert this so VAKYN makes the decisions. Save the VAKYN request for this sample review as
+    `review.request.json`: "Lost three days of meeting notes after the last update. Support
+    never answered. Paid for a year, want a refund, already exporting everything to another app."
+    Write the new code as `review_insight.ts` in this folder. Callers use the `ReviewInsight` type.
+graders:
+  - name: request-saved
+    type: file_exists
+    path: "review.request.json"
+  - name: code-saved
+    type: file_exists
+    path: "review_insight.ts"
+  - name: enum-to-choice
+    type: llm
+    focus:
+      source: file
+      path: "review.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if it has one `choice` question for the review's topic whose options include sync,
+      editor, pricing and performance, each described in words (taken from the field
+      description), plus an escape option for reviews that fit none of them (for example other).
+      FAIL if the topic is not a `choice`, an option has no description, or there is no escape
+      option.
+  - name: bool-to-noul
+    type: llm
+    focus:
+      source: file
+      path: "review.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if the refund field is a `noul` question whose instructions ask, in words, whether the
+      reviewer asks for their money back (the question name alone does not count, it is not sent).
+      FAIL if it is missing, not a `noul`, or its instructions do not say what is asked.
+  - name: ordered-enum-to-score
+    type: llm
+    focus:
+      source: file
+      path: "review.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if severity is a `score` question with at least three levels, lowest first, where every
+      level has a description of what it looks like (a level may start with its name, such as
+      "Low: a small annoyance..."). FAIL if severity is a `choice`, is missing, or a level is only
+      a bare word or number such as "low" or "3".
+  - name: nested-to-noul
+    type: llm
+    focus:
+      source: file
+      path: "review.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if the nested author.mentions_switching field became its own `noul` question with a
+      flat name (for example author_mentions_switching), whose instructions ask in words whether
+      the reviewer moves, or will move, to another app.
+      FAIL if it is missing, not a `noul`, or sent as a nested object.
+  - name: text-kept-out
+    type: llm
+    focus:
+      source: file
+      path: "review.request.json"
+    criteria: |
+      Judge this VAKYN request (JSON).
+      PASS if no question in it asks VAKYN to write the public reply (or any other free text).
+      FAIL if there is a question for the reply.
+  - name: object-rebuilt
+    type: llm
+    focus:
+      source: file
+      path: "review_insight.ts"
+    criteria: |
+      Judge this TypeScript file.
+      PASS if all hold:
+      - it calls VAKYN (`@typesafe-ai/sdk` `systemOne`, or an HTTP call to /v1/systemone);
+      - code rebuilds a `ReviewInsight` value from the answers, including the nested
+        `author: { mentions_switching }` object and severity mapped from the score level back to
+        "low" / "medium" / "high", and validates or types it as `ReviewInsight`;
+      - the reply is still written by the chat model;
+      - unsure answers (low confidence, a noul near 0.5, the escape option, or a VAKYN error) go to
+        the chat model or a review path instead of being used.
+      FAIL if any of these is missing.

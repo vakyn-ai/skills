@@ -1,0 +1,54 @@
+schema_version: "1.0"
+name: batch-csv-script
+tags: [batch]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    We run a small chain of guesthouses. I exported every guest review from our booking system to
+    `reviews.csv` (about 80,000 rows, not in this folder). Columns:
+
+    review_id, guest_name, guest_email, guest_phone, booking_ref, stay_date, house, room_type, stars, review_text
+
+    I want each review tagged with VAKYN on our own server: what the review is mainly about
+    (cleanliness, staff, noise, breakfast, location, price, something else) and whether the guest
+    asks us to contact them or to make up for something. Python please. Write the script into this
+    folder as batch_reviews.py and save one review's VAKYN request as a .json file here. No server is
+    reachable from here, so just get it ready.
+graders:
+  - name: request-file
+    type: file_exists
+    path: "*.json"
+  - name: script-file
+    type: file_exists
+    path: "batch_reviews.py"
+  - name: script
+    type: llm
+    focus:
+      source: file
+      path: "batch_reviews.py"
+    criteria: |
+      Judge the script in batch_reviews.py. PASS only if all of these hold:
+      1. Both questions (topic as a `choice` with an escape option such as other / none, and the
+         contact or make-up request as a `noul`) go in ONE request per review.
+      2. Only the needed columns are sent: review_text (house, room_type or stars are fine);
+         guest_name, guest_email, guest_phone and booking_ref are not put in the state.
+      3. A pilot mode (about 30 rows) is the default or a clear first step, separate from the full run.
+      4. Bounded concurrency (a semaphore or worker pool) with a default at or below 32, 429 / 503
+         retried honoring retry-after (SDK retry policy or own code), and a timeout above 10 seconds.
+      5. Resume: finished review ids are saved as it goes (a sidecar file or the output) and skipped
+         on a rerun.
+      6. Progress output with done/total, rate and ETA, plus an error count.
+      7. Output columns with the pick and its confidence (and the noul probability), an unsure flag
+         from named threshold settings, and unsure rows written to a separate review file.
+      FAIL if any point is missing.
+  - name: answer
+    type: llm
+    criteria: |
+      Judge the final answer. PASS if it (a) says the guest name, email, phone and booking reference
+      are personal data and are not sent (or asks before sending them), (b) tells the person to run a
+      pilot of about 30 rows first and look at the results before the full run, and (c) does not present
+      VAKYN answers, speeds or run times as if they came from a real run here.
+      FAIL if any of these is missing.

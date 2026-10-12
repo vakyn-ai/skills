@@ -1,0 +1,63 @@
+schema_version: "1.0"
+name: judge-align-criterion
+tags: [judge]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    We grade our travel agent bot's replies with VAKYN. One criterion keeps disagreeing with our two
+    senior agents. The question is:
+
+    {"type": "noul", "instructions": "Does state.output confirm the booking details?"}
+
+    The state has "input" (the customer's message), "output" (the bot's reply) and "booking" (the record
+    from our system). We act on noul >= 0.8 as pass. The seniors labeled 60 replies; on the 42 we use for
+    tuning, VAKYN agreed on 31. Some of the disagreements, with the seniors' reasons:
+
+    - VAKYN pass (0.93), seniors fail: reply "Your trip to Lisbon is all set!" Reason: no dates, no
+      flight number, no names; "confirm" means the customer can check the details.
+    - VAKYN pass (0.88), seniors fail: reply lists dates and hotel but the dates differ from the booking
+      record by one day. Reason: wrong details are not a confirmation.
+    - VAKYN fail (0.35), seniors pass: reply "Flight TP1351 on 12 May, 07:40, for Ana and Rui Costa;
+      hotel Alfama Suites 12-15 May." Reason: all the details are there and match.
+    - VAKYN pass (0.81), seniors fail: reply "I've noted your request and will confirm the booking
+      soon." Reason: nothing confirmed yet.
+
+    One of us suggests raising the threshold to 0.95. What should we do? Save the request you would send
+    for the third reply above as confirm-check.json in the current folder (make up a booking record consistent
+    with it). Our server is not reachable from here.
+graders:
+  - name: request-file
+    type: file_exists
+    path: "confirm-check.json"
+  - name: rewrite
+    type: llm
+    criteria: |
+      Judge the final answer.
+
+      PASS only if all of these hold:
+      1. It says not to start with the threshold (raising it to 0.95 would not fix a passed reply with
+         wrong dates or a reply that confirmed nothing, and would not fix the false fail at 0.35), and
+         rewrites the criterion text instead.
+      2. The rewrite makes the meaning explicit: the reply states the specific details (dates, flight or
+         hotel, names) AND they match state.booking; with `true` and `false` descriptions written from the
+         seniors' reasons, or a split into separate questions (details stated / details match the record /
+         booking actually confirmed rather than promised). A single noul must still ask one thing.
+      3. It says to re-measure agreement on the held-out labels (the 18 replies not used for tuning, or a
+         held-out part), not on the 42 it tuned on.
+      4. It reports agreement with counts (31 of 42, about 74%) or asks for false pass / false fail counts.
+      FAIL if it recommends raising the threshold as the main fix, or claims new agreement numbers as if
+      measured.
+  - name: request
+    type: llm
+    focus:
+      source: file
+      path: "confirm-check.json"
+    criteria: |
+      Judge the saved request.
+      PASS if it has model, state and questions; the state has the customer's message, the bot's reply
+      (the Flight TP1351 one) and a booking record under their own keys; the criterion question(s) name
+      state fields and have `true` / `false` descriptions or are split into single-proposition nouls.
+      FAIL if the request grades more than one reply or keeps the original vague question unchanged.

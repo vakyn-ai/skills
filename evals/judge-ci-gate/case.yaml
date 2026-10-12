@@ -1,0 +1,50 @@
+schema_version: "1.0"
+name: judge-ci-gate
+tags: [judge]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our pull-request bot writes a summary of each PR. We want CI to block a release when summaries get
+    worse. Our two rules for a summary: it must mention every file area the diff touches, and it must
+    not claim tests were added when the diff has no test files. Our eval set, as JSONL:
+
+    {"id": "pr1", "diff_files": ["api/users.py", "api/tests/test_users.py"], "summary": "Adds email validation to the user API, with tests."}
+    {"id": "pr2", "diff_files": ["web/login.tsx", "api/auth.py"], "summary": "Fixes the login button color."}
+    {"id": "pr3", "diff_files": ["docs/setup.md"], "summary": "Updates setup docs for the new install script. Adds tests."}
+    {"id": "pr4", "diff_files": ["api/billing.py", "web/invoice.tsx"], "summary": "Rounds invoice totals in the billing API and shows the rounded total on the invoice page."}
+    {"id": "pr5", "diff_files": ["infra/deploy.yaml"], "summary": "Raises the deploy timeout to 10 minutes."}
+
+    Save the eval set as evalset.jsonl and write a pytest file, test_summaries.py, that grades each summary
+    with VAKYN and fails CI when quality drops. Also save one VAKYN request (for pr2) as a .json file. All
+    in the current folder. Our VAKYN server is not reachable from here, so don't run it against VAKYN.
+graders:
+  - name: test-file
+    type: file_exists
+    path: "test_summaries.py"
+  - name: request-file
+    type: file_exists
+    path: "*.json"
+  - name: gate
+    type: llm
+    focus:
+      source: file
+      path: "test_summaries.py"
+    criteria: |
+      Judge the pytest file.
+
+      PASS only if all of these hold:
+      1. It reads the saved cases from evalset.jsonl and is parametrized over them (or grades them all in
+         one fixture and reports per case).
+      2. One summary per VAKYN request, with each rule as its own question (a `noul` or a `choice` with a
+         cannot-tell option) in that request; the diff file list and the summary are in the state under
+         their own keys.
+      3. Anything code can check exactly is in code, or the answer explains why VAKYN is asked
+         (for example: whether test files exist in diff_files is a code check; whether the summary claims
+         tests is a VAKYN question).
+      4. CI fails below a named pass-rate setting (or on any must-pass failure, with a pass-rate gate as
+         well); unsure answers are not counted as passes.
+      5. The key comes from the environment (TYPESAFE_API_KEY or similar), never written in the file.
+      FAIL if any point is missing or if several summaries are graded in one request.

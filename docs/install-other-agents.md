@@ -57,7 +57,7 @@ installed from a local folder are not tracked; run `add` again to refresh them.
 
 ```bash
 npx skills remove --all              # every skill in this project, from every agent
-npx skills remove vakyn-check -y     # one skill
+npx skills remove check -y     # one skill
 npx skills remove -g --all           # skills installed with -g
 ```
 

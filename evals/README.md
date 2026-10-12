@@ -6,7 +6,7 @@ with the skill name, so `make eval TAG=<skill>` runs one skill's cases.
 
 ```sh
 make eval                      # every case, 1 run each, 4 at a time
-make eval TAG=vakyn-convert    # one skill
+make eval TAG=convert    # one skill
 make eval CASE='vakyn-limits'  # one case (one name or glob)
 ```
 
@@ -25,7 +25,7 @@ make eval CASE='vakyn-limits'  # one case (one name or glob)
 - **Input files** (a sample app, a log): put them in `fixtures/` inside the case folder and use a
   `case.yaml` instead of `prompt.md` with `context: {add_dirs: [fixtures]}`. The agent gets them as a
   read-only extra working directory, not in its own folder, so tell it to save outputs in the current
-  folder. See `evals/vakyn-research-python-app/case.yaml`. Small inputs can go inline in the prompt.
+  folder. See `evals/research-python-app/case.yaml`. Small inputs can go inline in the prompt.
 - An `llm` grader can judge a file the agent wrote: `focus: {source: file, path: <name>}`.
 
 ## Graders

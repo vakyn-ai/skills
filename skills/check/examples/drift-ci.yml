@@ -1,0 +1,51 @@
+# VAKYN drift check on pull requests that touch questions, prompts or the state builder.
+# Copy to .github/workflows/vakyn-drift.yml and edit the paths and limits.
+#
+# Needs, in the repo:
+#   vakyn/drift.request.json      the questions as the app sends them
+#   vakyn/reference-records.jsonl the reference batch records (100-300, representative, redacted)
+#   vakyn/reference.jsonl         answers stored once with: python3 drift.py save ...
+#   vakyn/drift.py                from the check skill examples
+# and a test VAKYN server the runner can reach (a self-hosted runner next to it, or a URL),
+# with a key kept as the repo secret VAKYN_TEST_API_KEY. Never put the key in this file.
+
+name: vakyn-drift
+
+on:
+  pull_request:
+    paths:
+      - "vakyn/**"
+      - "app/questions/**"
+      - "app/state_builder.py"
+
+jobs:
+  drift:
+    runs-on: [self-hosted, vakyn-test]   # or ubuntu-latest when the test server has a reachable URL
+    timeout-minutes: 30
+    env:
+      TYPESAFE_BASE_URL: ${{ vars.VAKYN_TEST_BASE_URL }}
+      TYPESAFE_API_KEY: ${{ secrets.VAKYN_TEST_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install typesafe-sdk
+      - name: Re-run the reference batch and compare
+        run: |
+          set -o pipefail   # fail the job when drift.py fails, even through tee
+          python3 vakyn/drift.py check \
+            --request vakyn/drift.request.json \
+            --records vakyn/reference-records.jsonl \
+            --reference vakyn/reference.jsonl \
+            --concurrency 1 --tolerance 0.05 \
+            --max-pick-changes 0.02 --max-mean-change 0.02 --max-crossing 0.02 \
+            --out drift-current.jsonl | tee drift-report.txt
+      - name: Keep the report and the new answers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vakyn-drift
+          path: |
+            drift-report.txt
+            drift-current.jsonl

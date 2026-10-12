@@ -13,8 +13,8 @@ from checklist import check
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS = sorted(p for p in (ROOT / "skills").iterdir() if p.is_dir())
 EXPECTED_SKILLS = {
-    "vakyn", "vakyn-research", "vakyn-questions", "vakyn-convert", "vakyn-workflow", "vakyn-check",
-    "vakyn-cascade", "vakyn-batch", "vakyn-judge", "vakyn-migrate", "vakyn-distill",
+    "start", "research", "questions", "convert", "workflow", "check",
+    "cascade", "batch", "judge", "migrate", "distill",
 }
 SKILL_MAX_LINES = 150
 
@@ -119,7 +119,7 @@ class ExampleRequests(unittest.TestCase):
                 self.assertEqual(errors, [])
 
     def test_weak_examples_are_caught(self):
-        # *.weak.json files are deliberate bad requests (vakyn-questions before/after pairs):
+        # *.weak.json files are deliberate bad requests (questions before/after pairs):
         # the checklist must flag each one, or the pair teaches nothing the check can see.
         for f in sorted(ROOT.glob("skills/**/*.weak.json")):
             with self.subTest(file=str(f.relative_to(ROOT))):

@@ -58,7 +58,7 @@ Label the 40,000 rows in reviews.csv by topic and sentiment.
 Grade our support bot's replies with this rubric and gate the CI on it.
 ```
 
-Or call one directly: `/vakyn:vakyn-convert`.
+Or call one directly: `/vakyn:convert`.
 
 A real run on a small helpdesk app (Python, OpenAI SDK), trimmed:
 
@@ -77,7 +77,7 @@ Top 3 places VAKYN could help:
 
 Stays with the chat model: the draft reply (replies.py:12) and the weekly summary.
 
-Next: run vakyn-convert on the routing spot, then test it with vakyn-check on about
+Next: run the convert skill on the routing spot, then test it with the check skill on about
 30 past tickets.
 ```
 
@@ -85,23 +85,23 @@ Next: run vakyn-convert on the routing spot, then test it with vakyn-check on ab
 
 | | Skill | What it does |
 |---|---|---|
-| **Start** | `vakyn` | Checks if VAKYN fits, picks a model file, sets up the server, makes a first call. |
-| **Find** | `vakyn-research` | Finds the decisions in your app or process and ranks them in `vakyn-research.md`. Changes nothing. |
-| **Build** | `vakyn-questions` | Picks `noul`, `choice` or `score`, writes options and levels, fixes a bad answer. |
-| | `vakyn-convert` | Turns a prompt or a tool list (OpenAI, Anthropic, MCP) into VAKYN calls and Python or TypeScript code. |
-| | `vakyn-workflow` | Designs a new decision workflow: route, triage, pick a tool, check a claim, rate with a rubric, pick the best match, spot risk, fill a form. |
-| | `vakyn-cascade` | A cheap chat model drafts, VAKYN checks the draft against its sources, only failed drafts go to the expensive model. |
-| | `vakyn-judge` | Grades chat-model or agent outputs against your rubric, aligns it with your experts, runs in CI. |
-| | `vakyn-batch` | Runs a CSV, Parquet or SQL table through VAKYN: pilot, resume, progress, answer columns, a review file for unsure rows. |
-| | `vakyn-distill` | Turns an agent that repeats a written procedure into a program of code, VAKYN questions and small agent steps, and moves traffic to it in stages. |
-| | `vakyn-migrate` | Moves code from hosted decision APIs to your own server and points framework adapters at it. |
-| **Prove** | `vakyn-check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
+| **Start** | `start` | Checks if VAKYN fits, picks a model file, sets up the server, makes a first call. |
+| **Find** | `research` | Finds the decisions in your app or process and ranks them in `vakyn-research.md`. Changes nothing. |
+| **Build** | `questions` | Picks `noul`, `choice` or `score`, writes options and levels, fixes a bad answer. |
+| | `convert` | Turns a prompt or a tool list (OpenAI, Anthropic, MCP) into VAKYN calls and Python or TypeScript code. |
+| | `workflow` | Designs a new decision workflow: route, triage, pick a tool, check a claim, rate with a rubric, pick the best match, spot risk, fill a form. |
+| | `cascade` | A cheap chat model drafts, VAKYN checks the draft against its sources, only failed drafts go to the expensive model. |
+| | `judge` | Grades chat-model or agent outputs against your rubric, aligns it with your experts, runs in CI. |
+| | `batch` | Runs a CSV, Parquet or SQL table through VAKYN: pilot, resume, progress, answer columns, a review file for unsure rows. |
+| | `distill` | Turns an agent that repeats a written procedure into a program of code, VAKYN questions and small agent steps, and moves traffic to it in stages. |
+| | `migrate` | Moves code from hosted decision APIs to your own server and points framework adapters at it. |
+| **Prove** | `check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
 
 A typical path:
 
-1. `vakyn-research` finds where VAKYN fits.
-2. `vakyn-convert`, `vakyn-workflow`, `vakyn-cascade` or `vakyn-judge` builds it; `vakyn-batch` runs it over what you already have.
-3. `vakyn-check` proves it on your data before you switch, and again after every change.
+1. `research` finds where VAKYN fits.
+2. `convert`, `workflow`, `cascade` or `judge` builds it; `batch` runs it over what you already have.
+3. `check` proves it on your data before you switch, and again after every change.
 
 ## What the skills always do
 
@@ -133,7 +133,7 @@ with VAKYN's Jev-compatible API once their base URL points at your server.
 
 - Claude Code, Codex, Cursor or OpenCode.
 - A running VAKYN server ([open-server](https://github.com/vakyn-ai/open-server)) with a model
-  file and an API key. The `vakyn` skill sets this up for you.
+  file and an API key. The `start` skill sets this up for you.
 
 <details>
 <summary><strong>Update</strong></summary>
@@ -151,7 +151,7 @@ claude plugin update vakyn@vakyn-ai
 <summary><strong>Other coding agents: details</strong></summary>
 
 The skills land in `.agents/skills/`, which Codex, Cursor and OpenCode all read. Add `-g` for
-every project. Install all of them: they link to each other. Update with `npx skills update -y`,
+every project. Install all of them: they link to each other. Their folder names are short (`start`, `check`, `convert`…); if another skill already uses one of those names, install into a separate project or rename it there. Update with `npx skills update -y`,
 remove with `npx skills remove --all`. Details: [docs/install-other-agents.md](docs/install-other-agents.md).
 Want another agent? Open an issue and say which.
 
@@ -164,7 +164,7 @@ Want another agent? Open an issue and say which.
 claude --plugin-dir .                     # try the plugin from this folder
 make test                                 # offline: manifests, skills, links, voice, example requests
 VAKYN_API_KEY=... make test-live          # send every example request to VAKYN_BASE_URL
-VAKYN_API_KEY=... make eval TAG=vakyn     # headless Claude Code runs per skill, graded
+VAKYN_API_KEY=... make eval TAG=start     # headless Claude Code runs per skill, graded
 make release VERSION=x.y.z                # validate, bump, tag, push
 ```
 
