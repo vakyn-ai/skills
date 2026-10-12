@@ -1,0 +1,68 @@
+schema_version: "1.0"
+name: workflow-guardrail
+tags: [workflow]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    Our account-support agent (Python, OpenAI SDK) can call these tools on behalf of customers:
+    `change_email(account_id, new_email)`, `issue_credit(account_id, amount_eur, reason)` (we allow up to
+    EUR 200 per account per month), `close_account(account_id)` and `send_message(account_id, text)`.
+    Last week it closed an account after a customer only asked how to pause it. I want VAKYN to check every
+    tool call before it runs: let the safe ones through, hold the doubtful ones for a person, block the bad
+    ones. Design it in Python. Save one example VAKYN request as a .json file and the code as guard.py in the
+    current folder. Our server is not reachable from here.
+graders:
+  - name: request-saved
+    type: file_exists
+    path: "*.json"
+  - name: code-saved
+    type: file_exists
+    path: "guard.py"
+  - name: separate-facts
+    type: llm
+    focus:
+      source: file
+      path: "guard.py"
+    criteria: |
+      Judge only this one point in guard.py; ignore everything else.
+      PASS if the check asks the deciding facts as separate questions (for example whether the call
+      can be undone, how bad a mistake would be, whether it matches what the customer asked or the
+      agent's job) rather than one overall "is this safe?" question. FAIL otherwise.
+  - name: action-choice
+    type: llm
+    focus:
+      source: file
+      path: "guard.py"
+    criteria: |
+      Judge only this one point in guard.py; ignore everything else.
+      PASS if the outcome is one of allow, hold for a person, or block, and a call runs only when the
+      answers are sure enough (a named threshold); unsure answers hold the call for a person. FAIL otherwise.
+  - name: fail-closed
+    type: llm
+    focus:
+      source: file
+      path: "guard.py"
+    criteria: |
+      Judge only this one point in guard.py; ignore everything else.
+      PASS if an error, timeout or unreachable server holds or blocks the call instead of letting it run.
+      FAIL if the call runs when VAKYN cannot answer.
+  - name: limit-in-code
+    type: llm
+    focus:
+      source: file
+      path: "guard.py"
+    criteria: |
+      Judge only this one point in guard.py; ignore everything else.
+      PASS if the EUR 200 per account per month credit limit is enforced in code (it may also appear in
+      the state), not left only to a VAKYN question. FAIL otherwise.
+  - name: logged
+    type: llm
+    focus:
+      source: file
+      path: "guard.py"
+    criteria: |
+      Judge only this one point in guard.py; ignore everything else.
+      PASS if every check is logged with the call, the answers and the decision. FAIL otherwise.

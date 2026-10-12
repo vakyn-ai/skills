@@ -1,6 +1,6 @@
 ---
 name: workflow
-description: "Design a new VAKYN decision workflow from a plain-language task: questions, state builder, Python or TypeScript code, batching, unsure path. Use for routing, triage, intent, moderation, guardrails, next-tool pick, claim check (hallucination, grounding), LLM-as-judge or rubric grading, rerank or best match, risk flags, form steps, fan-out, extracting a value or date by picking instead of generating, rebuilding headings and lists, scoring once to rank many ways, triage-first investigation that stops early, or checking each field of an agent's structured output against its cited evidence."
+description: "Design a new VAKYN decision workflow from a plain-language task: questions, state builder, Python or TypeScript code, batching, unsure path. Use for routing, triage, intent, moderation, guardrails on an agent's calls, next-tool pick, claim check (hallucination, grounding), LLM-as-judge or rubric grading, rerank or best match, risk flags, form steps, fan-out, extracting a value or date by picking instead of generating, scoring once to rank many ways, triage-first investigation that stops early, or checking each field of an agent's structured output against its cited evidence."
 ---
 
 # VAKYN workflow: design something new
@@ -26,6 +26,7 @@ writing each question.
 | Grade on a scale, one or several criteria | [rate with a rubric](references/patterns/rubric.md) | one `score` per criterion, combined in code |
 | Pick one item from a short list | [pick the best match](references/patterns/best-match.md) | `choice` over item ids + `no_good_match` |
 | Flag what needs a person (refund, legal, safety) | [spot risk](references/patterns/spot-risk.md) | one `noul` per risk, combined in code |
+| Allow, hold or block an agent's call before it goes out | [guardrails](references/patterns/guardrails.md) | `choice` + one question per deciding fact |
 | Choose the next field or question in a form | [fill a form step](references/patterns/form-step.md) | `choice` over empty fields + endings |
 | Ask every branch's follow-up at once, read only the branch taken | [fan out](references/patterns/fan-out.md) | `choice` + branch questions with stated premises |
 | Get a value, date or sentence out of text, or rebuild headings and lists | [pick instead of generate](references/patterns/pick-value.md) | `choice` over candidates code found + `none_of_these` |
@@ -89,6 +90,7 @@ existing prompt or tool-calling app is the `convert` skill.
 | rubric | [rubric.request.json](examples/rubric.request.json) | [rubric.py](examples/rubric.py) |
 | best match | [best-match.request.json](examples/best-match.request.json) | [best_match.py](examples/best_match.py) |
 | spot risk | [spot-risk.request.json](examples/spot-risk.request.json) | [spot_risk.py](examples/spot_risk.py), [spot_risk.ts](examples/spot_risk.ts) |
+| guardrails | [guardrail-clear.request.json](examples/guardrail-clear.request.json) | [guardrail.py](examples/guardrail.py) |
 | form step | [form-step.request.json](examples/form-step.request.json) | [form_step.py](examples/form_step.py) |
 | fan out | [fan-out.request.json](examples/fan-out.request.json) | [fan_out.py](examples/fan_out.py) |
 | pick instead of generate | [pick-value.request.json](examples/pick-value.request.json), [line-roles.request.json](examples/line-roles.request.json) | [pick_value.py](examples/pick_value.py) |
