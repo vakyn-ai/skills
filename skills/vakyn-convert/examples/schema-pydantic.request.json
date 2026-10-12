@@ -1,0 +1,38 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "ticket": "Every label I print today comes out blank. I have 40 orders that must go out with the 4pm pickup and nothing works. This is the second time this month. Fix it now."
+  },
+  "questions": {
+    "category": {
+      "type": "choice",
+      "instructions": "Which category fits the problem in state.ticket?",
+      "criteria": {
+        "billing": "Charges, invoices, plan changes and refunds, even when a refund is asked for because of a broken label",
+        "shipping_label": "Buying, printing or voiding a shipping label: blank, wrong or failed labels",
+        "tracking": "Where a parcel is after it shipped: late, stuck or lost parcels",
+        "account": "Sign-in, passwords, users and the connection to the customer's online shop",
+        "other": "None of these: sales questions, feature ideas, spam, or no clear problem"
+      }
+    },
+    "urgent": {
+      "type": "noul",
+      "instructions": "Is the problem in state.ticket urgent for the support team?",
+      "criteria": {
+        "true": "Parcels cannot go out today because of it, or a wrong charge is happening now",
+        "false": "Shipping still works today and no money is being taken by mistake"
+      }
+    },
+    "sentiment": {
+      "type": "score",
+      "instructions": "How does the customer who wrote state.ticket feel?",
+      "criteria": [
+        "Angry: blames, threatens or insults",
+        "Unhappy: frustrated or let down, but civil",
+        "Neutral: states facts or asks a question with no clear feeling",
+        "Positive: friendly or thankful",
+        "Delighted: praises the product or the team warmly"
+      ]
+    }
+  }
+}

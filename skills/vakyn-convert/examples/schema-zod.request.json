@@ -1,0 +1,52 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "listing": "Kids bike, 16 inch, blue. Used for two summers, brakes and tyres fine, small scratch on the frame. Pick up in Leeds. 45 pounds. Text me on oh seven seven double-oh 900 123 for quick sale."
+  },
+  "questions": {
+    "decision": {
+      "type": "choice",
+      "instructions": "What should Swapyard do with state.listing?",
+      "criteria": {
+        "approve": "Can go live as is: an allowed item, the condition stated, a clear price, no contact details in the text",
+        "needs_edit": "The item is allowed, but the text must change first: it has contact details, an unclear price, or no condition",
+        "reject": "The item is not allowed for sale (weapons, medicines, live animals, counterfeits), or the listing is a scam",
+        "cannot_tell": "The text is not a listing, or too short to judge"
+      }
+    },
+    "issue_prohibited_item": {
+      "type": "noul",
+      "instructions": "Does state.listing offer an item that is not allowed for sale: weapons, medicines, live animals, or counterfeit goods?"
+    },
+    "issue_misleading_price": {
+      "type": "noul",
+      "instructions": "Does the price in state.listing mislead the buyer, such as a price that differs from the one in the text or a hidden extra fee?"
+    },
+    "issue_contact_details": {
+      "type": "noul",
+      "instructions": "Does state.listing contain a phone number, email address or social media handle, even spelled out in words?"
+    },
+    "issue_missing_condition": {
+      "type": "noul",
+      "instructions": "Does state.listing leave out the condition of the item (new, used, damaged)?"
+    },
+    "seller_looks_like_business": {
+      "type": "noul",
+      "instructions": "Does state.listing read like it was written by a shop or trader?",
+      "criteria": {
+        "true": "A shop or trader: stock counts, several sizes, invoices, a company name, delivery terms",
+        "false": "A private person selling their own item"
+      }
+    },
+    "quality": {
+      "type": "score",
+      "instructions": "How well does state.listing describe the item for a buyer?",
+      "criteria": [
+        "Poor: a few words; the buyer cannot tell what the item is",
+        "Basic: says what the item is, but little else",
+        "Good: the item, its condition and its size or model",
+        "Excellent: everything a buyer asks: item, condition, size or model, flaws, and how to collect or ship"
+      ]
+    }
+  }
+}

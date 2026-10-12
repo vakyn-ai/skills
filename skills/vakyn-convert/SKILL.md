@@ -1,14 +1,14 @@
 ---
 name: vakyn-convert
-description: "Convert what someone already has into VAKYN calls plus Python or TypeScript code. Use for a chat-model prompt that sorts, routes, flags or rates (\"turn this triage prompt into VAKYN\"), sorted into choice, noul, score, code, keep or drop; or a tool pick for an EXISTING app's tool list (OpenAI, Anthropic, MCP tools/list) where the chat model fills arguments; with side-by-side logging, a fallback for unsure picks, or a two-stage pick over 255 tools. New apps: vakyn-workflow."
+description: "Convert what someone already has into VAKYN calls plus Python or TypeScript code. Use for a chat-model prompt that sorts, routes, flags or rates (\"turn this triage prompt into VAKYN\"); an output schema (structured outputs, response_format, JSON mode, Pydantic, instructor, Zod, generateObject) whose enums, booleans and ratings become questions; or a tool pick for an EXISTING app's tool list (OpenAI, Anthropic, MCP). With side-by-side logging, a fallback for unsure answers, or a two-stage pick over 255 tools. New apps: vakyn-workflow."
 ---
 
-# VAKYN convert: prompt or tool-calling app to VAKYN
+# VAKYN convert: prompt, output schema or tool-calling app to VAKYN
 
-The person already has something built: a chat-model prompt that decides things, or an app where
-a chat model picks which tool to call. This skill finds the decisions in it, turns them into VAKYN
-questions, and writes the code change. The chat model keeps what it is good at: writing text and
-filling in tool arguments.
+The person already has something built: a chat-model prompt that decides things, a structured
+output schema the chat model fills, or an app where a chat model picks which tool to call. This
+skill finds the decisions in it, turns them into VAKYN questions, and writes the code change. The
+chat model keeps what it is good at: writing text and filling in tool arguments.
 
 Field shapes and limits: [API reference](../vakyn/references/api.md). Code:
 [SDK guide](../vakyn/references/sdk.md). Options, levels and state: the `vakyn-questions` skill
@@ -21,6 +21,7 @@ Field shapes and limits: [API reference](../vakyn/references/api.md). Code:
 | The person has… | Do |
 |---|---|
 | A chat-model prompt that sorts, routes, flags or rates | [Sort table](references/prompt-sort.md) |
+| A structured output schema (Pydantic, `instructor`, Zod, JSON Schema, a forced Anthropic tool) | [Output schema](references/output-schema.md) |
 | An OpenAI tool list (`tools=[{"type": "function", ...}]`) | [OpenAI reader](references/openai-tools.md), then [tool pick](references/tool-pick.md) |
 | An Anthropic tool list (`tools=[{"name", "input_schema"}]`) | [Anthropic reader](references/anthropic-tools.md), then [tool pick](references/tool-pick.md) |
 | An MCP server or its `tools/list` output | [MCP reader](references/mcp-tools.md), then [tool pick](references/tool-pick.md) |
@@ -39,6 +40,21 @@ Field shapes and limits: [API reference](../vakyn/references/api.md). Code:
 4. Write the code: one VAKYN call, code rules after it, the chat model only for the kept text,
    and a path for unsure answers (the old prompt decides, or a review queue).
 5. Example: [ticket-triage.md](examples/ticket-triage.md).
+
+## Convert an output schema
+
+1. Find the schema and the call that passes it (`response_format=`, `response_model=`,
+   `generateObject({schema})`). Read every field with its description.
+2. Map each field ([how](references/output-schema.md#2-map-each-field)): enum → `choice` (+ an
+   escape option); boolean → `noul`; ordered enum or rating → `score` with levels in words; list of
+   enum values → one `noul` per value; nested object → flattened, named questions; free text,
+   numbers, dates and IDs → keep, code, or pick instead of generate. Show the field table.
+3. Field descriptions become the criteria; the question text carries the meaning (question names
+   are not sent). Missing descriptions: write them and ask the person to confirm.
+4. Write one request for a sample record and save it as a `.json` file. Run the checklist.
+5. Write the code: VAKYN answers, then code rebuilds the **same typed object**, validated by the
+   original schema, with the confidence beside each field. The chat model writes only the free
+   text plus any unsure field, in one call with the narrowed schema. Side by side first.
 
 ## Convert a tool-calling app
 
@@ -74,6 +90,8 @@ Field shapes and limits: [API reference](../vakyn/references/api.md). Code:
 | [tracker-tools.mcp.json](examples/tracker-tools.mcp.json) → [request](examples/tracker-tools.request.json) | MCP `tools/list`, issue tracker; `create_issue` 0.98 when no open issue matches |
 | [tool-groups.request.json](examples/tool-groups.request.json) | Stage one of a two-stage pick over 312 tools; `calendar` 0.99 |
 | [ticket-triage.prompt.txt](examples/ticket-triage.prompt.txt) → [ticket-triage.md](examples/ticket-triage.md) | A triage prompt, its sort table, [request](examples/ticket-triage.request.json) and code |
+| [schema-pydantic-before.py](examples/schema-pydantic-before.py) → [schema_pydantic_after.py](examples/schema_pydantic_after.py) | OpenAI structured output with Pydantic → [request](examples/schema-pydantic.request.json); blank labels with 40 parcels due: `shipping_label` 1.00, urgent, sentiment 1 |
+| [schema-zod-before.ts](examples/schema-zod-before.ts) → [schema_zod_after.ts](examples/schema_zod_after.ts) | Zod + `generateObject` → [request](examples/schema-zod.request.json); a phone number spelled in words: `needs_edit` 0.90, `contact_details` |
 | [tool_pick_openai.py](examples/tool_pick_openai.py) | Python + OpenAI SDK template, side by side, `--dry` runs VAKYN alone |
 | [tool_pick_anthropic.ts](examples/tool_pick_anthropic.ts) | TypeScript + Anthropic SDK template, same shape |
 
@@ -82,6 +100,7 @@ Answers quoted here come from a running VAKYN 4B.
 ## Rules
 
 - **VAKYN picks; the chat model writes.** Arguments, replies and summaries stay with the chat model.
+- **Same type out.** A converted schema still returns the original object, validated by the original schema.
 - **Side by side first.** Generated code never defaults to VAKYN acting alone.
 - **Unsure answers have a path:** the chat model with the full tool list, or the old prompt.
 - **No parameter schemas, no system prompt dump** in the request. Options are one line each.
