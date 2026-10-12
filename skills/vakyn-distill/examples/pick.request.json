@@ -1,0 +1,47 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "applicant": {
+      "name": "Marlow & Finch Catering Ltd",
+      "country": "GB",
+      "reg_no": "09933104",
+      "address": "22 Cheltenham Road, Bristol BS6 5RR",
+      "directors": [
+        "Grace Marlow",
+        "Owen Finch"
+      ]
+    },
+    "hits": {
+      "h1": {
+        "id": "h1",
+        "name": "Marlow Finch Trading Ltd",
+        "country": "GB",
+        "listed_address": "Unit 9, Docklands Way, London E16",
+        "listed_people": [
+          "Victor Hale"
+        ],
+        "list": "asset freeze"
+      }
+    },
+    "registry": {
+      "h1": {
+        "reg_no": "07741020",
+        "address": "Unit 9, Docklands Way, London E16",
+        "directors": [
+          "Victor Hale"
+        ]
+      }
+    }
+  },
+  "questions": {
+    "match": {
+      "type": "choice",
+      "criteria": {
+        "h1": "The watch-list entry h1 (Marlow Finch Trading Ltd, GB) is the applicant",
+        "none_of_these": "None of the entries is the applicant: registration number, address and directors differ",
+        "cannot_tell": "The records conflict or are missing, so a person must decide"
+      },
+      "instructions": "Compare state.applicant with each watch-list entry in state.hits and its registry record in state.registry. Which entry, if any, is the applicant? The same registration number or the same directors and address mean it is."
+    }
+  }
+}

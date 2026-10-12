@@ -1,0 +1,83 @@
+schema_version: "1.0"
+name: vakyn-distill-step-map
+tags: [vakyn-distill]
+runs: 1
+execution:
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    We run an OpenAI Agents SDK agent that reviews invoice disputes from our B2B customers, about 400 a
+    week, at roughly $0.50 each. It follows this procedure:
+
+      1. Read the customer's dispute message and decide the dispute type: wrong price, wrong quantity,
+         damaged goods, not received, duplicate charge, or something else.
+      2. Fetch the purchase order (tool get_po) and the delivery receipt (tool get_delivery) from the ERP.
+      3. Wrong price: compare the invoiced unit price with the PO unit price; credit the difference.
+      4. Wrong quantity or not received: compare invoiced quantity with delivered quantity; credit the
+         difference times the unit price.
+      5. Damaged goods: read the customer's description and the carrier's delivery note and decide whether
+         the damage happened in transit. In transit: credit the line. Otherwise: reject.
+      6. Duplicate charge: search the customer's other invoices for the same PO and amount
+         (tool search_invoices). Found: void the duplicate.
+      7. Any credit over $5,000 needs the financial controller's approval.
+      8. Disputes raised more than 90 days after the invoice date are rejected.
+
+    Four of its runs (trimmed):
+
+      {"case":"d-01","type":"wrong_price","tools":["get_po","get_delivery"],"outcome":"credit 120.00","notes":"Price on the invoice was 14.20, PO says 13.00. The delivery receipt added nothing."}
+      {"case":"d-02","invoice_age_days":140,"tools":["get_po","get_delivery","search_invoices"],"outcome":"reject","notes":"The invoice was 140 days old, so all three look-ups were wasted."}
+      {"case":"d-03","type":"damaged_goods","tools":["get_po","get_delivery"],"outcome":"credit 6,200.00, sent to controller","notes":"Carrier note said 'pallet crushed on arrival'. That decided it."}
+      {"case":"d-04","type":"duplicate_charge","tools":["get_po","get_delivery","search_invoices"],"outcome":"void INV-8812","notes":"Only the invoice search mattered."}
+
+    Map each step of this job for a cheaper program with VAKYN. Save the step map as step-map.md in the
+    current folder. Don't write the program yet.
+graders:
+  - name: map-file
+    type: file_exists
+    path: "step-map.md"
+  - name: decisions-vs-code
+    type: llm
+    focus:
+      source: file
+      path: "step-map.md"
+    criteria: |
+      Judge only this one point; ignore everything else in the file.
+      PASS if the dispute type (step 1) and the in-transit damage call (step 5) are VAKYN decisions
+      (a choice or noul, the type with an escape option such as other), while the price and quantity
+      comparisons, the credit amounts, the $5,000 limit and the 90-day rule are plain code.
+      FAIL if any comparison, amount, limit or date rule is given to VAKYN, or the dispute type or the
+      damage call is left to keyword rules in code.
+  - name: lookups
+    type: llm
+    focus:
+      source: file
+      path: "step-map.md"
+    criteria: |
+      Judge only this one point; ignore everything else in the file.
+      PASS if get_po, get_delivery and search_invoices are marked as look-ups (a small agent step, a tool
+      call or an API call made by code), not as VAKYN questions.
+      FAIL if a look-up is mapped to a VAKYN question, or the map keeps the full agent for them without
+      saying so.
+  - name: escalation
+    type: llm
+    focus:
+      source: file
+      path: "step-map.md"
+    criteria: |
+      Judge only this one point; ignore everything else in the file.
+      PASS if the controller's approval of credits over $5,000 is an escalation to a person, and unsure
+      VAKYN answers have a path (back to the agent, or a person).
+      FAIL if either is missing.
+  - name: early-stop
+    type: llm
+    focus:
+      source: file
+      path: "step-map.md"
+    criteria: |
+      Judge only this one point; ignore everything else in the file.
+      PASS if the map checks the 90-day rule first, in code, and stops before any look-up when it fails,
+      AND fetches only what the dispute type needs (for example no delivery receipt for a price dispute,
+      the invoice search only for duplicates).
+      FAIL if the map keeps fetching the PO and the receipt for every case, or puts the 90-day check after
+      the look-ups.

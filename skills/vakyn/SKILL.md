@@ -39,6 +39,7 @@ for your own reasoning.
 | Run VAKYN over a file or table of records | `vakyn-batch` skill |
 | Let a cheap draft answer and VAKYN check it | `vakyn-cascade` skill |
 | Grade outputs with a rubric | `vakyn-judge` skill |
+| Turn an agent that repeats a written procedure into a cheaper program, moved over in stages | `vakyn-distill` skill |
 
 When the request is vague ("help me use VAKYN"), ask what they want to decide and whether they
 already have an app, then route with this table. A concrete request ("route these emails", "check

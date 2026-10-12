@@ -1,0 +1,52 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "email": "Hello, Quillon HR Cloud would like to offer our payroll and leave-tracking tool for your 900 staff. We will import employee records from your HR system. Documents uploaded. Net 30.",
+    "payment_terms": "Net 30.",
+    "portal_documents": [
+      "registration_certificate",
+      "tax_certificate",
+      "bank_letter"
+    ]
+  },
+  "questions": {
+    "route": {
+      "type": "choice",
+      "instructions": "What kind of email is state.email? state.portal_documents lists what the sender uploaded to our supplier portal.",
+      "criteria": {
+        "new_application": "A company asks to become our supplier: it offers to supply us and applies, or says its documents are in the portal",
+        "existing_supplier_change": "A supplier already on file asks to change its details, bank account or contacts",
+        "invoice_or_payment": "An invoice, a payment reminder or a question about a payment",
+        "sales_pitch": "Marketing that does not apply to become a supplier: a demo invitation, a discount, a newsletter",
+        "other": "None of these, or it cannot be told from the email"
+      }
+    },
+    "category": {
+      "type": "choice",
+      "instructions": "What will the company in state.email supply?",
+      "criteria": {
+        "goods": "Physical products delivered to us: materials, parts, tools, packaging",
+        "services": "Work done on our sites or for our staff: cleaning, catering, maintenance, consulting",
+        "software": "Licenses, hosted tools or data services",
+        "logistics": "Transport, storage or customs handling of goods",
+        "unclear": "The email does not say what it will supply"
+      }
+    },
+    "handles_personal_data": {
+      "type": "noul",
+      "instructions": "Will the company in state.email handle personal data about our people (staff, customers)?",
+      "criteria": {
+        "true": "It will receive or store records about people: employee or customer records, payroll, HR data, contact lists",
+        "false": "It works with goods, premises, company data or anonymous figures; serving or meeting our staff is not handling their data"
+      }
+    },
+    "nonstandard_terms": {
+      "type": "noul",
+      "instructions": "Do the payment terms in state.payment_terms differ from our standard terms (payment 30 days, 45 days after invoice)?",
+      "criteria": {
+        "true": "Shorter than 30 days, payment before delivery, a deposit or part paid in advance, or an early-payment discount",
+        "false": "Payment 30 or 45 days after invoice, monthly or yearly invoicing included"
+      }
+    }
+  }
+}

@@ -19,7 +19,7 @@ Does it ask for a refund?        noul   → yes       1.00
 How soon does it need a reply?   score  → today     0.64   (can wait 0.12 · within the hour 0.24)
 ```
 
-These ten skills teach your coding agent to build with it.
+These eleven skills teach your coding agent to build with it.
 
 ## Install (30 seconds)
 
@@ -93,6 +93,7 @@ Next: run vakyn-convert on the routing spot, then test it with vakyn-check on ab
 | | `vakyn-cascade` | A cheap chat model drafts, VAKYN checks the draft against its sources, only failed drafts go to the expensive model. |
 | | `vakyn-judge` | Grades chat-model or agent outputs against your rubric, aligns it with your experts, runs in CI. |
 | | `vakyn-batch` | Runs a CSV, Parquet or SQL table through VAKYN: pilot, resume, progress, answer columns, a review file for unsure rows. |
+| | `vakyn-distill` | Turns an agent that repeats a written procedure into a program of code, VAKYN questions and small agent steps, and moves traffic to it in stages. |
 | | `vakyn-migrate` | Moves code from hosted decision APIs to your own server and points framework adapters at it. |
 | **Prove** | `vakyn-check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
 

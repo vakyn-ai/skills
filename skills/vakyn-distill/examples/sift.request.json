@@ -1,0 +1,73 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "applicant": {
+      "name": "Orvane Trading SRL",
+      "country": "RO",
+      "reg_no": "J12/4471/2017",
+      "address": "Str. Fabricii 22, Cluj-Napoca",
+      "directors": [
+        "Mihai Dobre",
+        "Ana Rus"
+      ]
+    },
+    "hits": {
+      "h1": {
+        "id": "h1",
+        "name": "Orvane Holdings Ltd",
+        "country": "CY",
+        "listed_address": "Arch. Makariou 41, Limassol",
+        "listed_people": [
+          "Mihai Dobre"
+        ],
+        "list": "asset freeze"
+      },
+      "h2": {
+        "id": "h2",
+        "name": "Orvane Trading S.R.L.",
+        "country": "RO",
+        "listed_address": "Strada Fabricii 22, Cluj-Napoca",
+        "listed_people": [
+          "Ana Rus"
+        ],
+        "list": "asset freeze"
+      },
+      "h3": {
+        "id": "h3",
+        "name": "Orvana Textiles",
+        "country": "PT",
+        "listed_address": "Rua do Norte 7, Porto",
+        "listed_people": [
+          "Rui Lopes"
+        ],
+        "list": "export controls"
+      }
+    }
+  },
+  "questions": {
+    "could_be_h1": {
+      "type": "noul",
+      "criteria": {
+        "true": "A similar name AND at least one of: the same country, the same address or street, or a person named in both. Names are similar when they share their main distinctive word (Halden Tools Ltd and Halden Trading GmbH share Halden), whatever the legal form (Ltd, GmbH, SRL, BV) and the other words.",
+        "false": "The names share no distinctive word, or they do but nothing else matches: a different country, a different address and no person in common."
+      },
+      "instructions": "Could the watch-list entry state.hits.h1 be the same company as state.applicant?"
+    },
+    "could_be_h2": {
+      "type": "noul",
+      "criteria": {
+        "true": "A similar name AND at least one of: the same country, the same address or street, or a person named in both. Names are similar when they share their main distinctive word (Halden Tools Ltd and Halden Trading GmbH share Halden), whatever the legal form (Ltd, GmbH, SRL, BV) and the other words.",
+        "false": "The names share no distinctive word, or they do but nothing else matches: a different country, a different address and no person in common."
+      },
+      "instructions": "Could the watch-list entry state.hits.h2 be the same company as state.applicant?"
+    },
+    "could_be_h3": {
+      "type": "noul",
+      "criteria": {
+        "true": "A similar name AND at least one of: the same country, the same address or street, or a person named in both. Names are similar when they share their main distinctive word (Halden Tools Ltd and Halden Trading GmbH share Halden), whatever the legal form (Ltd, GmbH, SRL, BV) and the other words.",
+        "false": "The names share no distinctive word, or they do but nothing else matches: a different country, a different address and no person in common."
+      },
+      "instructions": "Could the watch-list entry state.hits.h3 be the same company as state.applicant?"
+    }
+  }
+}
