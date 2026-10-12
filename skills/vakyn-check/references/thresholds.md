@@ -83,6 +83,56 @@ Chosen: ≥ 0.99, so 59% go through automatically and 41% go to the unsure path.
 records: 16 answered, 0 wrong. But 33 answered records cannot prove 2%; the true rate could be up
 to 8.7%. Say so, and ask for more labels before relying on it.
 
+## When one kind of mistake costs more
+
+Some decisions are lopsided: clearing a real safety report, a real sanctions match or a real fraud
+case costs far more than flagging a harmless one for a second look. One error target for both
+sides hides that. Choose the two cut-offs of a `noul` separately, from the labeled records and the
+costs the person states:
+
+1. **Ask for three costs per case**, in any unit (money, minutes, a ratio): clearing a case that was
+   really yes, flagging a case that was no, and a person reading a case in the middle band.
+   Write them down with the threshold; they are part of the policy version.
+2. **On the tuning part, try every pair** of cut-offs: act on yes at `noul >= hi`, on no at
+   `noul <= lo`, a person in between. Total the cost of each pair and pick the cheapest; on a tie,
+   fewer reviews, then the lower `lo` (the safer side).
+3. **Check the pair on the held-out part**, next to the [starting values](#starting-values-and-sample-sizes).
+4. **Say how far the sample proves the costly side.** The `lo` cut-off rests on the real yes cases
+   with a low `noul`, the rarest records there are; with `n` real yes cases and none cleared, the
+   miss rate could still be up to about `3 / n`.
+
+The same idea works for `choice`: one cut-off per option, from the cost of a wrong pick of that
+option ([which number](#which-number-to-threshold)).
+
+### Example (safety reports, live answers)
+
+[safety-labeled.sample.jsonl](../examples/safety-labeled.sample.jsonl): 60 product messages, one
+`noul` ("Does the customer's message in state.message describe a product that could hurt
+someone?") answered by VAKYN-4B, labeled by a person; 34 are real safety issues. The person's
+costs: clearing a real safety issue 50, a false flag to the safety team 2, a person reading one
+message 1. `python3 thresholds.py safety-labeled.sample.jsonl --cost-missed 50 --cost-false-flag 2 --cost-review 1`:
+
+```text
+noul, cut-offs by cost (clearing a real yes 50, a false flag 2, a review 1); tuning part, 42 records
+  clear at <=  flag at >=  cleared but yes  flagged but no  to a person  total cost
+         0.2        0.5                0               1            1           3
+         0.3        0.5                0               1            1           3
+         0.4        0.5                0               1            1           3
+        0.05        0.5                0               1            2           4
+         0.1        0.5                0               1            2           4
+         0.2        0.8                0               0            7           7  <- starting values
+Chosen: clear at noul <= 0.2, flag at noul >= 0.5, a person in between.
+Held-out check (18 records): 0 cleared but yes, 0 flagged but no, 1 to a person; cost 1 (starting values 0.2 / 0.8: 2).
+Only 24 real yes cases in the tuning part: the low cut-off rests on very few of them. Label more.
+```
+
+How to read it: a false flag is cheap, so the flag side drops to 0.5 and the safety team sees a
+few harmless messages ("The watch strap broke", 0.70). Clearing is the costly side. The tuning part
+has nothing between 0.2 and 0.4 to tell those cut-offs apart, so the lower one is kept; on the
+held-out part that is what sends "The trampoline net has a tear near the zip" (0.28, a real safety
+issue) to a person instead of clearing it. With 24 real yes cases, the miss rate on the clear side
+could still be up to about 12%: label more real safety reports before trusting it.
+
 ## In code
 
 Keep the threshold as a named setting, not a literal. Log every answer with its confidence, so the

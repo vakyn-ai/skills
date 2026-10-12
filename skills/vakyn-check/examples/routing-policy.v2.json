@@ -1,0 +1,6 @@
+{
+  "version": "routing-v2",
+  "team_min_confidence": 0.7,
+  "refund_yes_at": 0.8,
+  "refund_from": "any_team"
+}

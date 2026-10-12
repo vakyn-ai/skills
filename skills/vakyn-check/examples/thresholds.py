@@ -2,6 +2,8 @@
 
 Usage:
     python3 thresholds.py labeled.jsonl [--target 0.02] [--holdout 0.3] [--seed 7]
+    noul, when one kind of mistake costs more:
+    python3 thresholds.py labeled.jsonl --cost-missed 25 --cost-false-flag 1 --cost-review 0.5
 
 Each line of labeled.jsonl is one record VAKYN answered and a person labeled:
     choice / score: {"id": "t001", "vakyn_pick": "billing", "vakyn_confidence": 0.97, "label": "billing"}
@@ -114,6 +116,40 @@ def noul_sides(rows, target):
             print(f"  {side}: no cut-off meets the target; send every {side} to review")
 
 
+def cost_cutoffs(tune, check, a):
+    """Separate cut-offs chosen by cost: flag (act on yes) at noul >= hi, clear (act on no) at noul <= lo,
+    a person in between. Costs per case come from the person: clearing a real yes, flagging a no, a review."""
+    def cost(rows, lo, hi):
+        missed = sum(r["label"] for r in rows if r["noul"] <= lo)
+        false_flag = sum(not r["label"] for r in rows if r["noul"] >= hi)
+        review = sum(lo < r["noul"] < hi for r in rows)
+        total = missed * a.cost_missed + false_flag * a.cost_false_flag + review * a.cost_review
+        return total, missed, false_flag, review
+
+    los = [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
+    his = [0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.97, 0.99, 1.0]
+    grid = sorted(((cost(tune, lo, hi), lo, hi) for lo in los for hi in his if lo < hi),
+                  key=lambda x: (x[0][0], x[0][3], x[1]))  # ties: fewer reviews, then the safer (lower) clear cut-off
+    print(f"\nnoul, cut-offs by cost (clearing a real yes {a.cost_missed:g}, a false flag {a.cost_false_flag:g}, "
+          f"a review {a.cost_review:g}); tuning part, {len(tune)} records")
+    print("  clear at <=  flag at >=  cleared but yes  flagged but no  to a person  total cost")
+    shown = [g for g in grid[:5]]
+    same = [g for g in grid if (g[1], g[2]) == (0.2, 0.8)]
+    for (total, missed, ff, review), lo, hi in shown + [s for s in same if s not in shown]:
+        mark = "  <- starting values" if (lo, hi) == (0.2, 0.8) else ""
+        print(f"  {lo:>10}  {hi:>9}  {missed:>15}  {ff:>14}  {review:>11}  {total:>10g}{mark}")
+    (_, _, _, _), lo, hi = grid[0]
+    print(f"Chosen: clear at noul <= {lo}, flag at noul >= {hi}, a person in between.")
+    if check:
+        total, missed, ff, review = cost(check, lo, hi)
+        base = cost(check, 0.2, 0.8)[0]
+        print(f"Held-out check ({len(check)} records): {missed} cleared but yes, {ff} flagged but no, {review} to a person; "
+              f"cost {total:g} (starting values 0.2 / 0.8: {base:g}).")
+    yes = sum(r["label"] for r in tune)
+    if yes < 30:
+        print(f"Only {yes} real yes cases in the tuning part: the low cut-off rests on very few of them. Label more.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("file")
@@ -121,6 +157,9 @@ def main():
     ap.add_argument("--holdout", type=float, default=0.3, help="share of labels kept back to check the pick")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--question", help="only this question, when the lines have a \"question\" field")
+    ap.add_argument("--cost-missed", type=float, help="noul: cost of clearing a case that was really yes")
+    ap.add_argument("--cost-false-flag", type=float, default=1.0, help="noul: cost of flagging a case that was no")
+    ap.add_argument("--cost-review", type=float, default=0.5, help="noul: cost of a person looking at one case")
     a = ap.parse_args()
 
     rows = load(a.file)
@@ -166,6 +205,8 @@ def report(rows, a):
             print(f"  {r['id']}: VAKYN {r['pick']} ({r['conf']:.2f}), person {r['label']}  {r.get('text', '')[:60]}")
     if rows and "noul" in rows[0]:
         noul_sides(rows, a.target)
+        if a.cost_missed is not None:
+            cost_cutoffs(tune, check, a)
 
 
 if __name__ == "__main__":

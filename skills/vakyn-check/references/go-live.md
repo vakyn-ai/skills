@@ -43,9 +43,10 @@ missing and the fix (with the code change). Limits and errors:
 
 ## Logging and monitoring
 
-12. **Log every decision**: request id (`x-typesafe-request-id`), question name, pick, confidence
-    (and probabilities when cheap), model name from the response, timestamp. Not the raw personal
-    data, unless their policy allows it.
+12. **Keep an audit record of every decision** ([format below](#audit-record)): request id
+    (`x-typesafe-request-id`), model name from the response, the input or its hash, question
+    hashes, every answer with its probabilities, the policy version, the outcome. Not the raw
+    personal data, unless their policy allows it.
 13. **Watch the unsure rate**: the share below the threshold per day. A rise means the inputs
     changed (drift), a question broke, or the model changed.
 14. **Watch the pick mix**: the share of each option over time. A sudden shift is drift or a bug.
@@ -59,8 +60,45 @@ missing and the fix (with the code change). Limits and errors:
     [threshold check](thresholds.md) again, before the change goes live; a CI job can run the drift
     check on every pull request that touches the questions.
 17. **The model name is pinned or logged**, so answers can be tied to the model that gave them.
+18. **Thresholds and rules are versioned like code**: a policy file in git (or a config with a
+    version), read by the decision code, never literals scattered through it. Each audit record
+    names the version and a hash of the file. A change goes through review, a [replay](replay.md)
+    and the [promotion rule](tuning.md#the-promotion-rule).
+19. **Questions are versioned too**: a hash of each question as sent, in every record, so a
+    reworded question shows up as a new version.
 
 ## Output
 
 A table: item, status (ok / fix / not applicable), what to change. Then the code changes for each
 "fix", smallest first. Start with anything that leaks a key or can stop the app.
+
+## Audit record
+
+One JSON line per decision, written when the decision is made. It answers "which model, which
+inputs, which policy version decided this case? Show me", and the same lines drive
+[replay](replay.md) and [tuning](tuning.md).
+
+| Field | What it holds |
+|---|---|
+| `case_id` | the person's id for the case (ticket, claim, alert) |
+| `step` | which step of the workflow decided (`route_ticket`); one record per step when there are several |
+| `ts` | UTC time |
+| `request_id` | `x-typesafe-request-id` of the VAKYN request |
+| `model` | model name from the response; add the model file as `/v1/models` describes it when it matters |
+| `input` or `input_hash` + `input_ref` | the state as sent, or, where policy forbids keeping it, its hash and where the input is stored |
+| `questions` | per question name, a hash of the question as sent |
+| `answers` | per question: the pick and `confidence` with all `probabilities`, the `noul`, or the `score` with its probabilities |
+| `policy_version`, `policy_hash` | the thresholds and rules file that decided, by name and content hash |
+| `outcome`, `reason` | what the code decided, and the rule and numbers that made it ("wants_refund 1.00 >= 0.8") |
+
+Example line: [answers.sample.jsonl](../examples/answers.sample.jsonl); template that writes it:
+[replay.py](../examples/replay.py) `record`.
+
+To answer "show me" for one case: find its line by `case_id`, then show the model, the input (or
+fetch it by `input_ref` and check its hash), the question versions (find the question text by
+hash in git), every answer with its probabilities, the policy file at that version, and the
+reason. Re-running `decide()` on the stored answers with that policy file must give the stored
+outcome; that proves the record is complete.
+
+Keep the records as long as the person's retention rules say, write them append-only, and keep the
+policy files and question texts they point to in git for as long.

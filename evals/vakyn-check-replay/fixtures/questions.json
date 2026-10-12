@@ -1,0 +1,10 @@
+{
+  "defect_type": {"version_hash": "b41c9e07a2d3", "type": "choice",
+    "instructions": "What caused the damage in the customer's warranty claim?",
+    "criteria": {"manufacturing": "A fault in how the product was made or a part failed in normal use",
+                 "wear": "Normal wear from use over time",
+                 "accident": "Dropped, hit, spilled on or misused",
+                 "unclear": "The claim and photo do not show the cause"}},
+  "photo_shows_damage": {"version_hash": "5f0e88c1d7aa", "type": "noul",
+    "instructions": "Does the photo description in the claim show the damage the customer describes?"}
+}

@@ -1,6 +1,6 @@
 ---
 name: vakyn-check
-description: "Prove a VAKYN setup on the person's own data and keep it right. Use to test VAKYN against their chat model on a sample (\"smoke test\", \"does it agree with GPT?\"); summarize a side-by-side log; pick thresholds from labels (\"what threshold for 2% errors?\"); check calibration or reliability (\"is 0.9 really 90%?\"); run a drift or regression check after a model upgrade or prompt change, or a CI check for question changes; or review VAKYN code before go-live (limits, 429, timeouts, keys, logging, fallback). Wording fixes: vakyn-questions."
+description: "Prove a VAKYN setup on the person's own data and keep it right. Use to test VAKYN against their chat model on a sample (\"smoke test\"); summarize a side-by-side log; pick thresholds from labels, with separate cut-offs when one mistake costs more; check calibration; run a drift check after a model or question change; replay stored answers through changed rules or thresholds; decide on promotion of a new version (dev and reserved sets); keep an audit record for governance or model risk; review code before go-live. Wording: vakyn-questions."
 ---
 
 # VAKYN check: test on your data, then go live
@@ -22,11 +22,15 @@ the official SDK; see the [SDK guide](../vakyn/references/sdk.md)). The files in
 | Has labeled records and asks where to set the threshold | [Thresholds](references/thresholds.md) |
 | Asks whether confidence means what it says ("is 0.9 really 90%?") | [Calibration](references/calibration.md) |
 | Changed the model file, server, questions or state builder; wants a CI check | [Drift check](references/drift.md) |
+| Changed a rule, a threshold or the decision code; asks which past cases change | [Replay](references/replay.md) |
+| Has a new version and asks whether to switch to it | [Tuning and promotion](references/tuning.md) |
+| Needs to show which model, inputs and policy version decided a case | [Audit record](references/go-live.md#audit-record) |
 | Is about to go live, or shows VAKYN code for review | [Go-live review](references/go-live.md) |
 | Gets odd answers on many records | Fix the question first: `vakyn-questions` skill |
 
 Usual order: smoke test → side by side in the app (`vakyn-convert`) → log summary → label the
-disagreements → thresholds and calibration → go-live review → drift check after every change.
+disagreements → thresholds and calibration → go-live review → drift check after every model or
+question change, replay and promotion after every rule or threshold change.
 
 ## Smoke test (about 30 records)
 
@@ -66,7 +70,9 @@ From person-labeled records ([how many](references/thresholds.md#starting-values
 and the person's target error
 rate: hold out about 30%, tabulate coverage and error rate per candidate threshold on the rest,
 pick the lowest threshold that meets the target, check it on the held-out part, and say how far
-the sample can prove it. Starting values, until labels exist, are on the same page. `noul` uses distance from 0.5 or separate yes / no cut-offs; `choice` and
+the sample can prove it. Starting values, until labels exist, are on the same page. When one
+mistake costs far more (clearing a real risk vs a false flag), choose each side's cut-off from the
+labels and the costs the person states ([cost-based cut-offs](references/thresholds.md#when-one-kind-of-mistake-costs-more)). `noul` uses distance from 0.5 or separate yes / no cut-offs; `choice` and
 `score` use `confidence`. Template: [thresholds.py](examples/thresholds.py) on
 [labeled.sample.jsonl](examples/labeled.sample.jsonl).
 
@@ -97,11 +103,25 @@ A plan or report for a drift check always says, in plain words:
 Details: [drift check](references/drift.md). Template: [drift.py](examples/drift.py),
 [drift-ci.yml](examples/drift-ci.yml).
 
+## Replay and promotion
+
+Store an [audit record](references/go-live.md#audit-record) per decision: answers with their
+probabilities, question hashes, model name, policy version. When a rule, threshold or the decision
+code changes, re-run the stored answers through the new code with no model calls, and report the
+cases whose outcome changed, old reason next to new ([replay](references/replay.md)). A changed
+question needs a drift check instead. Then promote the new version only if it beats the current
+one on a dev set and is not worse on a reserved set the author never reads case by case; the
+question with the lowest confidence on the wrongly decided cases is the one to rewrite; each
+judging step's real request must carry the whole rubric it needs ([tuning](references/tuning.md)).
+Templates: [replay.py](examples/replay.py), [promote.py](examples/promote.py) on
+[answers.sample.jsonl](examples/answers.sample.jsonl).
+
 ## Go-live review
 
 Walk the [checklist](references/go-live.md): batching, size limits, concurrency vs `--max-queue`
 and 429 `retry-after`, timeouts, key handling and rotation, logging request ids and model name,
-unsure rate and drift, fallback when the server is down, re-check after changes. Give a table of
+unsure rate and drift, fallback when the server is down, the audit record, versioned thresholds
+and rules, re-check after changes. Give a table of
 item, status and fix, then the code changes.
 
 ## Rules

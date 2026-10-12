@@ -1,0 +1,119 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "supplier": "Harlow Precision Castings Ltd, company number 08814522, Brightside Lane, Sheffield, UK. Aluminium die-casting. Directors: Meera Okafor, Tom Lindqvist. Founded 2013.",
+    "blockers": "Sanctions; fraud or bribery; insolvency or winding-up proceedings; a safety or environmental conviction or fine",
+    "hits": {
+      "h01": "2024-05-14: Harlow Castings Inc. of Ohio fined $2.1M for falsifying safety test records.",
+      "h02": "2022-11-03: Harlow Precision Castings wins the Sheffield Chamber of Commerce export award.",
+      "h03": "2026-03-09: High Court list: winding-up petition presented against Harlow Precision Castings Ltd.",
+      "h04": "2026-08-21: Harlow Precision Castings is hiring CNC operators at its Sheffield site.",
+      "h05": "2025-06-30: Harlow Precision Cycles recalls 4,000 brake levers after a supplier defect.",
+      "h06": "2025-09-12: Director Tom Lindqvist speaks at the UK casting industry conference.",
+      "h07": "2023-02-01: Companies House notice: Harlow Precision Castings Ltd filed its annual accounts late.",
+      "h08": "2026-01-17: Sanctions list update: Harlow Trading LLC (Dubai) added for export-control breaches.",
+      "h09": "2024-04-02: Blog: ten die-casting suppliers in the UK worth a call, including Harlow Precision Castings.",
+      "h10": "2025-12-05: Small fire at an industrial unit on Brightside Lane, Sheffield. No one was hurt.",
+      "h11": "2026-07-11: Meera Okafor appointed director at Okafor Logistics.",
+      "h12": "2021-10-20: Environment Agency fines Harlow Precision Castings Ltd £8,000 for a wastewater discharge breach."
+    }
+  },
+  "questions": {
+    "could_stop_h01": {
+      "type": "noul",
+      "instructions": "Suppose search hit h01 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h02": {
+      "type": "noul",
+      "instructions": "Suppose search hit h02 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h03": {
+      "type": "noul",
+      "instructions": "Suppose search hit h03 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h04": {
+      "type": "noul",
+      "instructions": "Suppose search hit h04 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h05": {
+      "type": "noul",
+      "instructions": "Suppose search hit h05 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h06": {
+      "type": "noul",
+      "instructions": "Suppose search hit h06 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h07": {
+      "type": "noul",
+      "instructions": "Suppose search hit h07 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h08": {
+      "type": "noul",
+      "instructions": "Suppose search hit h08 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h09": {
+      "type": "noul",
+      "instructions": "Suppose search hit h09 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h10": {
+      "type": "noul",
+      "instructions": "Suppose search hit h10 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h11": {
+      "type": "noul",
+      "instructions": "Suppose search hit h11 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    },
+    "could_stop_h12": {
+      "type": "noul",
+      "instructions": "Suppose search hit h12 in state.hits is about the supplier in state.supplier, even if the name, place or company type differs. Does the hit report one of the blockers in state.blockers?",
+      "criteria": {
+        "true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+        "false": "The hit reports nothing on that list (awards, hiring, people, ordinary filings, events with no wrongdoing)"
+      }
+    }
+  }
+}

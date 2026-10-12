@@ -1,6 +1,6 @@
 ---
 name: vakyn-workflow
-description: "Design a new VAKYN decision workflow from a plain-language task: the questions, state builder, Python or TypeScript code, batching and unsure path. Use for routing, triage, intent detection, moderation, guardrail, next-tool pick, claim check (hallucination, grounding), LLM-as-judge or rubric grading, rerank or best match, risk flags, form steps, all branch questions in one request (fan-out), extracting a value, date or span by picking instead of generating, rebuilding headings and lists in pasted text, or scoring items once to rank and filter many ways."
+description: "Design a new VAKYN decision workflow from a plain-language task: questions, state builder, Python or TypeScript code, batching, unsure path. Use for routing, triage, intent, moderation, guardrails, next-tool pick, claim check (hallucination, grounding), LLM-as-judge or rubric grading, rerank or best match, risk flags, form steps, fan-out, extracting a value or date by picking instead of generating, rebuilding headings and lists, scoring once to rank many ways, triage-first investigation that stops early, or checking each field of an agent's structured output against its cited evidence."
 ---
 
 # VAKYN workflow: design something new
@@ -8,7 +8,7 @@ description: "Design a new VAKYN decision workflow from a plain-language task: t
 The person describes a task in plain words ("someone reads every returns email and decides what
 happens to it"). You turn it into a working decision workflow: the questions, a state builder
 (what evidence, from where), the code, and what happens when VAKYN is unsure. Start from the
-closest of eleven patterns; each has a request and code that were run against a VAKYN 4B.
+closest of thirteen patterns; each has a request and code that were run against a VAKYN 4B.
 
 Shared material: [fit check](../vakyn/references/fit-check.md),
 [API reference](../vakyn/references/api.md), [SDK guide](../vakyn/references/sdk.md),
@@ -30,6 +30,8 @@ writing each question.
 | Ask every branch's follow-up at once, read only the branch taken | [fan out](references/patterns/fan-out.md) | `choice` + branch questions with stated premises |
 | Get a value, date or sentence out of text, or rebuild headings and lists | [pick instead of generate](references/patterns/pick-value.md) | `choice` over candidates code found + `none_of_these` |
 | Rank or filter items many ways without asking again | [judgments as data](references/patterns/reusable-judgments.md) | one `score` or `noul` per dimension, stored |
+| Investigate a list of items (search hits, alerts) and open only what could change the outcome | [triage first, stop early](references/patterns/triage-first.md) | one `noul` per item in one request, then code |
+| Check a structured output field by field against the evidence it cites | [check each field](references/patterns/check-fields.md) | one `choice` per field: supported / contradicted / not in evidence |
 | Several of these in a row | [compose patterns](references/compose.md) | |
 
 Writing replies, summaries or tool arguments is not a decision: that stays with a chat model or a
@@ -91,6 +93,8 @@ existing prompt or tool-calling app is the `vakyn-convert` skill.
 | fan out | [fan-out.request.json](examples/fan-out.request.json) | [fan_out.py](examples/fan_out.py) |
 | pick instead of generate | [pick-value.request.json](examples/pick-value.request.json), [line-roles.request.json](examples/line-roles.request.json) | [pick_value.py](examples/pick_value.py) |
 | judgments as data | [judgments.request.json](examples/judgments.request.json) | [judgments.py](examples/judgments.py) |
+| triage first | [triage-first.request.json](examples/triage-first.request.json) | [triage_first.py](examples/triage_first.py) |
+| check each field | [check-fields.request.json](examples/check-fields.request.json) | [check_fields.py](examples/check_fields.py) |
 
 ## Rules
 

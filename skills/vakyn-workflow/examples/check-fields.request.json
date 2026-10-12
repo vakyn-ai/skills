@@ -1,0 +1,107 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "fields": {
+      "tenant": {
+        "meaning": "the person who rents the flat",
+        "value": "Priya Raman",
+        "evidence": "Tenant: Priya Raman."
+      },
+      "monthly_rent": {
+        "meaning": "the rent per month in dollars",
+        "value": "1850",
+        "evidence": "Rent: $1,850 per month, due on the 1st."
+      },
+      "deposit": {
+        "meaning": "the security deposit in dollars",
+        "value": "3700",
+        "evidence": "Security deposit: $3,700 (two months' rent)."
+      },
+      "pets_allowed": {
+        "meaning": "which pets the tenant may keep",
+        "value": "cats and dogs",
+        "evidence": "Pets: one cat allowed with written consent; no dogs."
+      },
+      "break_notice_days": {
+        "meaning": "days of written notice needed to end the lease early",
+        "value": "30",
+        "evidence": "Either party may end the lease after 6 months with 60 days' written notice."
+      },
+      "water_paid_by": {
+        "meaning": "who pays for water: tenant or landlord",
+        "value": "tenant",
+        "evidence": "Utilities: tenant pays electricity and internet"
+      },
+      "parking": {
+        "meaning": "parking that comes with the flat",
+        "value": "one space included",
+        "evidence": "Premises: Flat 4B, 22 Cedar Row."
+      }
+    }
+  },
+  "questions": {
+    "check_tenant": {
+      "type": "choice",
+      "instructions": "Does the quoted evidence in state.fields.tenant.evidence support that the lease's tenant (the person who rents the flat) is state.fields.tenant.value?",
+      "criteria": {
+        "supported": "The quoted evidence states this value for the field",
+        "contradicted": "The quoted evidence states a different value for the field",
+        "not_in_evidence": "The quoted evidence does not say what this field's value is"
+      }
+    },
+    "check_monthly_rent": {
+      "type": "choice",
+      "instructions": "Does the quoted evidence in state.fields.monthly_rent.evidence support that the lease's monthly_rent (the rent per month in dollars) is state.fields.monthly_rent.value?",
+      "criteria": {
+        "supported": "The quoted evidence states this value for the field",
+        "contradicted": "The quoted evidence states a different value for the field",
+        "not_in_evidence": "The quoted evidence does not say what this field's value is"
+      }
+    },
+    "check_deposit": {
+      "type": "choice",
+      "instructions": "Does the quoted evidence in state.fields.deposit.evidence support that the lease's deposit (the security deposit in dollars) is state.fields.deposit.value?",
+      "criteria": {
+        "supported": "The quoted evidence states this value for the field",
+        "contradicted": "The quoted evidence states a different value for the field",
+        "not_in_evidence": "The quoted evidence does not say what this field's value is"
+      }
+    },
+    "check_pets_allowed": {
+      "type": "choice",
+      "instructions": "Does the quoted evidence in state.fields.pets_allowed.evidence support that the lease's pets_allowed (which pets the tenant may keep) is state.fields.pets_allowed.value?",
+      "criteria": {
+        "supported": "The quoted evidence states this value for the field",
+        "contradicted": "The quoted evidence states a different value for the field",
+        "not_in_evidence": "The quoted evidence does not say what this field's value is"
+      }
+    },
+    "check_break_notice_days": {
+      "type": "choice",
+      "instructions": "Does the quoted evidence in state.fields.break_notice_days.evidence support that the lease's break_notice_days (days of written notice needed to end the lease early) is state.fields.break_notice_days.value?",
+      "criteria": {
+        "supported": "The quoted evidence states this value for the field",
+        "contradicted": "The quoted evidence states a different value for the field",
+        "not_in_evidence": "The quoted evidence does not say what this field's value is"
+      }
+    },
+    "check_water_paid_by": {
+      "type": "choice",
+      "instructions": "Does the quoted evidence in state.fields.water_paid_by.evidence support that the lease's water_paid_by (who pays for water: tenant or landlord) is state.fields.water_paid_by.value?",
+      "criteria": {
+        "supported": "The quoted evidence states this value for the field",
+        "contradicted": "The quoted evidence states a different value for the field",
+        "not_in_evidence": "The quoted evidence does not say what this field's value is"
+      }
+    },
+    "check_parking": {
+      "type": "choice",
+      "instructions": "Does the quoted evidence in state.fields.parking.evidence support that the lease's parking (parking that comes with the flat) is state.fields.parking.value?",
+      "criteria": {
+        "supported": "The quoted evidence states this value for the field",
+        "contradicted": "The quoted evidence states a different value for the field",
+        "not_in_evidence": "The quoted evidence does not say what this field's value is"
+      }
+    }
+  }
+}
