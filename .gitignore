@@ -2,3 +2,5 @@ evals/results/
 __pycache__/
 *.pyc
 evals/last*.json
+spec/
+tests/banned-terms.local.txt

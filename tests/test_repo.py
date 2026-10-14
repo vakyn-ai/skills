@@ -34,11 +34,18 @@ BANNED = [
     (r"(?i)\bcoming soon\b|\bin development\b", "no planning words"),
     (r"(?i)\bGGUF\b", "the release format is UQFF"),
     (r"(?i)\bfine-?tun", "no base model or fine-tune in public text"),
-    
     (r"(?i)\bbeats GPT\b|\bbetter than GPT\b", "no vendor comparisons"),
-    
     (r"/code/|/home/", "no local paths"),
 ]
+
+# Internal names that must never appear in public text are kept out of the repo, in a
+# git-ignored file (one "regex<TAB>reason" per line). Checked when the file is present.
+LOCAL_BANNED = ROOT / "tests" / "banned-terms.local.txt"
+if LOCAL_BANNED.exists():
+    for line in LOCAL_BANNED.read_text().splitlines():
+        if line.strip() and not line.startswith("#"):
+            pattern, _, why = line.partition("\t")
+            BANNED.append((pattern, why or "internal term"))
 
 LINK_RE = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
 

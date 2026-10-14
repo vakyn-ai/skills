@@ -168,8 +168,7 @@ VAKYN_API_KEY=... make eval TAG=start     # headless Claude Code runs per skill,
 make release VERSION=x.y.z                # validate, bump, tag, push
 ```
 
-`make eval` uses your Claude account (about $0.15–0.40 per case). The design is in
-[spec/spec-skills-v1.md](spec/spec-skills-v1.md).
+`make eval` uses your Claude account (about $0.15–0.40 per case).
 
 </details>
 
