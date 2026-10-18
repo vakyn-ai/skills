@@ -164,7 +164,7 @@ API details: [vakyn.com/docs/api](https://vakyn.com/docs/api).
 
 - Claude Code, Codex, Cursor or OpenCode.
 - A VAKYN Cloud API key ([get one](#get-a-key)). Or your own
-  [open-server](https://github.com/vakyn-ai/open-server) with a model file and a key; the `start`
+  open-server ([self-hosting docs](https://vakyn.com/docs/self-hosting)) with a model file and a key; the `start`
   skill sets it up.
 
 <details>
