@@ -67,7 +67,7 @@ skill walks you through it. More in the [quickstart](https://vakyn.com/docs/quic
 ## Run it on your own servers
 
 When your data can't leave your network, run the open models with the free
-[open-server](https://github.com/vakyn-ai/open-server): your servers, your country, your rules.
+open-server: your servers, your country, your rules.
 It serves the same API, so switching is one line: the base URL and the key. Ask your agent
 `Set up VAKYN on our own server` (the `start` skill picks the model file for your hardware), or
 read [vakyn.com/docs/self-hosting](https://vakyn.com/docs/self-hosting).
