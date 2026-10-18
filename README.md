@@ -9,7 +9,7 @@ your own data before you switch.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 VAKYN is a decision model. You send it a document and typed questions. It answers each one with
-a probability, on your own hardware:
+a probability:
 
 ```
 ticket: "I was charged twice this month and need one refunded."
@@ -36,13 +36,36 @@ Codex, Cursor or OpenCode, from your project folder:
 npx skills add vakyn-ai/skills --skill '*' -a codex -a cursor -a opencode
 ```
 
-No VAKYN server yet? Ask your agent:
+## Get a key
 
-```
-Set up VAKYN on this machine.
+The skills call VAKYN Cloud, the hosted API at `https://api.vakyn.com`. There is nothing to
+install or run.
+
+1. Sign in at [vakyn.com/console](https://vakyn.com/console) with Google, GitHub or X.
+2. Add a balance under [Billing](https://vakyn.com/console/billing), or redeem a code. You pay per
+   input token; output is free and errors cost nothing. Prices: [vakyn.com/docs/models](https://vakyn.com/docs/models).
+3. Create a key under [API keys](https://vakyn.com/console/keys). It starts with `vk_` and is shown once.
+
+Put it in your environment, or in a git-ignored `.env` file:
+
+```bash
+export VAKYN_API_KEY=vk_...
+export VAKYN_BASE_URL=https://api.vakyn.com
+# the official TypeSafe SDKs, used in generated code, read their own names:
+export TYPESAFE_API_KEY=vk_...
+export TYPESAFE_BASE_URL=https://api.vakyn.com
 ```
 
-It picks the model file for your hardware and walks you through install, start and API key.
+Not sure where to start? Ask your agent `I want to try VAKYN, what do I do?` and the `start`
+skill walks you through it. More in the [quickstart](https://vakyn.com/docs/quickstart).
+
+## Run it on your own servers
+
+When your data can't leave your network, run the open models with the free
+[open-server](https://github.com/vakyn-ai/open-server): your servers, your country, your rules.
+It serves the same API, so switching is one line: the base URL and the key. Ask your agent
+`Set up VAKYN on our own server` (the `start` skill picks the model file for your hardware), or
+read [vakyn.com/docs/self-hosting](https://vakyn.com/docs/self-hosting).
 
 ## Try it
 
@@ -85,7 +108,7 @@ Next: run the convert skill on the routing spot, then test it with the check ski
 
 | | Skill | What it does |
 |---|---|---|
-| **Start** | `start` | Checks if VAKYN fits, picks a model file, sets up the server, makes a first call. |
+| **Start** | `start` | Checks if VAKYN fits, gets you a VAKYN Cloud key (or sets up your own server), makes a first call. |
 | **Find** | `research` | Finds the decisions in your app or process and ranks them in `vakyn-research.md`. Changes nothing. |
 | **Build** | `questions` | Picks `noul`, `choice` or `score`, writes options and levels, fixes a bad answer. |
 | | `convert` | Turns a prompt or a tool list (OpenAI, Anthropic, MCP) into VAKYN calls and Python or TypeScript code. |
@@ -94,7 +117,7 @@ Next: run the convert skill on the routing spot, then test it with the check ski
 | | `judge` | Grades chat-model or agent outputs against your rubric, aligns it with your experts, runs in CI. |
 | | `batch` | Runs a CSV, Parquet or SQL table through VAKYN: pilot, resume, progress, answer columns, a review file for unsure rows. |
 | | `distill` | Turns an agent that repeats a written procedure into a program of code, VAKYN questions and small agent steps, and moves traffic to it in stages. |
-| | `migrate` | Moves code from hosted decision APIs to your own server and points framework adapters at it. |
+| | `migrate` | Moves code from other decision APIs to VAKYN Cloud (or your own server) and points framework adapters at it. |
 | **Prove** | `check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
 
 A typical path:
@@ -112,28 +135,32 @@ A typical path:
 - **Give unsure answers a path:** a person, a chat model, or a review queue.
 - **Run side by side first.** A converted app keeps using your chat model and logs both answers
   until you switch.
-- **Never invent answers.** If your server is not reachable, the agent says so and still writes the
+- **Ask before spending.** Before a run of more than a handful of requests on VAKYN Cloud, the agent
+  estimates the cost from the live prices in `GET /v1/models` and waits for your yes.
+- **Never invent answers.** If VAKYN is not reachable, the agent says so and still writes the
   request and the code.
 - **Keep your key out of the chat.** It lives in `VAKYN_API_KEY` (or `TYPESAFE_API_KEY` for the
   official SDKs).
 
 Generated code uses the official TypeSafe SDKs (`typesafe-sdk`, `@typesafe-ai/sdk`). They work
-with VAKYN's Jev-compatible API once their base URL points at your server.
+with VAKYN's Jev-compatible API once their base URL points at VAKYN Cloud or your own server.
+API details: [vakyn.com/docs/api](https://vakyn.com/docs/api).
 
 ## How we test it
 
 - **Graded runs.** Each skill has cases that run Claude Code headless with the plugin on a real
   request, such as "convert this triage prompt" or "find the decisions in this app", and a grader
   scores the result. See [evals/](evals/README.md).
-- **A real server.** Every request the skills write during those runs, and every example request
+- **Real answers.** Every request the skills write during those runs, and every example request
   in this repo, passes the pre-send checklist and is sent to a running VAKYN server.
 - **Every push** runs offline checks on manifests, skills, links, wording and example requests.
 
 ## What you need
 
 - Claude Code, Codex, Cursor or OpenCode.
-- A running VAKYN server ([open-server](https://github.com/vakyn-ai/open-server)) with a model
-  file and an API key. The `start` skill sets this up for you.
+- A VAKYN Cloud API key ([get one](#get-a-key)). Or your own
+  [open-server](https://github.com/vakyn-ai/open-server) with a model file and a key; the `start`
+  skill sets it up.
 
 <details>
 <summary><strong>Update</strong></summary>
@@ -163,7 +190,7 @@ Want another agent? Open an issue and say which.
 ```bash
 claude --plugin-dir .                     # try the plugin from this folder
 make test                                 # offline: manifests, skills, links, voice, example requests
-VAKYN_API_KEY=... make test-live          # send every example request to VAKYN_BASE_URL
+VAKYN_API_KEY=... make test-live          # send every example request to VAKYN_BASE_URL (default: a local open-server)
 VAKYN_API_KEY=... make eval TAG=start     # headless Claude Code runs per skill, graded
 make release VERSION=x.y.z                # validate, bump, tag, push
 ```
