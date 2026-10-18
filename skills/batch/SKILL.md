@@ -31,33 +31,37 @@ starting values for `unsure`).
 ## Steps
 
 1. **Ask** ([plan](references/plan.md#1-ask-in-one-message)): the data and its row id, the
-   questions, the evidence columns, the server, where answers go.
+   questions, the evidence columns, where it runs (VAKYN Cloud or their own server), where
+   answers go.
 2. **Pick the columns.** Only evidence goes into the state. Call personal-data columns
    personal data, by name ("`guest_email` is personal data; not sent"), and leave them out unless
    a question needs them and the person agrees. Replace emails and phone
-   numbers in free text in code. Say what leaves the process: which columns, to which server.
+   numbers in free text in code. Say what leaves the process: which columns, to where.
 3. **Write one row's request**, run the [checklist](../start/references/checklist.md), save it as
    a `.json` file next to the script. Independent questions share one request per row.
 4. **Write the script** in the project's language from the template. It must have every part in
-   [script parts](references/script.md): bounded concurrency (8; never above `--max-queue`,
-   default 32), retries on 429 and 503 honoring `retry-after`, a timeout above the SDK's 10 s,
+   [script parts](references/script.md): bounded concurrency (8; on VAKYN Cloud under 60
+   requests per second per key, self-hosted never above `--max-queue`, default 32), retries on 429 and 503 honoring `retry-after`, a timeout above the SDK's 10 s,
    a checkpoint and resume, a progress line (done/total, %, rows/s, ETA, errors), answer
    columns, `unsure`, a review file, and a summary.
 5. **Send the plan message** ([plan](references/plan.md#3-the-plan-message)) and wait for a yes.
+   On VAKYN Cloud it includes the cost estimate: rows × input tokens per row × the price from
+   `GET /v1/models` ([cost](../start/references/cloud.md#cost)).
 6. **Pilot**: 30 rows spread over the data. Show every row's answers, the unsure ones, the time
    per row and the projected full-run time. Fix questions that misbehave and pilot again.
-7. **Stop and ask** before the full run.
+7. **Stop and ask** before the full run, with the cost from the pilot's measured
+   `usage.input_tokens` on VAKYN Cloud.
 8. **Full run**, then the summary: counts per answer, unsure share, errors, time, the files.
    Next: label some review rows and set real thresholds with `check`.
 
-No server reachable: write the script and the request, say how to run the pilot, and never invent
+VAKYN not reachable: write the script and the request, say how to run the pilot, and never invent
 answers or speeds.
 
 ## Output columns
 
 Per question: `team` + `team_confidence` (`choice`), `refund_p` + `refund` yes / no / unsure
 (`noul`), `urgency` + `urgency_score` + `urgency_confidence` (`score`). Then `unsure`,
-`unsure_why`, `request_id`, `error`. Unsure rows also go to `<name>.review.csv`.
+`unsure_why`, `request_id`, `input_tokens`, `error`. Unsure rows also go to `<name>.review.csv`.
 Details: [script parts](references/script.md#answer-columns).
 
 ## Examples
@@ -69,12 +73,14 @@ Details: [script parts](references/script.md#answer-columns).
 | [tickets.sample.csv](examples/tickets.sample.csv) | 120 synthetic support tickets with personal-data columns |
 | [ticket-row.request.json](examples/ticket-row.request.json) | One row's request: three questions |
 
-Measured on the sample (VAKYN-4B, one RTX 5090, 8 in flight, 3 questions per row): about 33 rows
-per second, pilot median 108 ms per row. Measure on the person's machine; never quote these as theirs.
+Measured on the sample on open-server (VAKYN-4B, one RTX 5090, 8 in flight, 3 questions per
+row): about 33 rows per second, pilot median 108 ms per row. Measure in the person's own pilot;
+never quote these as theirs, and never as VAKYN Cloud's.
 
 ## Rules
 
-- **Pilot before the full run, and ask before the full run.**
+- **Pilot before the full run, and ask before the full run.** On VAKYN Cloud the full run spends
+  the person's balance: show the estimate first.
 - **Never write over the source.** New file or new table; changing source rows or schema needs a
   yes, and then goes through a reviewed copy step.
 - **Keep every row.** Failed rows are saved with their error and retried on the next run; the

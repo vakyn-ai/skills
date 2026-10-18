@@ -18,9 +18,10 @@ as a `.json` file next to the script ([ticket-row.request.json](../examples/tick
 - A fixed number of requests in flight: a pool of workers taking rows from a queue (Python
   `asyncio` with `AsyncTypeSafeClient`; TypeScript: N workers over one list). Never one task per row
   for the whole file at once.
-- **Default 8.** Never above the server's `--max-queue` (default 32), summed over every process
-  using the server. The examples refuse a higher value.
-- More is not faster. Measured with [batch_csv.py](../examples/batch_csv.py), 400 short tickets,
+- **Default 8.** On VAKYN Cloud, stay under 60 requests per second per key; self-hosted, never
+  above the server's `--max-queue` (default 32). Both are summed over every process using the
+  key or the server. The examples refuse more than 32.
+- More is not faster. Measured on open-server with [batch_csv.py](../examples/batch_csv.py), 400 short tickets,
   3 questions per row, VAKYN-4B on one RTX 5090, server started with defaults and shared with
   other jobs: 1 in flight 21.5 rows/s, 4 → 31.9, 8 → 32.7 to 34.5 (several runs), 16 → 25.2, 32 → 22.5 with 2 rows
   still failing with `429` after every retry. Measure on the person's machine in the pilot.
@@ -72,7 +73,7 @@ Per question, named after the question:
 | `noul` | `refund_p` (probability of yes), `refund` = `yes` / `no` / `unsure` from the cut-offs |
 | `score` | `urgency` (top level's short name), `urgency_score` (weighted), `urgency_confidence` |
 
-Plus `unsure` (true or false), `unsure_why` (which questions), `request_id`, `error`. Keep the
+Plus `unsure` (true or false), `unsure_why` (which questions), `request_id`, `input_tokens` (from `usage`; the cost on VAKYN Cloud), `error`. Keep the
 full probabilities only when the person asks; they are large and easy to recompute.
 
 ## Unsure rows and the review file

@@ -30,10 +30,12 @@ One request per record, sent concurrently, with a fixed number in flight:
   ([check_claim.py](../examples/check_claim.py)).
 - TypeScript: a pool of 8 workers taking records from one list ([triage.ts](../examples/triage.ts)).
 
-Set the cap below the server's queue size (`--max-queue`). When the queue is full the server
-answers `429` with `retry-after`; the SDKs wait that long and retry (raise `max_retries` /
+Set the cap under the limit: 60 requests per second per key on VAKYN Cloud, the server's queue
+size (`--max-queue`, default 32) on open-server. Over it, VAKYN answers `429` with `retry-after`; the SDKs wait that long and retry (raise `max_retries` /
 `maxRetries` for big batches). A record that still fails with `429` is kept for a later pass, never
-dropped. Raise the client timeout (30 s in the examples) on CPU or with long states.
+dropped. Raise the client timeout (30 s in the examples) on CPU or with long states. On VAKYN
+Cloud a big batch spends the person's balance: estimate it first
+([cost](../../start/references/cloud.md#cost)) and ask, or hand it to the `batch` skill.
 
 ## Never
 

@@ -47,16 +47,19 @@ monitoring on every trace → re-run alignment when the rubric changes.
 5. **Verdict in code**: every must-pass criterion passes, then a weighted score over all of them.
    A must-pass criterion in the unsure band means "a person grades it", never a pass.
 6. **Run the [checklist](../start/references/checklist.md)** and write each request as a `.json`
-   file (the literal JSON, so the person can read it and send it with curl). Send it if a server is
+   file (the literal JSON, so the person can read it and send it with curl). Send it if VAKYN is
    reachable and show the real answers.
 7. **Align with the experts** before trusting the grades: agreement per criterion on held-out
    labels ([alignment](references/alignment.md)).
 8. **Wire it in**: pytest or promptfoo in CI, Langfuse scores on every trace
-   ([CI and monitoring](references/ci-and-monitoring.md)).
+   ([CI and monitoring](references/ci-and-monitoring.md)). On VAKYN Cloud every graded output
+   spends balance: before grading a set, a CI suite or every trace, estimate it (outputs × input
+   tokens per request × the price from `GET /v1/models`, [cost](../start/references/cloud.md#cost))
+   and ask. Keep under 60 requests per second per key.
 
 ## Examples
 
-All answered by a running VAKYN 4B; numbers in the reference pages.
+All answered by VAKYN-4B on open-server; numbers in the reference pages.
 
 | File | What |
 |---|---|
@@ -81,5 +84,6 @@ All answered by a running VAKYN 4B; numbers in the reference pages.
 - **Never tune on the items you report.** Rewrite criteria from the tune part; report the held-out part.
 - **Rewrite the criterion text before moving a threshold.** Most disagreements are wording.
 - **Re-run alignment when the rubric, the state or the model file changes.**
-- **Never invent grades.** No server, no numbers: write the requests and code; say how to send them.
+- **Never invent grades.** VAKYN not reachable, no numbers: write the requests and code; say how to
+  send them.
 - **Keys stay out of the chat and out of files**: `TYPESAFE_API_KEY` in the environment.

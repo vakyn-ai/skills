@@ -6,7 +6,8 @@ Usage:
     python3 batch_sql.py tickets.db --full           # every row without an answer yet
     python3 batch_sql.py tickets.db --full --limit 50
 
-Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL and TYPESAFE_API_KEY in the environment.
+Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server) and
+TYPESAFE_API_KEY in the environment. On VAKYN Cloud every answered row spends balance.
 The questions, state builder and unsure rules are imported from batch_csv.py (keep them in one
 module so the file run and the table run ask the same thing).
 
@@ -123,7 +124,7 @@ def main():
     ap.add_argument("--create-from", help="demo only: load this CSV into the source table first")
     args = ap.parse_args()
     if args.concurrency > MAX_CONCURRENCY:
-        sys.exit("concurrency above the server's default queue (32); lower it or raise --max-queue")
+        sys.exit("concurrency above 32 (open-server's default --max-queue); lower it, or raise --max-queue on your own server")
 
     db = sqlite3.connect(args.db)
     db.row_factory = sqlite3.Row

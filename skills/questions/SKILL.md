@@ -68,7 +68,7 @@ The person shows a request and the response, or says "it picked X but should be 
 3. Rewrite the request. Change only what the cause needs, so the person sees what fixed it. Fix
    every cause you found, even when it renames a question; then show the code change it needs.
 4. Explain in two or three plain lines: what was wrong, what changed, what to expect now.
-5. If a server is reachable, send both and show both answers. If not, say so; never predict
+5. If VAKYN is reachable, send both and show both answers. If not, say so; never predict
    numbers.
 
 ## Examples (before and after)
@@ -95,4 +95,4 @@ Start a new request from the closest `*.request.json`.
   thresholds and rules, and checks the pick is one of the offered options.
 - **Read answers by name.** Question names and option names are what code reads; never rely on the
   position of an option.
-- **Never invent answers.** No server, no numbers. Write the request and say how to send it.
+- **Never invent answers.** VAKYN not reachable, no numbers. Write the request and say how to send it.

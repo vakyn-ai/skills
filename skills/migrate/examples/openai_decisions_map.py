@@ -81,7 +81,7 @@ def to_openai_answers(resp, meta):
 
 
 def send(body):
-    base = os.environ.get("VAKYN_BASE_URL", "http://127.0.0.1:8080").rstrip("/")
+    base = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com").rstrip("/")
     req = urllib.request.Request(f"{base}/v1/systemone", data=json.dumps(body).encode(), headers={
         "content-type": "application/json", "authorization": f"Bearer {os.environ['VAKYN_API_KEY']}"})
     with urllib.request.urlopen(req, timeout=60) as r:

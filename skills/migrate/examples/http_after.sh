@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
-# AFTER: the same call to the person's own open-server. Base URL, key and model come from the
-# environment, so switching back is a config change:
-#   VAKYN_BASE_URL=http://127.0.0.1:8080  (server root, no /v1)
-#   VAKYN_API_KEY=vk_...                  (from `vakyn keys create`; never in the script)
-#   VAKYN_MODEL=jev-latest                (or the name from GET /v1/models)
+# AFTER: the same call to VAKYN Cloud. Base URL, key and model come from the environment, so
+# switching back (or to your own open-server) is a config change:
+#   VAKYN_BASE_URL=https://api.vakyn.com  (root, no /v1; or your own server's URL)
+#   VAKYN_API_KEY=vk_...                  (from vakyn.com/console/keys; never in the script)
+#   VAKYN_MODEL=jev-latest                (works on both; on VAKYN Cloud also vakyn-fast)
 # Usage: sh http_after.sh [request.json]   (default: bike-desk.request.json next to this script)
 set -eu
-BASE="${VAKYN_BASE_URL:-http://127.0.0.1:8080}"
+BASE="${VAKYN_BASE_URL:-https://api.vakyn.com}"
 MODEL="${VAKYN_MODEL:-jev-latest}"
 BODY="${1:-$(dirname "$0")/bike-desk.request.json}"
 : "${VAKYN_API_KEY:?set VAKYN_API_KEY}"

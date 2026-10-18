@@ -1,7 +1,7 @@
 # Plan the run: before anything is sent
 
-A batch run sends every row of the person's data to a VAKYN server. Agree the setup first, then
-pilot, then the full run. Nothing is sent before the person said yes to the plan.
+A batch run sends every row of the person's data to VAKYN: VAKYN Cloud, or their own server.
+Agree the setup first, then pilot, then the full run. Nothing is sent before the person said yes to the plan.
 
 ## 1. Ask, in one message
 
@@ -12,8 +12,9 @@ pilot, then the full run. Nothing is sent before the person said yes to the plan
    `workflow` or `questions` skill first. Batching runs questions; it does not design them.
 3. **Which columns are evidence?** Only those go into the state. Everything else stays in the
    person's process.
-4. **Which server?** `TYPESAFE_BASE_URL`, and the key in `TYPESAFE_API_KEY` in the environment
-   (never in the chat or in a file). Started with defaults, or with a larger `--max-queue`?
+4. **Where does it run?** VAKYN Cloud (`TYPESAFE_BASE_URL=https://api.vakyn.com`, the default)
+   or their own server (its URL, and whether it runs with the default `--max-queue` of 32). The
+   key goes in `TYPESAFE_API_KEY` in the environment (never in the chat or in a file).
 5. **Where do answers go?** A new file next to the input, or a new table. Never over the source.
 
 ## 2. Pick the columns
@@ -31,8 +32,10 @@ Go through every column and put it in one of three groups:
 - **Free text can hold personal data too.** Replace emails and phone numbers in the sent text in
   code (the examples do), and say so. Other kinds (names inside the text, account numbers) need
   their own rule; ask how strict the person needs to be.
-- **Say what leaves the process.** The server is the person's own, but the rows still travel to
-  it, and its logs may keep request ids and sizes. Name the server address and the columns sent.
+- **Say what leaves the process.** On VAKYN Cloud the rows travel to `api.vakyn.com`; on their
+  own server they stay on their network but still travel to it, and its logs may keep request ids
+  and sizes. Name the address and the columns sent. Data that must not leave their network:
+  their own server ([self-hosting](../../start/references/self-hosting.md)).
 - Code that decides from a column exactly (plan tier, a date, an amount) keeps it in code, not in
   the state. See the `questions` rules.
 
@@ -41,8 +44,8 @@ Go through every column and put it in one of three groups:
 Send this before the pilot, in plain words and in this order:
 
 1. **Data**: file or table, rows, id column.
-2. **Sent per row**: the columns (and their state keys), what is replaced in free text, the server
-   address. **Not sent**: every other column, by name. **Personal data**: say which columns are
+2. **Sent per row**: the columns (and their state keys), what is replaced in free text, the
+   address (VAKYN Cloud or their server). **Not sent**: every other column, by name. **Personal data**: say which columns are
    personal data, in those words, and that they stay out unless the person says otherwise.
 3. **Questions**: one line each, all in one request per row when they are independent.
 4. **Output**: the answer columns, the unsure rule (starting values from the
@@ -50,7 +53,11 @@ Send this before the pilot, in plain words and in this order:
    the review file, and that the source is only read.
 5. **Pilot first**: 30 rows spread over the data, then a stop to look at the answers and the
    time per row before the full run.
-6. **What you need from them**: a yes, the key set in the environment, the server running.
+6. **Cost (VAKYN Cloud)**: rows × input tokens per row (about 4 characters of English per token)
+   × the price per billion input tokens from `GET /v1/models`. Say it is an estimate; the pilot
+   measures `usage.input_tokens`. Never quote a price from memory.
+7. **What you need from them**: a yes, the key set in the environment, a balance on VAKYN Cloud
+   (or their server running).
 
 ## 4. Pilot (30 rows)
 
@@ -59,7 +66,8 @@ Send this before the pilot, in plain words and in this order:
 - Show every pilot row: id, a short text, each answer with its confidence, and the unsure reason.
 - Show the time: median and max per row, rows per second at the chosen concurrency, and the full
   run's time at that rate. Say the pilot rate includes warm-up; the full run's progress line shows
-  the steady rate.
+  the steady rate. On VAKYN Cloud also show the input tokens per row and the full run's cost at
+  the price from `GET /v1/models`.
 - Point at what looks wrong: a question that is unsure on most rows, one option that takes almost
   every row, an escape option picked for rows that clearly fit. Fix the question
   (`questions` skill, [diagnose](../../questions/references/diagnose.md)) and pilot

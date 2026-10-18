@@ -71,6 +71,6 @@ who approved it.
 | Escalated to the agent / to a person | | |
 | Agreement with labels | | |
 | Tool calls or requests per case | | |
-| Cost per case | as logged | VAKYN on own server + look-ups × [agent price per look-up] |
+| Cost per case | as logged | VAKYN requests × input tokens × [price from GET /v1/models] on VAKYN Cloud (or own server's running cost) + look-ups × [agent price per look-up] |
 | Time per case | as logged | measured |
 | Disagreements to review | | list of case ids |

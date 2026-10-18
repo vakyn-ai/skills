@@ -1,6 +1,6 @@
 """Route each support ticket to a team. pip install typesafe-sdk
 
-Needs TYPESAFE_BASE_URL (your server, e.g. http://127.0.0.1:8080) and TYPESAFE_API_KEY (vk_...).
+Needs TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server) and TYPESAFE_API_KEY (vk_...).
 """
 
 from typesafe_sdk import Choice, TypeSafeClient

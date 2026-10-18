@@ -38,7 +38,8 @@ question change, replay and promotion after every rule or threshold change.
    person labels exist.
 2. **Ask before sending data anywhere outside their machine.** A hosted chat model receives the
    records and charges per call. Without a clear yes, use the chat model's past answers from their
-   logs, or run VAKYN alone. Confirm which VAKYN server too.
+   logs, or run VAKYN alone. Confirm where VAKYN runs too: VAKYN Cloud (about 30 requests from
+   their balance) or their own server.
 3. Pick a sample that covers every option, with named hard cases (mixed topics, vague, "none of
    these"); redact personal data in code before anything is sent.
 4. Same evidence and the same options (escape option included) for both, by default. Their
@@ -46,7 +47,8 @@ question change, replay and promotion after every rule or threshold change.
    [pre-send checklist](../start/references/checklist.md).
 5. Run it, stop at the sample size, keep every answer in a results file.
 6. Report agreement, accuracy against labels when they exist, every disagreement side by side,
-   every unsure answer, measured time per call and chat-model cost. Then stop and let them decide.
+   every unsure answer, measured time per call, chat-model cost and, on VAKYN Cloud, VAKYN's input
+   tokens. Then stop and let them decide.
 
 Before anything runs, send the plan ([plan message](references/smoke-test.md#5-before-running-the-plan-message)),
 and say in it, in these words: "agreement is not accuracy"; their labels decide who is right.
@@ -97,8 +99,10 @@ A plan or report for a drift check always says, in plain words:
 3. **Noise tolerance** (0.05): smaller moves with the same pick are not drift.
 4. **Report**: picks changed, mean change, threshold crossings, picks per option, changed records
    biggest first; pass or fail against limits the person sets.
-5. **When**: after any change to model file, server, question text or state builder, and in CI on
-   pull requests that touch questions (key from a secret).
+5. **When**: after any change to model, model file, server, question text or state builder, and in
+   CI on pull requests that touch questions (key from a secret). On VAKYN Cloud each run of the
+   batch spends balance: estimate it ([cost](../start/references/cloud.md#cost)) and agree how
+   often CI runs it.
 
 Details: [drift check](references/drift.md). Template: [drift.py](examples/drift.py),
 [drift-ci.yml](examples/drift-ci.yml).
@@ -118,9 +122,10 @@ Templates: [replay.py](examples/replay.py), [promote.py](examples/promote.py) on
 
 ## Go-live review
 
-Walk the [checklist](references/go-live.md): batching, size limits, concurrency vs `--max-queue`
-and 429 `retry-after`, timeouts, key handling and rotation, logging request ids and model name,
-unsure rate and drift, fallback when the server is down, the audit record, versioned thresholds
+Walk the [checklist](references/go-live.md): batching, size limits, concurrency vs the rate limit
+(VAKYN Cloud: 60 requests per second per key) or `--max-queue` (self-hosted) and 429
+`retry-after`, timeouts, key handling and rotation, balance and `402` on VAKYN Cloud, logging
+request ids and model name, unsure rate and drift, fallback when VAKYN is down, the audit record, versioned thresholds
 and rules, re-check after changes. Give a table of
 item, status and fix, then the code changes.
 
@@ -132,8 +137,9 @@ item, status and fix, then the code changes.
   question is a new test; keep both results.
 - **Keep every answer.** No dropping odd records from counts or tables.
 - **Ask before data leaves the machine or money is spent.** Wait for the yes; no paid chat-model
-  call and no full batch without it.
-- **Measure, never guess.** Times and costs come from this run on this machine, with the machine
-  named. No server, no numbers: write the script and say how to run it.
+  call, no run beyond a handful of VAKYN Cloud requests and no full batch without it. VAKYN Cloud
+  cost: input tokens × the price from `GET /v1/models`, never a price from memory.
+- **Measure, never guess.** Times and costs come from this run, with where it ran named (VAKYN
+  Cloud, or the machine). VAKYN not reachable, no numbers: write the script and say how to run it.
 - **Keys stay out of the chat and out of code.** A key found in code or a log is named by where it
   is (file and line), never repeated in the reply. See the `start` skill rules.

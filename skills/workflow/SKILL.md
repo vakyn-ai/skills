@@ -66,9 +66,9 @@ existing prompt or tool-calling app is the `convert` skill.
    review queue, a safe default).
 8. **Run the [checklist](../start/references/checklist.md)** on every request. Save each request
    as a `.json` file next to the code.
-9. **Send and test.** If a server is reachable, send each request and show the real answers.
+9. **Send and test.** If VAKYN is reachable, send each request and show the real answers.
    Then point to the `check` skill for a test on about 30 of the person's own records
-   before going live. No server: say so and never invent answers.
+   before going live. VAKYN not reachable: say so and never invent answers.
 
 ## What to hand over
 
@@ -106,5 +106,5 @@ existing prompt or tool-calling app is the `convert` skill.
 - **Read answers by name** and check a pick is one of the offered options before acting on it.
 - **Every decision has an unsure path.** Thresholds are named settings, tuned later on the
   person's own records with `check`.
-- **Never invent answers.** No server, no numbers. Write the requests and code; say how to send them.
+- **Never invent answers.** VAKYN not reachable, no numbers. Write the requests and code; say how to send them.
 - **Keys stay out of the chat and out of files**: `TYPESAFE_API_KEY` in the environment.

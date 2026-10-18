@@ -13,6 +13,8 @@
 
 Nothing users see changes. The pilot costs more than today (both models plus VAKYN on every
 request): **say so and ask before turning it on.** On high volume, run it on a share of requests.
+On VAKYN Cloud each pipeline request is two VAKYN requests (check and comparison) from the
+person's balance, and the key takes 60 requests per second: size the share to stay under it.
 
 The comparison is a separate request from the check, so the expensive answer never sits in the
 check's state and cannot sway the verdict:
@@ -95,6 +97,8 @@ requests for the cascade against always-expensive, the saving, and the break-eve
 - From side-by-side lines, always-expensive is **measured** (the expensive model answered every
   request). From cascade lines it is **estimated** from the escalated requests, which may be
   longer or harder than average; say so.
-- VAKYN's own cost (the person's server) is not in the number; name it as a separate line.
+- VAKYN's own cost is not in the number; name it as a separate line. On VAKYN Cloud it is the
+  input tokens of the check and comparison requests × the price from `GET /v1/models`
+  ([cost](../../start/references/cloud.md#cost)); on the person's own server, their hardware.
 - The demo log is built to show every route (4 of 7 escalate). Its shares say nothing about a real
   pipeline; only the person's pilot does.

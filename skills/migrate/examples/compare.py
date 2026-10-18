@@ -1,12 +1,13 @@
 """Replay saved decision requests against two Jev-compatible servers and report how often they agree.
 
-Use it before switching: A is where the requests go today, B is the person's own open-server.
+Use it before switching: A is where the requests go today, B is VAKYN (VAKYN Cloud or the
+person's own open-server). On VAKYN Cloud every request sent to B spends balance; --dry sends nothing.
 
 Usage:
-    python3 compare.py recorded.jsonl --a https://old.example --b http://127.0.0.1:8080 \
+    python3 compare.py recorded.jsonl --a https://old.example --b https://api.vakyn.com \
         [--a-model NAME] [--b-model jev-latest] [--a-key-env OLD_API_KEY] [--b-key-env VAKYN_API_KEY] \
         [--n 30] [--out compare-results.jsonl] [--dry]
-    python3 compare.py recorded.jsonl --a recorded --b http://127.0.0.1:8080   # A = answers saved in the file
+    python3 compare.py recorded.jsonl --a recorded --b https://api.vakyn.com   # A = answers saved in the file
 
 recorded.jsonl: one request per line, either a bare /v1/systemone body or
     {"id": "...", "request": {...}, "old_answers": {...}}   ("old_answers" only with --a recorded:
@@ -94,7 +95,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("file")
     p.add_argument("--a", required=True, help="old base URL, or 'recorded' to use old_answers from the file")
-    p.add_argument("--b", required=True, help="new base URL (the person's open-server)")
+    p.add_argument("--b", required=True, help="new base URL (https://api.vakyn.com, or the person's open-server)")
     p.add_argument("--a-model", help="model name for A (default: the model in each request)")
     p.add_argument("--b-model", default="jev-latest")
     p.add_argument("--a-key-env", default="OLD_API_KEY")
@@ -179,7 +180,7 @@ def main():
         secs = [r[side]["seconds"] for r in results if r[side]["status"] == 200 and r[side]["seconds"] is not None]
         if secs:
             print(f"time per request {side}: median {statistics.median(secs):.2f} s, max {max(secs):.2f} s "
-                  f"(this run, this machine, concurrency {args.concurrency})")
+                  f"(this run, from this machine, concurrency {args.concurrency})")
     print(f"\ndisagreements: {len(disagreements)}")
     for rid, qid, detail in disagreements:
         print(f"  {rid} {qid}: {json.dumps(detail)}")

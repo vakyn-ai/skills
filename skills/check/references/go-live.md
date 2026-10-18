@@ -18,28 +18,32 @@ missing and the fix (with the code change). Limits and errors:
 
 ## Load and errors
 
-5. **Concurrency below `--max-queue`.** The server queues up to `--max-queue` requests (default 32)
-   and answers 429 with `retry-after` beyond that. Cap in-flight calls in the app (a semaphore or a
-   worker pool) at or below that number, summed over every app instance using the server.
+5. **Concurrency under the limit.** VAKYN Cloud takes 60 requests per second per key;
+   open-server queues up to `--max-queue` requests (default 32). Beyond either, the answer is 429
+   with `retry-after`. Cap in-flight calls in the app (a semaphore or a worker pool), summed over
+   every app instance using the key or the server.
 6. **429 and 503 are retried after `retry-after`.** The SDKs do this (2 retries with backoff). Hand-
    written HTTP code must read `retry-after` / `retry-after-ms` and wait; no tight loops.
 7. **A timeout on every call.** The SDK default is 10 seconds per attempt. On CPU or with long
    states, raise it (for example 30 s) instead of letting retries pile up. Plain HTTP clients
    often have no timeout at all; set one.
-8. **A fallback when the server is down or keeps failing**: the chat model, a person, or a queue to
-   retry later. The app must not stop or guess an answer. Decide it per question.
+8. **A fallback when VAKYN is down or keeps failing**: the chat model, a person, or a queue to
+   retry later. The app must not stop or guess an answer. Decide it per question. On VAKYN Cloud,
+   `402` (balance empty) takes the same fallback, and someone watches the balance: the
+   organization's owners get an email when it runs low.
 
 ## Keys
 
 9. **The key comes from the environment** (`TYPESAFE_API_KEY` / `VAKYN_API_KEY`) or a secret store;
    never in code, config in git, logs or error messages. If one is in a tracked file, it is leaked:
-   revoke it (`vakyn keys revoke`), create a new one (`vakyn keys create --name <app>`), move it out.
+   revoke it and create a new one (VAKYN Cloud: the console's API keys page; open-server:
+   `vakyn keys revoke`, `vakyn keys create --name <app>`), move it out.
    In the review, point to where the key is (file and line, or "the HEADERS line"); never write the
    key itself in your reply, not even to say which one to revoke.
 10. **One key per app or environment**, so one can be rotated without stopping the others.
     Rotation: create the new key, deploy it, then revoke the old one.
-11. **HTTPS beyond the machine.** open-server speaks plain HTTP; put a reverse proxy with TLS in
-    front when the app runs elsewhere.
+11. **HTTPS beyond the machine.** VAKYN Cloud is HTTPS. open-server speaks plain HTTP; put a
+    reverse proxy with TLS in front when the app runs elsewhere.
 
 ## Logging and monitoring
 

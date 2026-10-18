@@ -20,9 +20,9 @@ Answer from a running VAKYN 4B: a cold radiator for two days with a newborn at h
 [examples/triage.ts](../../examples/triage.ts) (worker pool)
 
 - One request per record, sent concurrently with a cap (`MAX_IN_FLIGHT = 8`): an
-  `asyncio.Semaphore` in Python, a fixed pool of workers in TypeScript. Keep the cap below the
-  server's `--max-queue`.
-- The SDK retries `429` after the delay the server asks for (`RetryPolicy(max_retries=4)`). A
+  `asyncio.Semaphore` in Python, a fixed pool of workers in TypeScript. Keep it under 60 requests
+  per second per key on VAKYN Cloud, and below `--max-queue` on the person's own server.
+- The SDK retries `429` after the delay VAKYN asks for (`RetryPolicy(max_retries=4)`). A
   record that still gets `429` is kept for a later pass, never dropped.
 - Code sorts by the urgency score and applies the safety rule: any record with more than 0.2
   probability on "Emergency now" goes to the on-call person, whatever the rest says.
@@ -43,6 +43,8 @@ the threshold: for them a false alarm is cheap and a miss is not.
 - **Bare levels.** `"1"` to `"4"` or "low" to "critical" without a description of what each looks like.
 - **One request for the whole batch** (all records in one state). Each record gets its own request;
   send them concurrently.
-- **No cap.** `gather` over 10,000 records fills the server queue and turns into a wall of `429`s.
+- **No cap.** `gather` over 10,000 records goes past the rate limit (or fills the server queue)
+  and turns into a wall of `429`s. On VAKYN Cloud it also spends balance on all 10,000 at once:
+  estimate the cost and ask before a run that size.
 - **A missing trade.** A loose cupboard door went to `appliance` until `general` was added. Read
   the first answers on real records and fill gaps in the options.

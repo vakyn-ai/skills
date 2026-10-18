@@ -1,6 +1,6 @@
 # Side by side, switch, roll back
 
-The new server runs next to the old one first. The old answers stay in use until the person
+VAKYN runs next to the old service first. The old answers stay in use until the person
 has seen how often the two agree on their own requests.
 
 ## 1. Record requests
@@ -24,17 +24,20 @@ Redact personal data before anything leaves their machine.
 lines and time per request. Sample input: [recorded.sample.jsonl](../examples/recorded.sample.jsonl).
 
 ```sh
-python3 compare.py recorded.jsonl --a https://api.typesafe.ai --b http://127.0.0.1:8080 --dry   # plan only
-OLD_API_KEY=... VAKYN_API_KEY=... python3 compare.py recorded.jsonl --a https://api.typesafe.ai --b http://127.0.0.1:8080
+python3 compare.py recorded.jsonl --a https://api.typesafe.ai --b https://api.vakyn.com --dry   # plan only
+OLD_API_KEY=... VAKYN_API_KEY=... python3 compare.py recorded.jsonl --a https://api.typesafe.ai --b https://api.vakyn.com
 ```
 
-Write the commands for the person to run with their keys; never ask for a key in the chat.
+Own open-server instead: `--b` is its URL (for example `http://localhost:8080`). Write the
+commands for the person to run with their keys; never ask for a key in the chat. On VAKYN Cloud
+the `--b` side spends balance (30 requests is little, but say so); the default concurrency of 4
+stays far under the 60 requests per second per key.
 For sources that do not speak `/v1/systemone` (OpenAI Decisions, Clef on Workers AI), convert
 the recorded requests first ([field maps](field-maps.md)) and use `--a recorded` with their
 logged answers converted the same way.
 
 Report: agreement per question, each disagreement side by side, failed lines with their
-status, measured time per request with the machine named. Say, in these words: "agreement is
+status, measured time per request with where it ran named. Say, in these words: "agreement is
 not accuracy". Their labels on the disagreements decide which side is right
 ([log summary and labeling](../../check/references/log-summary.md)).
 
@@ -48,7 +51,7 @@ the summary is in `check`.
 ## 4. Switch
 
 Switch by configuration, not by editing code: set the base URL, key and model variables (or
-the app's own flag) to the new server in one place. Check thresholds again on VAKYN's answers;
+the app's own flag) to VAKYN in one place. Check thresholds again on VAKYN's answers;
 starting values are on the [thresholds](../../check/references/thresholds.md) page.
 Before production: the [go-live review](../../check/references/go-live.md).
 

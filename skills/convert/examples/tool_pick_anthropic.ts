@@ -1,7 +1,7 @@
 // Tool pick with VAKYN in an Anthropic SDK app: pick-then-fill, side by side first.
 //
 // npm install @typesafe-ai/sdk @anthropic-ai/sdk
-// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (your VAKYN server and key) and ANTHROPIC_API_KEY.
+// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key) and ANTHROPIC_API_KEY.
 //
 // Settings (environment):
 //   VAKYN_TOOL_MODE            side_by_side (default): the chat model still picks and acts; both picks

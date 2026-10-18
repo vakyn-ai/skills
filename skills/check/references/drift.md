@@ -13,15 +13,16 @@ labels (or a person reading the changed records) decide whether the move is bett
   asks them.
 - **Stored per record and question**: record id, question name, a hash of the question text, the
   pick, confidence, probabilities (or `noul`), request id, model name from the response, the model
-  file and quantization as `/v1/models` describes it (or as the person knows it), the server
-  version, and the date.
+  file and quantization as `/v1/models` describes it (or as the person knows it; on VAKYN Cloud
+  the model name such as `vakyn-max`), the server version when self-hosted, and the date.
 - **Low concurrency: 1 or 2 in flight.** A request sent alone repeats exactly. Under concurrent load
   the numbers can move slightly between runs (measured up to 0.04 with 8 in flight; see the
   [API reference](../../start/references/api.md)). Run the reference batch and every re-run the same way.
 
 ## When to re-run it
 
-After any change to: the model file or its quantization, the server version, a question's text,
+After any change to: the model (`vakyn-max` or `vakyn-fast`), the model file or its quantization,
+the server version, a question's text,
 options or escape option, the state builder, or the model name the app asks for. Also on a
 schedule (for example weekly) to prove nothing moved.
 
@@ -54,7 +55,7 @@ accept. A failed check exits 1, so it can stop a CI job.
 2. Save the reference batch on the setup they trust: `python3 drift.py save --request
    drift.request.json --records records.jsonl --out reference.jsonl` (concurrency 1).
 3. Re-run it unchanged once. Expect no changes; if records move, find out why before trusting
-   anything (other load on the server, a different server).
+   anything (other load on the server, a different server or model).
 4. After a change, run `drift.py check`. Report the setup changes, the numbers, and the changed
    records biggest first.
 5. A change that was meant to move answers (a reworded question) fails on purpose: a person reads

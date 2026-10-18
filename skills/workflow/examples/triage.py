@@ -27,7 +27,7 @@ QUESTIONS = {
     "trade": Choice(instructions="Which trade is needed for the repair request in state.request?", criteria=TRADES),
     "urgency": Score(instructions="How soon does the repair in state.request need someone on site?", criteria=URGENCY),
 }
-MAX_IN_FLIGHT = 8  # stay below the server's queue (--max-queue)
+MAX_IN_FLIGHT = 8  # VAKYN Cloud: under 60 requests/s per key; own server: below --max-queue
 MIN_CONFIDENCE = 0.6  # starting value; set yours with check
 
 
@@ -51,7 +51,7 @@ async def triage(client, gate, record):
 
 async def main(records):
     gate = asyncio.Semaphore(MAX_IN_FLIGHT)
-    retry = RetryPolicy(max_retries=4)  # retries 429 after the delay the server asks for
+    retry = RetryPolicy(max_retries=4)  # retries 429 after the delay VAKYN asks for
     async with AsyncTypeSafeClient(timeout=30.0, retry=retry) as client:
         results = await asyncio.gather(*(triage(client, gate, rec) for rec in records))
     for r in sorted(results, key=lambda r: -r.get("urgency", 0)):  # most urgent first

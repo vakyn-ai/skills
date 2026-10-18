@@ -60,5 +60,5 @@ design has:
 ## 5. Show the result
 
 Give the person: the design sheet, each request as a `.json` file, the code file, and one line per
-decision on what happens when VAKYN is unsure. If a server is reachable, send each request and
+decision on what happens when VAKYN is unsure. If VAKYN is reachable, send each request and
 show the real answers. If not, say so; never invent answers.

@@ -51,9 +51,10 @@ Shared material: [API reference](../start/references/api.md), [SDK guide](../sta
    [cascade.ts](examples/cascade.ts), with their chat-model client. **Side by side is the
    default**: the expensive answer is still sent; the cheap draft, the verdict and a comparison
    with the expensive answer are logged ([rollout](references/rollout.md)).
-7. **Check it runs**: `python3 -m py_compile`, `npx tsc --noEmit`; with a reachable server, run
+7. **Check it runs**: `python3 -m py_compile`, `npx tsc --noEmit`; with VAKYN reachable, run
    the template's `--demo` (canned drafts, real VAKYN answers) and send the saved request.
-8. **Hand over**: what changed (nothing for users until they switch), the pilot's extra cost,
+8. **Hand over**: what changed (nothing for users until they switch), the pilot's extra cost
+   (VAKYN's too on VAKYN Cloud: [cost](../start/references/cloud.md#cost)),
    how to read the log with [cost_summary.py](examples/cost_summary.py), and that a person
    spot-checks accepted drafts before `CASCADE_MODE=cascade`.
 

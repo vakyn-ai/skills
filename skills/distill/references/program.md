@@ -69,7 +69,7 @@ kept), and **every answer with its probabilities**. One more line per case: outc
 it, reasons.
 
 This one log is the audit trail, the replay source and the report source. With it, a changed
-threshold or rule re-decides every stored case without the server:
+threshold or rule re-decides every stored case without calling VAKYN:
 `python program.py traces.jsonl --replay decisions.jsonl --set sift_drop_at=0.1`. A changed
 question or input needs a live answer; the replay says which cases. More:
 [replay](../../check/references/replay.md),
@@ -78,6 +78,6 @@ question or input needs a live answer; the replay says which cases. More:
 ## Before handing over
 
 1. `python3 -m py_compile` or `npx tsc --noEmit`.
-2. Every request through the checklist; send each saved `.json` if a server is reachable.
+2. Every request through the checklist; send each saved `.json` if VAKYN is reachable.
 3. Run the program on the development cases (live VAKYN, stubbed agent steps) and print the
-   report ([report](rollover.md#report)). No server: say so; never invent answers.
+   report ([report](rollover.md#report)). VAKYN not reachable: say so; never invent answers.

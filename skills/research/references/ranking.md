@@ -27,9 +27,14 @@ Collect per spot:
 Volume comes first. Gain is the cost and wait that go away, and both grow with calls a day. A large
 model on a call that runs a few times a day costs little in total: that is not High gain by itself.
 
-VAKYN runs on the person's own server, so there is no per-call fee; the gain is the chat-model
-cost and wait time that goes away, plus a confidence on every answer. Do not quote VAKYN speed or
-accuracy numbers here; `check` measures them on the person's own data.
+The gain is the chat-model cost and wait time that goes away, plus a confidence on every answer.
+VAKYN's own cost depends on where it runs. On VAKYN Cloud it bills input tokens only (output is
+free), from a prepaid balance: write it as input tokens a day (calls a day × input tokens per call)
+× the price per billion input tokens listed on
+[vakyn.com/docs/models](https://vakyn.com/docs/models). Research makes no calls, so leave the
+price as that link; never write a VAKYN price from memory. On the person's own servers there is no
+per-call fee. Do not quote VAKYN speed or accuracy numbers here; `check` measures them on the
+person's own data.
 
 ## Risk: what a wrong answer does downstream
 

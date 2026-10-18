@@ -101,7 +101,7 @@ for mode in ("side_by_side", "cascade"):
         continue
     c, a = 1000 * sum(cascade_cost) / n, 1000 * sum(always_cost) / n
     print(f"  Cost per 1,000 requests: cascade {c:.4f}, always expensive {a:.4f}, "
-          f"saved {a - c:.4f} ({100 * (a - c) / a:.0f}%). VAKYN's own server cost is not included.")
+          f"saved {a - c:.4f} ({100 * (a - c) / a:.0f}%). VAKYN's own cost is not included.")
     cheap_share = sum(call_cost(x, "cheap") for x in rows) / sum(always_cost)
     print(f"  Break-even: the cascade saves money while the escalation rate stays under {100 * (1 - cheap_share):.0f}%"
           f" (now {100 * routes['escalate'] / n:.0f}%)")

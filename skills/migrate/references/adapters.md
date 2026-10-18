@@ -1,7 +1,7 @@
 # Framework adapters
 
-How to point each adapter at the person's server. Checked 2026-10-09 in each package's source
-or official docs, and run against a live open-server where marked. Model: `jev-latest`.
+How to point each adapter at VAKYN Cloud (`https://api.vakyn.com`) or the person's own server. Checked 2026-10-09 in each package's source
+or official docs, and run against a live VAKYN server where marked. Model: `jev-latest`.
 
 | Adapter | Package | Base URL setting | Key | Ran live |
 |---|---|---|---|---|
@@ -36,7 +36,7 @@ The TypeSafe provider has its **own** variable names, and its base URL **ends in
 `/systemone` and gets 404 (seen on open-server).
 
 ```sh
-TYPESAFE_AI_BASE_URL=http://127.0.0.1:8080/v1
+TYPESAFE_AI_BASE_URL=https://api.vakyn.com/v1   # own server: its URL + /v1
 TYPESAFE_AI_API_KEY=vk_...
 ```
 
@@ -55,7 +55,7 @@ Make it config:
 
 ```ts
 const adapter = typesafeDecider(process.env.DECISION_MODEL ?? "jev-latest", {
-  baseURL: process.env.TYPESAFE_BASE_URL, // http://127.0.0.1:8080
+  baseURL: process.env.TYPESAFE_BASE_URL, // https://api.vakyn.com, or your own server
 });
 ```
 
@@ -72,7 +72,7 @@ middlewares are built on the same class. Find: `grep -rnE "langchain_typesafe|Ty
 
 The decision-model evaluator is set up in the Langfuse UI with the `typesafe` adapter and one of
 three upstreams (TypeSafe, Vercel AI Gateway, OpenRouter). Its docs say no base URL is needed and
-show no way to set one, so it cannot be pointed at the person's server as documented. Do not
+show no way to set one, so it cannot be pointed at VAKYN as documented. Do not
 claim otherwise; if the person's Langfuse version shows a base URL field, follow its docs.
 
 Alternative: a small job that reads observations, asks VAKYN with the official SDK, and writes
@@ -82,7 +82,7 @@ each answer back as a Langfuse score:
 from langfuse import get_client
 from typesafe_sdk import Noul, TypeSafeClient
 
-langfuse, vakyn = get_client(), TypeSafeClient()  # TYPESAFE_BASE_URL / TYPESAFE_API_KEY → own server
+langfuse, vakyn = get_client(), TypeSafeClient()  # TYPESAFE_BASE_URL / TYPESAFE_API_KEY → VAKYN
 
 def judge(trace_id: str, question: str, answer: str) -> None:
     r = vakyn.system_one(

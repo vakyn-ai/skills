@@ -88,7 +88,8 @@ promoted and a version with only the refund edit is.
 
 Recording the 100 tickets took 4 minutes 28 seconds (one request at a time, CPU-only server,
 shared with other jobs). Replaying 20,000 stored decisions took 0.16 seconds on the same machine
-(AMD Ryzen 9 9950X3D), with no server.
+(AMD Ryzen 9 9950X3D), with no server. A replay sends no requests, so on VAKYN Cloud it spends
+nothing; recording the answers in the first place is what costs balance.
 
 ## Mistakes to avoid
 

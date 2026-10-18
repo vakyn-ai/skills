@@ -5,7 +5,9 @@ Usage:
     python3 batch_csv.py tickets.csv --full          # every row not done yet
     python3 batch_csv.py tickets.csv --full --limit 50   # stop after 50 new rows (resume later)
 
-Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL and TYPESAFE_API_KEY in the environment.
+Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server) and
+TYPESAFE_API_KEY in the environment. On VAKYN Cloud every answered row spends balance: the pilot
+prints the input tokens, so the full run's cost can be estimated before --full.
 
 Writes, next to --out (default <input>.vakyn.csv):
     <out>.progress.jsonl   checkpoint: one line per finished row; a rerun skips rows done here
@@ -59,7 +61,8 @@ NOUL_YES, NOUL_NO = 0.8, 0.2                   # noul: act on yes at >= 0.8, on 
 ESCAPE = {"team": "other"}                     # an escape pick is unsure too
 
 # ---- Load. ----
-CONCURRENCY = 8      # requests in flight; keep at or below the server's --max-queue (default 32)
+# VAKYN Cloud takes 60 requests per second per key; open-server queues --max-queue (default 32).
+CONCURRENCY = 8      # requests in flight
 MAX_CONCURRENCY = 32
 TIMEOUT_S = 60.0     # per attempt; the SDK default is 10 s
 # Retries 408, 429 and 5xx, waiting the retry-after the server sends; gives up after 6 tries or 10 min.
@@ -69,7 +72,7 @@ PILOT_ROWS = 30
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE = re.compile(r"\+?\d[\d\s().-]{7,}\d")
 ANSWER_COLUMNS = ["team", "team_confidence", "refund", "refund_p", "urgency", "urgency_score",
-                  "urgency_confidence", "unsure", "unsure_why", "request_id", "error"]
+                  "urgency_confidence", "unsure", "unsure_why", "request_id", "input_tokens", "error"]
 
 
 def read_rows(path):
@@ -107,7 +110,8 @@ def to_columns(res):
         "refund": "yes" if refund >= NOUL_YES else "no" if refund <= NOUL_NO else "unsure", "refund_p": refund,
         "urgency": list(URGENCY)[int(top_level)], "urgency_score": urgency.score,
         "urgency_confidence": urgency.confidence,
-        "unsure": bool(why), "unsure_why": " ".join(why), "request_id": res.request_id, "error": "",
+        "unsure": bool(why), "unsure_why": " ".join(why), "request_id": res.request_id,
+        "input_tokens": res.usage.input_tokens, "error": "",
     }
 
 
@@ -236,8 +240,8 @@ def main():
     ap.add_argument("--concurrency", type=int, default=CONCURRENCY)
     a = ap.parse_args()
     if a.concurrency > MAX_CONCURRENCY:
-        sys.exit(f"--concurrency {a.concurrency} is above the server's default queue ({MAX_CONCURRENCY}); "
-                 "raise --max-queue on the server first, or lower it")
+        sys.exit(f"--concurrency {a.concurrency} is above {MAX_CONCURRENCY} (open-server's default --max-queue); "
+                 "lower it, or raise --max-queue on your own server first")
 
     rows = read_rows(a.input)
     ids = [r[ID_COLUMN] for r in rows]
@@ -287,6 +291,11 @@ def main():
             print(f"\nTime per row: median {statistics.median(times) * 1000:.0f} ms, "
                   f"max {max(times) * 1000:.0f} ms, at {a.concurrency} in flight; {rate:.1f} rows/s "
                   f"(includes warm-up). Full file at this rate: about {len(rows) / rate / 60:.1f} min.")
+        tokens = [r["input_tokens"] for r in results.values() if r.get("input_tokens")]
+        if tokens:
+            per_row = statistics.mean(tokens)
+            print(f"Input tokens per row: mean {per_row:.0f}; whole file about {per_row * len(rows):,.0f}. "
+                  "On VAKYN Cloud, multiply by the price per billion input tokens from GET /v1/models.")
         print("Review the pilot rows above. Then run again with --full.")
     summary(rows, results, seconds, len(times))
     print(f"Output: {out_path}  Review file: {review_path}")

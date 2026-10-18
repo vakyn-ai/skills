@@ -6,7 +6,7 @@
 //         about. Code rebuilds the same ListingReview, so callers do not change.
 //
 // npm install @typesafe-ai/sdk ai @ai-sdk/openai zod
-// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (your VAKYN server and key) and OPENAI_API_KEY.
+// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key) and OPENAI_API_KEY.
 //
 // Settings (environment):
 //   VAKYN_SCHEMA_MODE  side_by_side (default): the old generateObject call is used, as before;

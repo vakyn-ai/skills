@@ -5,7 +5,7 @@ After:  VAKYN answers category, urgent and sentiment; the chat model writes only
         any field VAKYN was unsure about. Code rebuilds the same TicketTriage, so callers do not change.
 
 pip install typesafe-sdk openai pydantic
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (your VAKYN server and key) and OPENAI_API_KEY.
+Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key) and OPENAI_API_KEY.
 
 Settings (environment):
   VAKYN_SCHEMA_MODE  side_by_side (default): the old structured-output call is used, as before;

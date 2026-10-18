@@ -1,7 +1,7 @@
 // Cheap draft, VAKYN check, expensive model only when the draft fails. Side by side first.
 //
 // npm install @typesafe-ai/sdk openai
-// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (your VAKYN server and key). Outside --demo, also
+// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key). Outside --demo, also
 // CHEAP_MODEL and EXPENSIVE_MODEL, plus your chat-model key (OPENAI_API_KEY, or CHEAP_API_KEY /
 // EXPENSIVE_API_KEY with CHEAP_BASE_URL / EXPENSIVE_BASE_URL for any OpenAI-compatible endpoint).
 //

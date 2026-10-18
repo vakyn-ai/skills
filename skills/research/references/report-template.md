@@ -34,6 +34,8 @@ Large 2 / Medium 1 / Low or Small 0). Ties go to the lower risk.
 - **Decides:** <the judgment, in one sentence>.
 - **Today:** <model>, <calls a day> (<log | code | assumed>), <tokens per call>, <cost a day or
   month>, <wait time or "background">.
+- **VAKYN on VAKYN Cloud:** <input tokens a day> × the price on vakyn.com/docs/models (or "no
+  per-call fee" if they run their own server).
 - **VAKYN question:** `<type>`; <options or levels in brief, with the escape option>. State: <what
   evidence goes in>.
 - **Risk:** <what a wrong answer does downstream>. <How unsure answers are handled: person, chat

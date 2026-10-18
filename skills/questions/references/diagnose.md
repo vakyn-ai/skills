@@ -50,8 +50,8 @@ Two or three plain lines per cause:
 
 ## 5. Check
 
-If a server is reachable, send the old and the new request and show both answers side by side.
-If the new one is not better, look for a second cause. If no server is reachable, say so and do
+If VAKYN is reachable, send the old and the new request and show both answers side by side.
+If the new one is not better, look for a second cause. If VAKYN is not reachable, say so and do
 not predict numbers.
 
 One bad answer is one record. Before calling the request fixed, try it on a few more of the

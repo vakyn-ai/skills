@@ -18,15 +18,17 @@ that grades production traces. Keep one copy of the criteria and import it every
 
 ```sh
 pip install typesafe-sdk pytest
-TYPESAFE_BASE_URL=http://127.0.0.1:8080 pytest -q test_replies.py   # TYPESAFE_API_KEY from the CI secret store
+TYPESAFE_BASE_URL=https://api.vakyn.com pytest -q test_replies.py   # TYPESAFE_API_KEY from the CI secret store
 ```
 
-Run on the sample with a VAKYN 4B: 7 passed; pass rate 83% (5 of 6), one reply to a person (`c04`,
+Run on the sample with VAKYN-4B on open-server: 7 passed; pass rate 83% (5 of 6), one reply to a person (`c04`,
 a credit for a billing mistake that `state.rules` does not cover; `follows_rules` 0.78). The fix
 for that is a rule in the state, not a lower bar.
 
-In CI, the VAKYN server is a service container or a shared internal host; the key comes from the
-CI secret store. Keep the cases file in the repo and add every escaped bad output to it.
+In CI, VAKYN is VAKYN Cloud (every run grades every case, so it spends balance on each push;
+count cases × runs per day before turning it on) or the person's own server as a service container
+or a shared internal host. The key comes from the CI secret store. Keep the cases file in the repo
+and add every escaped bad output to it.
 
 ## promptfoo
 
@@ -66,13 +68,17 @@ writing. Checked against a stub Langfuse client on the 8 [sample replies](../exa
 ## Every trace, not a 5% sample
 
 Chat-model judges are often run on a few percent of traffic because each grade is a paid call.
-A VAKYN grade runs on the person's own server: the five-criterion rubric request took 51 to 58 ms
-per request (VAKYN 4B Q8_0, one RTX 5090, one short reply, 10 sequential requests on a shared
-server). Grade every trace when the server has room for it:
+One VAKYN request grades every criterion from one reading of the output, and VAKYN Cloud bills
+input tokens only; on the person's own server there is no per-request bill. Measured on
+open-server: the five-criterion rubric request took 51 to 58 ms per request (VAKYN-4B Q8_0, one
+RTX 5090, one short reply, 10 sequential requests on a shared server). Grade every trace when the
+budget (VAKYN Cloud: traces per day × input tokens × the price from `GET /v1/models`) or the
+server has room for it:
 
 - a rare failure (a reply asking for a card number) shows up the day it starts, not weeks later;
 - per-criterion rates can be tracked per day, per prompt version, per customer segment;
 - the `review` share is a cost: every unsure grade goes to a person. Watch it next to the pass rate.
 
-Size the job from the measured time on the person's own machine and the trace volume; put the
-grader's requests behind the app's own traffic (a lower concurrency cap) if they share a server.
+Size the job from the measured time and the trace volume; put the grader's requests behind the
+app's own traffic (a lower concurrency cap) if they share a key (60 requests per second on VAKYN
+Cloud) or a server (`--max-queue`).

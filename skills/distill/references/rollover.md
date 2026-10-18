@@ -48,7 +48,7 @@ as logged, with where it came from.
 | Disagreements to review, by case id, with the reasons | records + labels |
 | VAKYN requests and agent look-ups per case; time per case (with the machine) | decision records |
 | Agent tool calls, cost and time per case | traces, as logged |
-| Program cost per case | look-ups × the agent's price per look-up (from the person) + the VAKYN server's running cost; never a guessed price |
+| Program cost per case | look-ups × the agent's price per look-up (from the person) + VAKYN: on VAKYN Cloud, the requests' `usage.input_tokens` × the price from `GET /v1/models`; on their own server, its running cost. Never a guessed price |
 
 Say which set the figures come from. Agreement on the development set is not a result: the
 program was written while looking at those cases. Only the reserved set and live batches count.

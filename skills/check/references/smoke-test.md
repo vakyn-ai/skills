@@ -18,8 +18,9 @@ Ask, in one message:
 5. **Are there person labels?** Records where someone already said what is right. They are worth
    more than any agreement number.
 
-VAKYN on their own server keeps data on their machine. Still confirm which server
-(`TYPESAFE_BASE_URL`) before sending.
+Confirm where VAKYN runs (`TYPESAFE_BASE_URL`) before sending. On VAKYN Cloud
+(`https://api.vakyn.com`) the records go to VAKYN Cloud and the 30 requests spend a little of the
+person's balance; say both in the plan. On their own server the records stay on their network.
 
 ## 2. Pick the sample
 
@@ -50,7 +51,8 @@ The script must:
 
 - stop at the sample size; the full batch is a separate, later decision;
 - write every answer to a results file (`smoke-results.jsonl`), including wrong and odd ones;
-- record the request id, time per call, and chat-model tokens (for cost);
+- record the request id, time per call, VAKYN's `usage.input_tokens` and chat-model tokens (for
+  cost);
 - read the chat model's existing answers from a file when the person did not approve sending.
 
 Run the [pre-send checklist](../../start/references/checklist.md) on the request before the first
@@ -66,10 +68,12 @@ Tell the person, in plain words and in this order, before anything is sent:
    their machine.
 3. **Same question**: both get the same evidence and the same options, escape option included.
 4. **Consent**: what would leave the machine, to whom, and roughly how many paid calls. Ask for a
-   yes. Until then only the VAKYN side runs.
+   yes. Until then only the VAKYN side runs. On VAKYN Cloud the VAKYN side is about 30 requests
+   from their balance too: say so.
 5. **What the report will show** (next step), and that agreement is not accuracy: their labels
    decide who is right.
-6. **What you need from them**: records, server address, key set in the environment, prices.
+6. **What you need from them**: records, where VAKYN runs (VAKYN Cloud or their server address),
+   key set in the environment, chat-model prices.
 
 ## 6. Report
 
@@ -80,8 +84,9 @@ Show, in this order:
 3. Every disagreement side by side: record id, short redacted text, VAKYN pick and confidence,
    chat-model pick, label if any.
 4. Every unsure VAKYN answer with its probabilities: where did the probability go?
-5. Time per call for each (median and max, measured on this run, with the machine named) and
-   chat-model cost from its tokens and the person's price. Never guess a speed or a price.
+5. Time per call for each (median and max, measured on this run, with where it ran named),
+   chat-model cost from its tokens and the person's price, and VAKYN's input tokens (on VAKYN
+   Cloud, times the price from `GET /v1/models`). Never guess a speed or a price.
 6. What to do next: fix questions ([diagnose](../../questions/references/diagnose.md)) if
    disagreements cluster on two overlapping options; label disagreements; then thresholds.
 

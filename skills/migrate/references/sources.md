@@ -5,8 +5,9 @@ calls in the person's code, and what changes. Checked 2026-10-09. These services
 the person's code does not match what is written here, read their code and the provider's
 current docs; do not fill the gap from memory.
 
-All moves end at the same place: `POST {base}/v1/systemone` on the person's server, model
-`jev-latest` (or the name from `GET /v1/models`), key `vk_…` from `vakyn keys create`.
+All moves end at the same place: `POST {base}/v1/systemone` with model `jev-latest` and a `vk_…`
+key. `{base}` is `https://api.vakyn.com` (VAKYN Cloud, key from vakyn.com/console/keys), or the
+person's own open-server (key from `vakyn keys create`) when they run their own.
 
 | From | Wire format | The change | Section |
 |---|---|---|---|
@@ -33,11 +34,12 @@ Find: `grep -rnE "typesafe_sdk|TypeSafeClient|AsyncTypeSafeClient|@typesafe-ai/s
 and the model names: `grep -rnE "jev-[0-9]|jev-latest|jev-preview" .`
 
 Change, config first:
-- `TYPESAFE_BASE_URL=http://127.0.0.1:8080` (root, no `/v1`), `TYPESAFE_API_KEY` = the `vk_` key.
+- `TYPESAFE_BASE_URL=https://api.vakyn.com` (root, no `/v1`; their own server's URL when
+  self-hosted), `TYPESAFE_API_KEY` = the `vk_` key.
 - Model: remove hardcoded `model=` / `defaultModel` / per-call `model` that name a pinned
-  hosted release (`jev-1.13.0`) or `jev-preview`; set `TYPESAFE_DEFAULT_MODEL=jev-latest`. The
-  server answers an unknown name with `400 Unknown model` (seen on open-server).
-- Raise `timeout` if the server runs on CPU (default 10 s per attempt).
+  hosted release (`jev-1.13.0`) or `jev-preview`; set `TYPESAFE_DEFAULT_MODEL=jev-latest` (works on
+  both; VAKYN Cloud also takes `vakyn-max` and `vakyn-fast`). An unknown name gets `400`.
+- Raise `timeout` if their own server runs on CPU (default 10 s per attempt).
 - Before/after: [sdk_before.py](../examples/sdk_before.py), [sdk_after.py](../examples/sdk_after.py).
 
 ## 2. Hosted Jev, raw HTTP
@@ -48,8 +50,9 @@ Checked on docs.typesafe.ai (quick start, API reference): `POST https://api.type
 Find: `grep -rnE "api\.typesafe\.ai|/v1/systemone" .`
 
 Change: the URL to `$VAKYN_BASE_URL/v1/systemone`, the key variable, the model. Move the URL
-and model into config if they are literals. Code that reads the error body: open-server
-errors are `{"detail": "..."}` (seen on open-server); see [differences](differences.md).
+and model into config if they are literals. Code that reads the error body: VAKYN errors have a
+`detail` field (a message on open-server, `{"error_type", "message"}` for VAKYN Cloud's own
+errors); see [differences](differences.md).
 Before/after: [http_before.sh](../examples/http_before.sh), [http_after.sh](../examples/http_after.sh).
 
 ## 3. OpenRouter
@@ -58,7 +61,7 @@ Checked on openrouter.ai/docs (Jev guide, TypeSafe SDK guide, Decisions API refe
 
 - **`https://openrouter.ai/api/v1/systemone`**: for the official SDKs, base URL
   `https://openrouter.ai/api`, OpenRouter key. Same wire format. Change as in section 1.
-  OpenRouter accepts `jev-latest`, `jev-1.13` or `typesafe/jev-1.13`; on open-server use
+  OpenRouter accepts `jev-latest`, `jev-1.13` or `typesafe/jev-1.13`; on VAKYN use
   `jev-latest`.
 - **`POST https://openrouter.ai/api/alpha/decisions`**: same `model`, `state`, `questions`
   shape, plus OpenRouter-only fields. Map with [field maps](field-maps.md#openrouter-decisions).

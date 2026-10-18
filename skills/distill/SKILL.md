@@ -59,7 +59,7 @@ patterns, and the `check` pages for
    probabilities, settings version, model name, request id). Stub agent steps in examples; never
    call a paid model from them.
 4. **Run it** on the development cases with live VAKYN and stubbed agent steps, and send each
-   saved request. No server: say so, write everything anyway, never invent answers.
+   saved request. VAKYN not reachable: say so, write everything anyway, never invent answers.
 5. **Roll over in stages** ([rollover](references/rollover.md), template
    [rollout.md](examples/rollout.md)): the first cases stay with the agent; then shadow; then
    e.g. 50%, 75%, 90% may try the program with the agent as fallback for anything escalated. A
@@ -82,7 +82,7 @@ patterns, and the `check` pages for
 | [program.py](examples/program.py) | the program: code, VAKYN, a stubbed look-up agent, escalation, decision records, `--replay` |
 | [rollout.md](examples/rollout.md) | the staged plan, promotion rule and batch report |
 
-Answers come from a running VAKYN 4B on CPU. The program on the ten sample cases: all handled
+Answers come from VAKYN-4B on open-server, on CPU. The program on the ten sample cases: all handled
 without escalation and all ten outcomes equal to the labels, 1.5 VAKYN requests and 0.2 look-ups
 per case against 5.6 agent tool calls. Those ten are its development set: its questions were fixed
 while looking at them, so this proves the plumbing, not the accuracy.
@@ -91,10 +91,13 @@ while looking at them, so this proves the plumbing, not the accuracy.
 
 - **Traces stay local.** Read them with a script on the machine; quote counts, ids, tool names,
   times and costs, never case contents.
-- **The agent is the fallback**, never removed in one step. Unsure answers, failed look-ups and a
-  down server all go back to it.
+- **The agent is the fallback**, never removed in one step. Unsure answers, failed look-ups and
+  VAKYN being down all go back to it.
 - **The reserved set is never read while authoring.** Only its counts, once per candidate.
 - **Agreement is not accuracy.** The agent's outcome is not a label; a person's is.
 - **Never invent numbers.** Costs, rates and savings come from traces, records and labels, with
-  their source; prices from the person.
+  their source; chat-model prices from the person, VAKYN Cloud prices from `GET /v1/models`.
+- **Ask before each stage's traffic.** On VAKYN Cloud every case the program decides spends
+  balance; estimate each stage's cost ([cost](../start/references/cloud.md#cost)) and keep under
+  60 requests per second per key.
 - **Keys stay out of the chat and out of files** (see the `start` skill rules).

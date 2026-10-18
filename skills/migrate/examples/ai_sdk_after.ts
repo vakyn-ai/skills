@@ -1,8 +1,8 @@
-// AFTER: the same `experimental_decide` call on the person's own open-server, through the
+// AFTER: the same `experimental_decide` call on VAKYN Cloud (or your own open-server), through the
 // TypeSafe provider for the AI SDK (npm install ai @ai-sdk/typesafe-ai; `ai` 7.0.128 or later).
 //
 // This provider uses its OWN variable names, and its base URL INCLUDES /v1:
-//   TYPESAFE_AI_BASE_URL=http://127.0.0.1:8080/v1
+//   TYPESAFE_AI_BASE_URL=https://api.vakyn.com/v1   (or your own server's URL + /v1)
 //   TYPESAFE_AI_API_KEY=vk_...            (never in code)
 //   DECISION_MODEL=jev-latest             (this app's own setting; rollback: typesafe-ai/jev via AI Gateway)
 //

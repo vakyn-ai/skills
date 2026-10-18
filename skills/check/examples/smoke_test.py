@@ -10,7 +10,8 @@ plus "label" when a person has said what is right.
 The request file holds the question (only its first question is compared); each record's
 state replaces the example state.
 
-VAKYN side: pip install typesafe-sdk; TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+VAKYN side: pip install typesafe-sdk; TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server)
+and TYPESAFE_API_KEY. On VAKYN Cloud the ~30 requests spend a little balance; input tokens are printed.
 Chat-model side, one of:
   --chat-answers FILE   picks the chat model already made ({"id": ..., "chat_pick": ...}); nothing is sent
   --ask-chat-model      sends the records to an OpenAI-compatible chat API (CHAT_BASE_URL,
@@ -82,7 +83,7 @@ def vakyn_answer(client, state, qid, q):
     else:
         pick, conf, probs = a["choice"], a["confidence"], a["probabilities"]
     return {"vakyn_pick": pick, "vakyn_confidence": conf, "vakyn_probabilities": probs,
-            "request_id": res.request_id, "vakyn_ms": round(ms)}
+            "request_id": res.request_id, "vakyn_ms": round(ms), "vakyn_tokens_in": res.usage.input_tokens or 0}
 
 
 def chat_answer(state, q):
@@ -176,7 +177,11 @@ def main():
             print(f"  {r['id']}: VAKYN {r['vakyn_pick']} ({r['vakyn_confidence']:.2f})  chat {r['chat_pick']}"
                   f"  label {r['label'] or '-'}")
     vms = [r["vakyn_ms"] for r in results]
-    print(f"VAKYN time per call: median {statistics.median(vms):.0f} ms, max {max(vms)} ms (this machine, one at a time)")
+    where = os.environ.get("TYPESAFE_BASE_URL", "(SDK default)")
+    print(f"VAKYN time per call: median {statistics.median(vms):.0f} ms, max {max(vms)} ms ({where}, one at a time)")
+    vtin = sum(r.get("vakyn_tokens_in", 0) for r in results)
+    print(f"VAKYN input tokens: {vtin} for {len(results)} calls (VAKYN Cloud cost: x the price per billion "
+          "input tokens from GET /v1/models)")
     cms = [r["chat_ms"] for r in results if "chat_ms" in r]
     if cms:
         print(f"Chat model time per call: median {statistics.median(cms):.0f} ms, max {max(cms)} ms")

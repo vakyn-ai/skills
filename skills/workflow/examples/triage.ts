@@ -22,11 +22,11 @@ const QUESTIONS = {
   trade: choice("Which trade is needed for the repair request in state.request?", TRADES),
   urgency: score("How soon does the repair in state.request need someone on site?", URGENCY),
 };
-const MAX_IN_FLIGHT = 8; // stay below the server's queue (--max-queue)
+const MAX_IN_FLIGHT = 8; // VAKYN Cloud: under 60 requests/s per key; own server: below --max-queue
 const MIN_CONFIDENCE = 0.6; // starting value; set yours with check
 
 type Rec = { unit: string; text: string };
-// Retries 429 after the delay the server asks for.
+// Retries 429 after the delay VAKYN asks for.
 const client = new TypeSafeClient({ timeout: 30_000, retry: { maxRetries: 4 } });
 
 async function triage(rec: Rec) {

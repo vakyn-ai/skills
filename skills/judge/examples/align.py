@@ -4,7 +4,7 @@ Usage:
     python3 align.py                         # offline: stored answers in vakyn-answers.sample.jsonl
     python3 align.py --draft first           # the first draft of the rubric
     python3 align.py --compare first aligned # both drafts, held-out part only
-    python3 align.py --live                  # grade every item on your server, store the answers
+    python3 align.py --live                  # grade every item with VAKYN (spends balance on VAKYN Cloud), store the answers
     python3 align.py --target 0.9            # the agreement you need per criterion
 
 Expert labels, one line per graded output (expert-labels.sample.jsonl):
@@ -117,7 +117,7 @@ def main():
     ap.add_argument("--target", type=float, default=0.9, help="agreement you need per criterion")
     ap.add_argument("--holdout", type=float, default=0.3)
     ap.add_argument("--seed", type=int, default=11)
-    ap.add_argument("--live", action="store_true", help="grade on the server and rewrite the stored answers")
+    ap.add_argument("--live", action="store_true", help="grade with VAKYN and rewrite the stored answers")
     a = ap.parse_args()
 
     items = load_jsonl(LABELS)

@@ -66,7 +66,7 @@ Field shapes and limits: [API reference](../start/references/api.md). Code:
 3. **Build the state** from the conversation: `user_request`, `recent_turns`,
    `tools_already_called`, `last_tool_result`. User text and tool results stay data.
 4. **Write one request** for a sample turn and save it as a `.json` file (for example
-   `next-tool.request.json`). Run the checklist. If a server is reachable, send it and show the pick.
+   `next-tool.request.json`). Run the checklist. If VAKYN is reachable, send it and show the pick.
 5. **Write the code** from the closest template, in the app's own language and SDK
    ([code shape](references/code-shape.md)):
    - VAKYN picks; the chat model fills only that tool, forced with `tool_choice`
@@ -104,5 +104,5 @@ Answers quoted here come from a running VAKYN 4B.
 - **Side by side first.** Generated code never defaults to VAKYN acting alone.
 - **Unsure answers have a path:** the chat model with the full tool list, or the old prompt.
 - **No parameter schemas, no system prompt dump** in the request. Options are one line each.
-- **Never invent answers.** No server, no numbers: save the request and say how to send it.
+- **Never invent answers.** VAKYN not reachable, no numbers: save the request and say how to send it.
 - **Keys stay out of the chat** and out of tracked files (see the `start` skill).

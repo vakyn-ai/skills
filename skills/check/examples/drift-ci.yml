@@ -6,8 +6,9 @@
 #   vakyn/reference-records.jsonl the reference batch records (100-300, representative, redacted)
 #   vakyn/reference.jsonl         answers stored once with: python3 drift.py save ...
 #   vakyn/drift.py                from the check skill examples
-# and a test VAKYN server the runner can reach (a self-hosted runner next to it, or a URL),
-# with a key kept as the repo secret VAKYN_TEST_API_KEY. Never put the key in this file.
+# and where VAKYN runs: VAKYN Cloud (set the repo variable VAKYN_TEST_BASE_URL to https://api.vakyn.com;
+# every run spends balance, so keep the batch small and the paths narrow) or a test server the runner
+# can reach. The key is kept as the repo secret VAKYN_TEST_API_KEY. Never put the key in this file.
 
 name: vakyn-drift
 
@@ -20,7 +21,7 @@ on:
 
 jobs:
   drift:
-    runs-on: [self-hosted, vakyn-test]   # or ubuntu-latest when the test server has a reachable URL
+    runs-on: ubuntu-latest   # or [self-hosted, vakyn-test] next to your own test server
     timeout-minutes: 30
     env:
       TYPESAFE_BASE_URL: ${{ vars.VAKYN_TEST_BASE_URL }}

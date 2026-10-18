@@ -66,7 +66,7 @@ One JSON line per step, appended to `VAKYN_TOOL_LOG` (default `vakyn-tool-picks.
 | `used` | `chat` or `vakyn`: whose pick the app acted on |
 
 Add the app's own ids (conversation, user) if it has them. Never log API keys. User text is not in
-the log; the `request_id` ties a line to the server's own records.
+the log; the `request_id` ties a line to VAKYN's own records.
 
 Reading the log, the agreement rate, where the two differ and choosing the threshold are the
 `check` skill's job. Name it when you hand over.
@@ -99,6 +99,6 @@ one record share the `request_id`. When VAKYN fails, write the lines with `null`
 
 - The file parses: `python3 -m py_compile app.py`, or `npx tsc --noEmit` for TypeScript.
 - The saved request passes the [checklist](../../start/references/checklist.md).
-- With a reachable server, run one turn and show VAKYN's pick next to the request. The templates'
+- With VAKYN reachable, run one turn and show VAKYN's pick next to the request. The templates'
   `--dry` flag runs VAKYN alone, without a chat-model key.
 - The person knows the default is side by side and how to switch.
