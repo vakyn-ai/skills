@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/media/header-dark.png">
+  <img alt="VAKYN skills: eleven skills for Claude Code, Codex, Cursor and OpenCode" src="docs/media/header-light.png">
+</picture>
+
 # VAKYN skills
 
 For Claude Code, Codex, Cursor and OpenCode.

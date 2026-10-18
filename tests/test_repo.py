@@ -48,6 +48,8 @@ if LOCAL_BANNED.exists():
             BANNED.append((pattern, why or "internal term"))
 
 LINK_RE = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
+# HTML images in markdown (<img src>, <source srcset>): the README banner.
+HTML_SRC_RE = re.compile(r'\b(?:src|srcset)="([^"#\s]+)"')
 
 
 def frontmatter(path):
@@ -102,6 +104,11 @@ class Links(unittest.TestCase):
                     continue
                 with self.subTest(file=str(f.relative_to(ROOT)), link=target):
                     self.assertTrue((f.parent / target).exists(), "broken link")
+            for target in HTML_SRC_RE.findall(f.read_text()):
+                if re.match(r"^[a-z]+:", target):
+                    continue
+                with self.subTest(file=str(f.relative_to(ROOT)), src=target):
+                    self.assertTrue((f.parent / target).exists(), "broken image path")
 
 
 class Voice(unittest.TestCase):
