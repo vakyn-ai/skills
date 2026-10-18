@@ -114,6 +114,51 @@ class Voice(unittest.TestCase):
                     self.fail(f"{f.relative_to(ROOT)}:{line}: '{m.group(0)}' ({why})")
 
 
+# Public text and code must not assume a server on the reader's machine: the default is VAKYN
+# Cloud. Only files that are clearly about self-hosting may name the local address.
+LOCAL_ADDRESS_ALLOWED = {
+    ROOT / "skills" / "start" / "references" / "self-hosting.md",
+}
+TEXT_SUFFIXES = {".md", ".py", ".ts", ".sh", ".yml", ".yaml", ".json", ".jsonl", ".csv", ".txt"}
+
+
+class CloudFirst(unittest.TestCase):
+    def test_no_local_address_outside_self_hosting(self):
+        files = [ROOT / "README.md", ROOT / "docs" / "install-other-agents.md",
+                 *(p for p in (ROOT / "skills").rglob("*") if p.is_file() and p.suffix in TEXT_SUFFIXES)]
+        for f in files:
+            if f in LOCAL_ADDRESS_ALLOWED or "__pycache__" in f.parts:
+                continue
+            text = f.read_text()
+            for m in re.finditer(r"127\.0\.0\.1", text):
+                line = text.count("\n", 0, m.start()) + 1
+                self.fail(f"{f.relative_to(ROOT)}:{line}: '127.0.0.1' outside a self-hosting file; "
+                          "default to https://api.vakyn.com")
+
+    def test_allowlist_is_current(self):
+        for f in LOCAL_ADDRESS_ALLOWED:
+            with self.subTest(file=str(f.relative_to(ROOT))):
+                self.assertTrue(f.exists(), "allowlisted file is gone: remove it from LOCAL_ADDRESS_ALLOWED")
+
+    def test_no_prices_in_public_text(self):
+        # Prices live only on vakyn.com/docs/models and in GET /v1/models.
+        for f in PUBLIC_TEXT:
+            text = f.read_text()
+            for m in re.finditer(r"(?i)\$\s?\d[\d.,]*\s*(per|/)\s*(a )?billion\b", text):
+                line = text.count("\n", 0, m.start()) + 1
+                self.fail(f"{f.relative_to(ROOT)}:{line}: a price ('{m.group(0)}'); link vakyn.com/docs/models")
+
+    def test_no_free_tier_promise(self):
+        for f in PUBLIC_TEXT:
+            text = f.read_text()
+            for m in re.finditer(r"(?i)\bfree (tier|plan|trial|credits?)\b", text):
+                before = text[max(0, m.start() - 20):m.start()].lower()
+                if "no " in before or "never" in before:
+                    continue
+                line = text.count("\n", 0, m.start()) + 1
+                self.fail(f"{f.relative_to(ROOT)}:{line}: '{m.group(0)}' (VAKYN Cloud has no free tier)")
+
+
 def example_requests():
     return sorted(ROOT.glob("skills/**/*.request.json"))
 

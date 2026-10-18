@@ -1,8 +1,9 @@
-"""Send every example request to a running open-server and check the answers.
+"""Send every example request to a running VAKYN server and check the answers.
 
 Usage: VAKYN_API_KEY=vk_... python3 tests/live.py
-Base URL from VAKYN_BASE_URL (default http://127.0.0.1:8080). Exits 0 and prints SKIP when
-no server answers, so it is safe in CI without a server.
+Base URL from VAKYN_BASE_URL. The default is a local open-server, for development; the skills
+themselves default to VAKYN Cloud. Pointing it at https://api.vakyn.com spends real balance.
+Exits 0 and prints SKIP when no server answers, so it is safe in CI without a server.
 """
 
 import json

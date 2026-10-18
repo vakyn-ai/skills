@@ -16,7 +16,7 @@ make eval CASE='vakyn-limits'  # one case (one name or glob)
 ## How a run works
 
 - The agent runs in a throwaway sandbox with the plugin loaded, **no network and no environment
-  variables from your shell**. It cannot reach open-server.
+  variables from your shell**. It cannot reach VAKYN Cloud or a local open-server.
 - So cases check behavior, and when a skill produces requests, the prompt asks the agent to **save
   each request as a `.json` file** in its folder.
 - `tests/eval_live.py` reads every JSON request the agent wrote (from the run trace), runs the

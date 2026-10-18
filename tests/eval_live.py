@@ -6,7 +6,7 @@ request the agent wrote out of each run's trace, runs the pre-send checklist on 
 a real server. Then it removes the kept sandboxes.
 
 Usage: python3 tests/eval_live.py evals/last.json
-Needs VAKYN_API_KEY; VAKYN_BASE_URL defaults to http://127.0.0.1:8080.
+Needs VAKYN_API_KEY; VAKYN_BASE_URL defaults to a local open-server, for development (see live.py).
 """
 
 import json
