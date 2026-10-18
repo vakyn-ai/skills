@@ -1,17 +1,22 @@
 # Calling VAKYN from code
 
-VAKYN has no SDK of its own. Use TypeSafe's official SDKs and point them at the server. Plain HTTP
-works too.
+VAKYN has no SDK of its own. Use TypeSafe's official SDKs and point them at VAKYN Cloud
+(`https://api.vakyn.com`) or at the person's own server. Plain HTTP works too.
 
-| Language | Package | Point it at the server |
+| Language | Package | Point it at VAKYN |
 |---|---|---|
 | Python 3.10+ | `pip install typesafe-sdk` | `TYPESAFE_BASE_URL`, `TYPESAFE_API_KEY` |
 | TypeScript / JavaScript | `npm install @typesafe-ai/sdk` | same variables, or `baseURL` / `apiKey` |
 | Anything else | HTTP `POST /v1/systemone` | `Authorization: Bearer $VAKYN_API_KEY` |
 
-Base URL is the server root without `/v1`. Model: `jev-latest` (the SDK default). Both SDKs also
-read `TYPESAFE_DEFAULT_MODEL`: leave it unset, or set it to the loaded model's name from
-`/v1/models`.
+```sh
+TYPESAFE_BASE_URL=https://api.vakyn.com   # or the person's own server, e.g. http://localhost:8080
+TYPESAFE_API_KEY=vk_...                   # from vakyn.com/console/keys, or `vakyn keys create`
+```
+
+Base URL is the root without `/v1`. Model: `jev-latest` (the SDK default), which works on both.
+Both SDKs also read `TYPESAFE_DEFAULT_MODEL`: leave it unset, or set it to a name from
+`/v1/models` (on VAKYN Cloud, `vakyn-fast` is the cheaper option).
 
 ## Python
 
@@ -39,8 +44,11 @@ urgency = result.scores["urgency"]     # .score, .legend, .probabilities (intege
 print(result.request_id)
 ```
 
-Many records: `AsyncTypeSafeClient` with `asyncio.gather`; the server queues up to `--max-queue`
-requests and the SDK retries `429` after the delay the server asks for.
+Many records: `AsyncTypeSafeClient` with `asyncio.gather` under a cap (a semaphore). VAKYN Cloud
+takes 60 requests per second per key; open-server queues up to `--max-queue` requests (default
+32). Over either, the answer is `429` and the SDK retries after the delay it asks for. On VAKYN
+Cloud every answered request spends balance: estimate the cost first
+([cost](cloud.md#cost)).
 
 ## TypeScript
 
@@ -66,7 +74,8 @@ console.log(answers.team.choice, answers.refund.noul, answers.urgency.score);
 ## Errors and retries
 
 Both SDKs retry `408`, `429`, `5xx` and connection errors twice with backoff and honor `retry-after`.
-Every other non-2xx raises an error with `status`, `body` and `request_id`:
+Every other non-2xx (such as `402`, no balance left on VAKYN Cloud) raises an error with `status`,
+`body` and `request_id`:
 
 - Python: `TypeSafeBadRequestError` (400), `TypeSafeAuthenticationError` (401),
   `TypeSafeUnprocessableEntityError` (422), `TypeSafeRateLimitError` (429 after retries),
@@ -79,6 +88,7 @@ raise it rather than letting retries pile up.
 
 ## Differences from the hosted Jev service
 
-- Model names: use `jev-latest` or the name from `/v1/models`; dated hosted model names do not exist here.
-- Keys start with `vk_` and come from the person's own server.
-- Requests, answers, limits and error bodies match.
+- Model names: use `jev-latest` or a name from `/v1/models`; dated hosted model names do not exist here.
+- Keys start with `vk_` and come from the VAKYN console or the person's own server; a key works
+  only where it was made.
+- Requests, answers and limits match.

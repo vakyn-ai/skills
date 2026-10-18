@@ -1,4 +1,9 @@
-# Setup: model file, server, API key
+# Self-hosting: model file, server, API key
+
+For people who ask to run VAKYN themselves, or whose data cannot leave their network: open
+models and the free open-server, on their servers, in their country, under their rules. Everyone
+else starts on [VAKYN Cloud](cloud.md). Both serve the same API; moving between them is the base
+URL and the key. Docs: [vakyn.com/docs/self-hosting](https://vakyn.com/docs/self-hosting).
 
 Goal: a running open-server, an API key in an environment variable, and `GET /v1/models` answering.
 Check what is already there before installing anything: `command -v vakyn`, `vakyn status`,
@@ -58,7 +63,7 @@ ready the API answers `503` with `retry-after`. On first start the server prints
 password for the dashboard at `http://127.0.0.1:8080/`.
 
 Useful flags: `--host`/`--port` (default `127.0.0.1:8080`), `--ctx-size`, `--max-queue` (default 32,
-then `429`), `--cpu`, `--data-dir`. Linux service: `vakyn service install --model /path/VAKYN-4B-UQFF`.
+then `429`; keep the person's concurrency at or below it), `--cpu`, `--data-dir`. Linux service: `vakyn service install --model /path/VAKYN-4B-UQFF`.
 
 ### Docker
 
@@ -86,6 +91,7 @@ TYPESAFE_API_KEY=vk_...
 ```
 
 Check `.env` is in `.gitignore` before they save it. Never ask them to paste the key into the chat.
+A key pasted into the chat anyway: `vakyn keys revoke NAME_OR_PREFIX`, then create a new one.
 
 Do not open or print `.env`: no `cat`, no `grep`, no file viewer. Load it inside the command that
 needs it, so the key never shows in the chat:
@@ -102,7 +108,8 @@ To check the key is there without showing it: `set -a; . ./.env; set +a; [ -n "$
 curl -s "$VAKYN_BASE_URL/v1/models" -H "Authorization: Bearer $VAKYN_API_KEY"
 ```
 
-Expect the loaded model and the `jev-latest` alias. Then make the [first call](../SKILL.md#first-call).
+Expect the loaded model and the `jev-latest` alias. On open-server `model` is required: use
+`jev-latest` or the name it lists. Then make the [first call](../SKILL.md#first-call).
 
 | Symptom | Cause |
 |---|---|

@@ -1,13 +1,24 @@
 # API reference (Jev-compatible)
 
-Base URL: the person's server, default `http://127.0.0.1:8080`. HTTPS goes through a reverse proxy.
+VAKYN Cloud and open-server serve the same API. Full reference: [vakyn.com/docs/api](https://vakyn.com/docs/api).
+
+| | VAKYN Cloud | Self-hosted (open-server) |
+|---|---|---|
+| Base URL | `https://api.vakyn.com` | the person's server, default `http://localhost:8080`; HTTPS through a reverse proxy |
+| Key | from [vakyn.com/console/keys](https://vakyn.com/console/keys) | `vakyn keys create` or its dashboard |
+| `model` | optional: `vakyn-max` (default), `vakyn-fast`, aliases `jev-latest`, `vakyn-latest` | required: `jev-latest` or the name from `/v1/models` |
+| Cost | per input token from a prepaid balance; output free, errors free | the person's own hardware |
+| Load | 60 requests per second per key, then `429` | `--max-queue` requests at once (default 32), then `429` |
+
+Base URLs have no `/v1`. A key works only where it was made.
 
 | Method | Path | Does |
 |---|---|---|
 | `POST` | `/v1/systemone` | Answer questions about a state |
-| `GET` | `/v1/models` | List the loaded model and the `jev-latest` alias |
+| `GET` | `/v1/models` | List the models and aliases (on VAKYN Cloud with live prices, no key needed) |
 
-Auth: `Authorization: Bearer vk_...`. Every response carries `x-typesafe-request-id`; log it.
+Auth: `Authorization: Bearer vk_...`. Every response carries `x-typesafe-request-id` (VAKYN Cloud
+also sends the same id as `x-vakyn-request-id`); log it.
 There is no streaming and no batch endpoint: send independent requests concurrently instead.
 
 ## Request
@@ -28,7 +39,8 @@ There is no streaming and no batch endpoint: send independent requests concurren
 }
 ```
 
-- `model`: `jev-latest` or the name from `/v1/models`.
+- `model`: `jev-latest` runs on both; on VAKYN Cloud also `vakyn-max` or `vakyn-fast`, or leave it
+  out. Anything else is a `400`.
 - `state`: a string, an object or an array; never null. Every question sees all of it.
 - `questions`: an object; the key is the question's name and the key you read the answer by.
   - `type`: `noul`, `choice` or `score`.
@@ -60,7 +72,8 @@ There is no streaming and no batch endpoint: send independent requests concurren
 }
 ```
 
-(The answer VAKYN-4B gave to the request above.)
+(The answer VAKYN-4B gave to the request above. `model` names the model that answered; on VAKYN
+Cloud, `vakyn-max` or `vakyn-fast`.)
 
 - `noul`: probability that the answer is yes. There is no separate confidence: distance from 0.5
   is the confidence.
@@ -80,6 +93,8 @@ There is no streaming and no batch endpoint: send independent requests concurren
 | Options per `choice` | 1–255 |
 | Levels per `score` | 1–10 |
 | Request body | 64 MiB |
+| Requests per second (VAKYN Cloud) | 60 per key |
+| Requests at once (open-server) | `--max-queue`, default 32 |
 
 Over a limit → `400`; nothing is cut. Rough size: 1 token ≈ 4 characters of English.
 
@@ -88,8 +103,13 @@ Over a limit → `400`; nothing is cut. Rough size: 1 token ≈ 4 characters of 
 | Status | Means | Do |
 |---|---|---|
 | `400` | over a limit, or an unknown model | shrink the state, split questions, check `model` |
-| `401` | missing, wrong or revoked key | check the env variable |
+| `401` | missing, wrong or revoked key | check the env variable, and that the key was made where the base URL points |
+| `402` | VAKYN Cloud: no balance left (costs nothing) | top up or redeem a code at [vakyn.com/console/billing](https://vakyn.com/console/billing) |
 | `422` | body does not match the schema | run the pre-send checklist |
-| `429` | queue full (`retry-after`, `retry-after-ms`) | wait and retry; lower concurrency |
-| `503` | model still loading (`retry-after`) | wait |
+| `429` | VAKYN Cloud: over 60 requests per second per key; open-server: queue full (`retry-after`, `retry-after-ms`) | wait and retry; lower concurrency |
+| `502` | VAKYN Cloud: the model service sent an answer that could not be read | log the request id; retry once |
+| `503` | open-server: model still loading (`retry-after`); VAKYN Cloud: model service not available | wait and retry |
 | `500` | server error | log the request id; retry once |
+
+Error bodies have a `detail` field: a message on open-server, `{"error_type", "message"}` on VAKYN
+Cloud for its own errors. VAKYN Cloud never charges for an error.

@@ -3,7 +3,7 @@
 Run it on every request before sending it or writing it into code. Walk the list against the JSON
 yourself; no script is needed. Fix every **must**; fix or consciously accept every **should**.
 
-## Must (the server refuses otherwise)
+## Must (VAKYN refuses otherwise)
 
 1. Top level has `model`, `state`, `questions` and nothing else.
 2. `state` is a string, object or array, not null.
@@ -17,7 +17,7 @@ yourself; no script is needed. Fix every **must**; fix or consciously accept eve
 8. Size: state plus the longest question under 32,768 tokens; state plus all questions under 65,536
    (about 4 characters per token).
 
-## Should (the server accepts, the answers suffer)
+## Should (VAKYN accepts, the answers suffer)
 
 9. **Every option has a description** that says what belongs in it, not just a label. A
    description, a score level and `instructions` may be a string, or an object or list when the
