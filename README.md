@@ -1,4 +1,4 @@
-<img alt="VAKYN skills for Claude Code, Codex, Cursor and OpenCode" src="docs/media/header-light.png">
+<img alt="VAKYN skills for Claude Code, Codex, Cursor and OpenCode" src="docs/media/header.png">
 
 # VAKYN skills
 
