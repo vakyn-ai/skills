@@ -1,7 +1,7 @@
 {
   "name": "vakyn",
   "description": "Build with VAKYN: find where it helps, write questions, convert prompts and tool-calling apps, design workflows, test on your data",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "author": {
     "name": "VAKYN"
   },
