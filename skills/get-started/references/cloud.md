@@ -16,22 +16,53 @@ The person does these steps themselves, in the browser:
 3. Create a key under [API keys](https://vakyn.com/console/keys). It starts with `vk_` and is
    shown once.
 
-Ask them to put the key in their environment themselves, for example a git-ignored `.env` file:
+## Save the key
+
+Every skill, script and SDK in this set reads the key from the environment, so save it once per
+machine, not once per project. The person pastes the key into a file themselves; never into the
+chat, and you never open or print the file.
+
+**macOS and Linux**: one file only they can read.
 
 ```sh
+mkdir -p ~/.config/vakyn && umask 077 && cat > ~/.config/vakyn/env <<'ENV'
 VAKYN_BASE_URL=https://api.vakyn.com
-VAKYN_API_KEY=vk_...
-# for the official SDKs:
+VAKYN_API_KEY=paste-your-key-here
 TYPESAFE_BASE_URL=https://api.vakyn.com
-TYPESAFE_API_KEY=vk_...
+TYPESAFE_API_KEY=paste-your-key-here
+ENV
 ```
 
-Check `.env` is in `.gitignore` before they save it. Never ask them to paste the key into the
-chat. Do not open or print `.env`; load it inside the command that needs it:
+They open `~/.config/vakyn/env` in their editor and paste the key on both key lines. Then, **after
+asking**, add one line to their shell startup file (`~/.bashrc` or `~/.zshrc`) so every new terminal
+has it:
 
 ```sh
-set -a; . ./.env; set +a; [ -n "$VAKYN_API_KEY" ] && echo set
+[ -f ~/.config/vakyn/env ] && set -a && . ~/.config/vakyn/env && set +a
 ```
+
+fish: `test -f ~/.config/vakyn/env; and export (grep -v '^#' ~/.config/vakyn/env)` in
+`~/.config/fish/config.fish`. Without the startup line, load it in the command that needs it:
+`set -a; . ~/.config/vakyn/env; set +a; python3 batch_csv.py …`.
+
+**Windows (PowerShell)**: user environment variables, typed by the person in their own terminal
+(`Read-Host -AsSecureString` keeps the key off the screen and out of the history):
+
+```powershell
+$k = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host -AsSecureString "VAKYN key")))
+foreach ($n in "VAKYN_API_KEY","TYPESAFE_API_KEY") { [Environment]::SetEnvironmentVariable($n, $k, "User") }
+foreach ($n in "VAKYN_BASE_URL","TYPESAFE_BASE_URL") { [Environment]::SetEnvironmentVariable($n, "https://api.vakyn.com", "User") }
+```
+
+New terminals see them.
+
+**One project with another key** (a team or CI key): a git-ignored `.env` in that project, loaded
+after the user file so it wins (`set -a; . ~/.config/vakyn/env; . ./.env; set +a`). Check `.env` is
+in `.gitignore` before they save it. CI reads the key from its secret store, never from a file in
+the repo.
+
+Check without printing: `[ -n "$VAKYN_API_KEY" ] && echo set` (PowerShell:
+`if ($env:VAKYN_API_KEY) { "set" }`).
 
 A key pasted into the chat anyway: do not repeat it; they revoke it on the
 [API keys](https://vakyn.com/console/keys) page and create a new one.

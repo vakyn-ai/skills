@@ -59,7 +59,7 @@ it becomes. The person should see every line accounted for, including the droppe
 
 All VAKYN questions that only need the ticket go in **one** request. Follow the `questions`
 skill for options, levels and state; put the record under its own key (`ticket`, `message`), with
-no fields VAKYN does not need. Run the [checklist](../../start/references/checklist.md).
+no fields VAKYN does not need. Run the [checklist](../../get-started/references/checklist.md).
 
 ## 5. Write the code
 

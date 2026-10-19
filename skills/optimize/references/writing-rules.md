@@ -52,7 +52,7 @@ Structured instructions keep rules readable as they grow:
 
 1. Same question name, same type, same option keys (or the same number of score levels). The
    script refuses a candidate that changes them.
-2. Run the [pre-send checklist](../../start/references/checklist.md).
+2. Run the [pre-send checklist](../../get-started/references/checklist.md).
 3. Save it as a **new file** with the next version number; never overwrite the wording in use.
 4. Pass each rule to `try` with `--rule "<group>: <rule>"`, so the report lists every rule with
    the misses it was written for.

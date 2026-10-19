@@ -39,13 +39,13 @@ You are the person's guide. This skill reads and estimates; the person picks wha
    what the code does with the output.
 3. **Sort each call**: decision, writing (keep), or does not fit. Use the signs in
    [references/find-spots.md](references/find-spots.md#2-decision-or-writing) and the test in
-   [fit-check.md](../start/references/fit-check.md). A call that does both (picks a tool, then
+   [fit-check.md](../get-started/references/fit-check.md). A call that does both (picks a tool, then
    writes the answer) is listed twice: the pick as a spot, the writing as keep. For each
    decision, name the question type: `choice`, `noul` or `score`.
 4. **Rate and rank** each spot: gain (calls a day, current model, cost, wait time), risk of a
    wrong answer downstream, and effort. Method and scales:
    [references/ranking.md](references/ranking.md). Check the limits in
-   [api.md](../start/references/api.md#limits): 255 options, 10 levels, 32,768 tokens for state
+   [api.md](../get-started/references/api.md#limits): 255 options, 10 levels, 32,768 tokens for state
    plus the longest question.
 5. **Write `vakyn-research.md`** at the root of the repo (or where the person asks; the current
    folder when the code is read-only or there is no code) with
@@ -64,6 +64,7 @@ You are the person's guide. This skill reads and estimates; the person picks wha
 | a process step or something not built yet | `workflow` |
 | any of these, once questions need wording | `questions` |
 | ready to compare with the current chat model on real records | `check` |
+| measured and tuned, still short of the target | `train-request` (ask VAKYN to train on it) |
 
 ## Sample apps
 

@@ -10,11 +10,11 @@ output schema the chat model fills, or an app where a chat model picks which too
 skill finds the decisions in it, turns them into VAKYN questions, and writes the code change. The
 chat model keeps what it is good at: writing text and filling in tool arguments.
 
-Field shapes and limits: [API reference](../start/references/api.md). Code:
-[SDK guide](../start/references/sdk.md). Options, levels and state: the `questions` skill
+Field shapes and limits: [API reference](../get-started/references/api.md). Code:
+[SDK guide](../get-started/references/sdk.md). Options, levels and state: the `questions` skill
 ([options](../questions/references/options-and-levels.md),
 [state](../questions/references/state.md)). Every request passes the
-[pre-send checklist](../start/references/checklist.md).
+[pre-send checklist](../get-started/references/checklist.md).
 
 ## Pick the step
 
@@ -105,4 +105,4 @@ Answers quoted here come from a running VAKYN 4B.
 - **Unsure answers have a path:** the chat model with the full tool list, or the old prompt.
 - **No parameter schemas, no system prompt dump** in the request. Options are one line each.
 - **Never invent answers.** VAKYN not reachable, no numbers: save the request and say how to send it.
-- **Keys stay out of the chat** and out of tracked files (see the `start` skill).
+- **Keys stay out of the chat** and out of tracked files (see the `get-started` skill).

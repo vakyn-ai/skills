@@ -1,5 +1,5 @@
 ---
-tags: [start]
+tags: [get-started]
 runs: 1
 max_turns: 8
 allowed_tools: [Read, Glob, Grep, Skill]

@@ -47,7 +47,7 @@ replayed with no key.
 2. **Cause**: for each group, the cause from [diagnose](../../questions/references/diagnose.md).
 3. **Candidate**: copy the current best file to the next version and add **one rule per group**
    ([writing rules](writing-rules.md)). Same question name, same type, same keys.
-4. **Checklist**: run the [pre-send checklist](../../start/references/checklist.md) on it.
+4. **Checklist**: run the [pre-send checklist](../../get-started/references/checklist.md) on it.
 5. **Score**: `try`. Kept only if better on dev; on a tie, the shorter wording stays. A discarded
    candidate is not lost: it is in `run.json` with its score.
 6. **Stop** after the round limit, or after two rounds with no gain (the script says so).
@@ -60,7 +60,7 @@ is where wording starts to fit the dev cases.
 
 `start` prints the estimate before any call: dev cases × (1 + rounds) + reserved cases × 2 (both
 wordings, at the end). Stored answers make the real number lower. On VAKYN Cloud, give the person
-the estimate with the cost from `GET /v1/models` ([cost](../../start/references/cloud.md#cost)) and
+the estimate with the cost from `GET /v1/models` ([cost](../../get-started/references/cloud.md#cost)) and
 wait for a yes; above `--confirm-above` the script stops until `--yes`. `--max-calls` stops the run
 when it would go over, with the answers so far kept.
 

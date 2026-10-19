@@ -2,7 +2,7 @@
 
 Read the person's VAKYN code and config and walk this list. For each item, say **ok**, or what is
 missing and the fix (with the code change). Limits and errors:
-[API reference](../../start/references/api.md); SDK behavior: [SDK guide](../../start/references/sdk.md).
+[API reference](../../get-started/references/api.md); SDK behavior: [SDK guide](../../get-started/references/sdk.md).
 
 ## Requests
 
@@ -13,7 +13,7 @@ missing and the fix (with the code change). Limits and errors:
    questions under 65,536, body under 64 MiB. Over a limit gets 400 and nothing is cut. Long
    documents: trim to the evidence in code, or split, before the call; handle 400 as "too big", not
    as a reason to retry.
-3. **Every request passes the [pre-send checklist](../../start/references/checklist.md).**
+3. **Every request passes the [pre-send checklist](../../get-started/references/checklist.md).**
 4. **Code checks the answer**: the pick is one of the offered options; answers are read by name.
 
 ## Load and errors

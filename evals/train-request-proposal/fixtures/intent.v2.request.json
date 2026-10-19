@@ -1,0 +1,20 @@
+{
+  "model": "vakyn-fast",
+  "state": {
+    "message": "I lost my debit card on the train this morning. Please block it."
+  },
+  "questions": {
+    "intent": {
+      "type": "choice",
+      "instructions": "Which team code fits what the customer in the message wants?",
+      "criteria": {
+        "CRD": "The card itself: lost, stolen, blocked, frozen, declined, damaged, a new or extra card, activation, PIN",
+        "DSP": "A payment the customer wants reversed or questions: not made by them, charged twice or wrongly, a refund a shop owes",
+        "TRF": "Sending or receiving money: transfers, payees, standing orders, account numbers, money that has not arrived",
+        "FEE": "What the bank charges: fees, interest and charges, and why one was taken",
+        "ACC": "Signing in and account settings: passwords, codes, app problems, personal details, opening or closing the account",
+        "OTH": "Anything else: branches, opening hours, feedback, jobs, press, questions that are not about this customer's banking"
+      }
+    }
+  }
+}

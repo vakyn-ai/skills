@@ -4,8 +4,8 @@ Only fields shown in the provider's official docs (checked 2026-10-09) are mappe
 person's code uses that is not here: read the provider's current docs, or ask. Never guess
 what an unknown field does.
 
-Target shape: [API reference](../../start/references/api.md). Every mapped request passes the
-[pre-send checklist](../../start/references/checklist.md).
+Target shape: [API reference](../../get-started/references/api.md). Every mapped request passes the
+[pre-send checklist](../../get-started/references/checklist.md).
 
 ## OpenRouter decisions
 

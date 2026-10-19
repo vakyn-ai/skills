@@ -17,7 +17,7 @@ labels (or a person reading the changed records) decide whether the move is bett
   the model name such as `vakyn-max`), the server version when self-hosted, and the date.
 - **Low concurrency: 1 or 2 in flight.** A request sent alone repeats exactly. Under concurrent load
   the numbers can move slightly between runs (measured up to 0.04 with 8 in flight; see the
-  [API reference](../../start/references/api.md)). Run the reference batch and every re-run the same way.
+  [API reference](../../get-started/references/api.md)). Run the reference batch and every re-run the same way.
 
 ## When to re-run it
 

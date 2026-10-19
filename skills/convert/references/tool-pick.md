@@ -70,7 +70,7 @@ to `ask_user` (0.89) once the description carried one, while clear requests kept
                "none": "...", "ask_user": "..."}}
 ```
 
-Name the subject (`state.user_request`). Run the [checklist](../../start/references/checklist.md).
+Name the subject (`state.user_request`). Run the [checklist](../../get-started/references/checklist.md).
 Size: the state plus this one question must stay under 32,768 tokens, so cut long tool results.
 
 ## 5. Fill and act (in code)

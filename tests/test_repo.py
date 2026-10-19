@@ -13,7 +13,7 @@ from checklist import check
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS = sorted(p for p in (ROOT / "skills").iterdir() if p.is_dir())
 EXPECTED_SKILLS = {
-    "start", "research", "questions", "convert", "workflow", "check",
+    "get-started", "train-request", "research", "questions", "convert", "workflow", "check",
     "cascade", "batch", "judge", "migrate", "distill", "optimize",
 }
 SKILL_MAX_LINES = 150
@@ -124,7 +124,7 @@ class Voice(unittest.TestCase):
 # Public text and code must not assume a server on the reader's machine: the default is VAKYN
 # Cloud. Only files that are clearly about self-hosting may name the local address.
 LOCAL_ADDRESS_ALLOWED = {
-    ROOT / "skills" / "start" / "references" / "self-hosting.md",
+    ROOT / "skills" / "get-started" / "references" / "self-hosting.md",
 }
 TEXT_SUFFIXES = {".md", ".py", ".ts", ".sh", ".yml", ".yaml", ".json", ".jsonl", ".csv", ".txt"}
 
@@ -164,6 +164,16 @@ class CloudFirst(unittest.TestCase):
                     continue
                 line = text.count("\n", 0, m.start()) + 1
                 self.fail(f"{f.relative_to(ROOT)}:{line}: '{m.group(0)}' (VAKYN Cloud has no free tier)")
+
+
+class Proposals(unittest.TestCase):
+    def test_sample_proposals_fit_the_contact_form(self):
+        # train-request writes vakyn-proposal.md for the vakyn.com/contact form (5,000 characters).
+        files = sorted(ROOT.glob("skills/**/*proposal*.sample.md"))
+        self.assertTrue(files)
+        for f in files:
+            with self.subTest(file=str(f.relative_to(ROOT))):
+                self.assertLessEqual(len(f.read_text()), 5000)
 
 
 def example_requests():

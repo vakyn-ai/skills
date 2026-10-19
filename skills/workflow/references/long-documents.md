@@ -2,7 +2,7 @@
 
 The state plus the longest question must stay under 32,768 tokens (about 4 characters per token,
 so roughly 130,000 characters of English). Over it, the server answers `400` and cuts nothing.
-Limits: [API reference](../../start/references/api.md).
+Limits: [API reference](../../get-started/references/api.md).
 
 Measure in code before sending: `len(text) / 4` is close enough to choose a path.
 

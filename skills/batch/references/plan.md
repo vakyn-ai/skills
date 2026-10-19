@@ -35,7 +35,7 @@ Go through every column and put it in one of three groups:
 - **Say what leaves the process.** On VAKYN Cloud the rows travel to `api.vakyn.com`; on their
   own server they stay on their network but still travel to it, and its logs may keep request ids
   and sizes. Name the address and the columns sent. Data that must not leave their network:
-  their own server ([self-hosting](../../start/references/self-hosting.md)).
+  their own server ([self-hosting](../../get-started/references/self-hosting.md)).
 - Code that decides from a column exactly (plan tier, a date, an amount) keeps it in code, not in
   the state. See the `questions` rules.
 

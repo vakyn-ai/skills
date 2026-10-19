@@ -45,7 +45,7 @@ person's balance; say both in the plan. On their own server the records stay on 
 Write it in their language (Python or TypeScript) with the official SDK, in their repo (for
 example `scripts/vakyn_smoke_test.py`). Template: [smoke_test.py](../examples/smoke_test.py), with
 the request [smoke-test.request.json](../examples/smoke-test.request.json). In TypeScript use
-`@typesafe-ai/sdk` the same way ([SDK guide](../../start/references/sdk.md)).
+`@typesafe-ai/sdk` the same way ([SDK guide](../../get-started/references/sdk.md)).
 
 The script must:
 
@@ -55,7 +55,7 @@ The script must:
   cost);
 - read the chat model's existing answers from a file when the person did not approve sending.
 
-Run the [pre-send checklist](../../start/references/checklist.md) on the request before the first
+Run the [pre-send checklist](../../get-started/references/checklist.md) on the request before the first
 call.
 
 ## 5. Before running: the plan message

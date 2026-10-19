@@ -32,7 +32,7 @@ it holds keys.
 ## 2. Decision or writing
 
 Read the prompt, the output handling and the caller. Use the test in
-[fit-check.md](../../start/references/fit-check.md): the answer is one of a known set, the
+[fit-check.md](../../get-started/references/fit-check.md): the answer is one of a known set, the
 evidence fits in the request, and a careful reader could decide it.
 
 **Signs of a decision** (any one is enough to look closer):
@@ -73,7 +73,7 @@ List these with the reason, not as spots:
   the prompt. Code fetches it; VAKYN can only judge what is in the state.
 - **Output is free text**: writing (keep).
 - **Evidence too long**: the state plus the question would pass 32,768 tokens (see
-  [api.md](../../start/references/api.md#limits)), for example a whole week of tickets or a
+  [api.md](../../get-started/references/api.md#limits)), for example a whole week of tickets or a
   long contract. Note whether code could cut it to the relevant part first.
 - **More than 255 options**: still fits with a two-step pick; note it as larger effort.
 - **Arithmetic, counting, dates, thresholds**: code, not a question.

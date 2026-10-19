@@ -18,7 +18,7 @@ applicant?" is VAKYN's. "A match means escalate, and escalation outranks a missi
 code.
 
 Writing (a reply, a summary, an email) is none of these: it stays with a chat model or a template
-([fit check](../../start/references/fit-check.md)).
+([fit check](../../get-started/references/fit-check.md)).
 
 ## Decision sub-kinds
 

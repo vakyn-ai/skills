@@ -37,7 +37,7 @@ Check the request for each cause, in this order. More than one can apply.
 - Keep the question names the code reads where you can, but never keep a compound question to
   save a name. Split it, and give the person the line of code that rebuilds the old value from the
   new answers (`remove = personal_info > 0.8 or insult > 0.8`).
-- Run the [pre-send checklist](../../start/references/checklist.md) on the rewrite.
+- Run the [pre-send checklist](../../get-started/references/checklist.md) on the rewrite.
 - Save the rewrite as a `.json` file next to the original when the person works in a project.
 
 ## 4. Explain

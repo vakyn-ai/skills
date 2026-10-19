@@ -1,7 +1,7 @@
 # What changes when the calls move to VAKYN
 
 Go through this list with the person before any code changes. Each row says what to look for
-in their code. The VAKYN side is in the [API reference](../../start/references/api.md); the old
+in their code. The VAKYN side is in the [API reference](../../get-started/references/api.md); the old
 side is what the provider documents (checked 2026-10-09) or what their code shows. VAKYN Cloud is
 the default target; the open-server column applies when they run their own.
 

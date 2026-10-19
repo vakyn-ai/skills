@@ -11,9 +11,9 @@ way to say "none of these", a state that holds someone's conclusion instead of t
 rule the model was asked to compute. This skill writes requests that avoid these and repairs
 requests that hit them.
 
-Field shapes, limits and errors: [API reference](../start/references/api.md). Code:
-[SDK guide](../start/references/sdk.md). Every request you write or fix passes the
-[pre-send checklist](../start/references/checklist.md).
+Field shapes, limits and errors: [API reference](../get-started/references/api.md). Code:
+[SDK guide](../get-started/references/sdk.md). Every request you write or fix passes the
+[pre-send checklist](../get-started/references/checklist.md).
 
 ## Pick the step
 
@@ -53,8 +53,8 @@ Field shapes, limits and errors: [API reference](../start/references/api.md). Co
    reaches the model, so the instructions must say the whole question.
 7. **Group by dependency.** Questions that only need the state go in one request. A question that
    needs another's answer goes in a second request, with that answer in its state.
-8. **Run the [checklist](../start/references/checklist.md)**, then send it with what the machine has
-   (see the `start` skill, First call). Show the answer next to the request.
+8. **Run the [checklist](../get-started/references/checklist.md)**, then send it with what the machine has
+   (see the `get-started` skill, First call). Show the answer next to the request.
 
 ## Fix a bad answer
 

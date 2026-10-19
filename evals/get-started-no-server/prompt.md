@@ -1,5 +1,5 @@
 ---
-tags: [start]
+tags: [get-started]
 runs: 1
 max_turns: 15
 timeout_seconds: 300

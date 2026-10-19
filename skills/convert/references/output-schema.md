@@ -67,7 +67,7 @@ Notes:
   team?", with `true` and `false` saying what urgent means.
 - **One request for the whole object.** All questions see the same state: the record the chat
   model got, under its own key (`ticket`, `listing`), without the old system prompt.
-- Follow the [question checklist](../../start/references/checklist.md) and save the request as a
+- Follow the [question checklist](../../get-started/references/checklist.md) and save the request as a
   `.json` file.
 
 Show the person a field table, one row per field, every field accounted for:

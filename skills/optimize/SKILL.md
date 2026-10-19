@@ -11,8 +11,8 @@ descriptions with one new rule per kind of mistake, keep the rewrite only if it 
 report the result once on cases the loop never saw. Nothing is trained: only the wording changes.
 You (the agent) write the rewrites; the script measures them.
 
-Shared material: [API reference](../start/references/api.md),
-[pre-send checklist](../start/references/checklist.md), causes of bad answers in
+Shared material: [API reference](../get-started/references/api.md),
+[pre-send checklist](../get-started/references/checklist.md), causes of bad answers in
 [diagnose](../questions/references/diagnose.md), the dev and reserved split in
 [tuning](../check/references/tuning.md).
 
@@ -25,6 +25,7 @@ Shared material: [API reference](../start/references/api.md),
 | Has a finished run and asks whether to switch | [Reading the result](references/reading-results.md) |
 | Has one wrong answer, no labels | `questions` skill, [diagnose](../questions/references/diagnose.md) |
 | Wants a threshold for unsure answers | `check` skill, [thresholds](../check/references/thresholds.md) |
+| Is still short after tuning, wants VAKYN trained on their cases | `train-request` skill |
 | Wants to rename an option, add one or change the state | Not this loop: see the [rules](#rules) |
 
 ## Inputs
@@ -47,7 +48,7 @@ Shared material: [API reference](../start/references/api.md),
    Edit its `build_state()` to match the app's state builder.
 3. **Estimate before any call.** `start` prints the estimate: dev cases × (1 + rounds) + reserved
    cases × 2. On VAKYN Cloud each call spends balance: give the estimate and ask
-   ([cost](../start/references/cloud.md#cost)); above `--confirm-above` the script waits for
+   ([cost](../get-started/references/cloud.md#cost)); above `--confirm-above` the script waits for
    `--yes`.
 4. **Start**: `python3 optimize.py start --request <file> --cases <file> --model <model>`. It splits
    the cases 70 / 30 by a hash of the id (same split as `check`), scores the current wording on dev,
@@ -58,7 +59,7 @@ Shared material: [API reference](../start/references/api.md),
       [diagnose](../questions/references/diagnose.md)).
    3. Write **one candidate** as a new versioned file next to the old one (`intent.v2.request.json`),
       adding **one rule per group** ([writing rules](references/writing-rules.md)). Run the
-      [pre-send checklist](../start/references/checklist.md) on it.
+      [pre-send checklist](../get-started/references/checklist.md) on it.
    4. `python3 optimize.py try --candidate <new file> --rule "<group>: <rule>"` (once per rule). The
       script keeps it only if it is better on dev; on a tie, the shorter wording stays.
 6. **Stop** at the round limit, or after two rounds with no gain.

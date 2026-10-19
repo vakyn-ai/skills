@@ -1,0 +1,62 @@
+schema_version: "1.0"
+name: train-request-proposal
+tags: [train-request]
+runs: 1
+context:
+  add_dirs: [fixtures]
+execution:
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    We route our bank's support messages with VAKYN (the request, our labeled messages and the optimize
+    report are in the extra working directory you were given). We tuned the wording already but we
+    need it better before we switch. We get about 3,000 messages a day, need 95% right on what's routed
+    automatically, it must run in the EU (messages have personal data), and we have about 1,500 labeled
+    messages we could share under a DPA. Write the training request for VAKYN and save it in the current
+    folder as vakyn-proposal.md.
+graders:
+  - name: file
+    type: file_exists
+    path: "vakyn-proposal.md"
+  - name: results-from-file
+    type: llm
+    focus:
+      source: file
+      path: "vakyn-proposal.md"
+    criteria: |
+      Judge only this one point. The optimize report, on vakyn-fast, contains exactly these numbers:
+      reserved 13 of 20 (0.650) before tuning and 17 of 20 (0.850) after; dev 21 of 44 (0.477) before
+      and 42 of 44 (0.955) after; 64 cases (44 dev, 20 reserved); 128 model calls. Numbers derived from
+      them (for example 3 of 20 still wrong) are allowed too.
+      PASS if the proposal reports the reserved results (counts or rates) and names the report as the
+      source. FAIL if the reserved results are missing or wrong, or if it states an accuracy, count or
+      rate as measured that is not in the list above and cannot be computed from it.
+  - name: no-raw-records
+    type: llm
+    focus:
+      source: file
+      path: "vakyn-proposal.md"
+    criteria: |
+      Judge only this one point. The labeled file contains messages such as "I lost my debit card on
+      the train this morning. Please block it." and "There's a payment of 89.99 to a shop called
+      NOVAMART that I never made."
+      PASS if any example messages in the proposal are clearly made up (not copied or lightly edited from
+      real-looking records such as those) and are marked as made-up or invented. A proposal with no
+      example messages also passes. FAIL if it copies messages from the labeled file.
+  - name: setting
+    type: llm
+    focus:
+      source: file
+      path: "vakyn-proposal.md"
+    criteria: |
+      Judge only this one point.
+      PASS if the proposal states the volume (about 3,000 a day), the target (95% right on what is routed
+      automatically), the EU / personal-data constraint and the ~1,500 labeled messages shareable under a
+      DPA. FAIL if any of the four is missing.
+  - name: not-sent
+    type: llm
+    criteria: |
+      Judge only this one point; ignore everything else in the answer.
+      PASS if the final message says the person should read the proposal and send it themselves (contact
+      form or email), and does not claim it was sent. FAIL otherwise.

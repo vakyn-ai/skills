@@ -48,25 +48,36 @@ install or run.
    input token; output is free and errors cost nothing. Prices: [vakyn.com/docs/models](https://vakyn.com/docs/models).
 3. Create a key under [API keys](https://vakyn.com/console/keys). It starts with `vk_` and is shown once.
 
-Put it in your environment, or in a git-ignored `.env` file:
+Save it once, in a file only you can read, so every project, script and skill finds it:
 
 ```bash
-export VAKYN_API_KEY=vk_...
-export VAKYN_BASE_URL=https://api.vakyn.com
+mkdir -p ~/.config/vakyn && umask 077 && cat > ~/.config/vakyn/env <<'ENV'
+VAKYN_BASE_URL=https://api.vakyn.com
+VAKYN_API_KEY=paste-your-key-here
 # the official TypeSafe SDKs, used in generated code, read their own names:
-export TYPESAFE_API_KEY=vk_...
-export TYPESAFE_BASE_URL=https://api.vakyn.com
+TYPESAFE_BASE_URL=https://api.vakyn.com
+TYPESAFE_API_KEY=paste-your-key-here
+ENV
 ```
 
-Not sure where to start? Ask your agent `I want to try VAKYN, what do I do?` and the `start`
-skill walks you through it. More in the [quickstart](https://vakyn.com/docs/quickstart).
+Paste your key into `~/.config/vakyn/env` in your editor (never into the chat), then load it in
+every new terminal with this line in `~/.zshrc` or `~/.bashrc`:
+
+```bash
+[ -f ~/.config/vakyn/env ] && set -a && . ~/.config/vakyn/env && set +a
+```
+
+Windows, and a different key per project: [the get-started skill's key guide](skills/get-started/references/cloud.md#save-the-key).
+
+Not sure where to start? Ask your agent `I want to try VAKYN, what do I do?` and the
+`get-started` skill walks you through it: console, balance, key, first call. More in the [quickstart](https://vakyn.com/docs/quickstart).
 
 ## Run it on your own servers
 
 When your data can't leave your network, run the open models with the free
 open-server: your servers, your country, your rules.
 It serves the same API, so switching is one line: the base URL and the key. Ask your agent
-`Set up VAKYN on our own server` (the `start` skill picks the model file for your hardware), or
+`Set up VAKYN on our own server` (the `get-started` skill picks the model file for your hardware), or
 read [vakyn.com/docs/self-hosting](https://vakyn.com/docs/self-hosting).
 
 ## Try it
@@ -110,7 +121,7 @@ Next: run the convert skill on the routing spot, then test it with the check ski
 
 | | Skill | What it does |
 |---|---|---|
-| **Start** | `start` | Checks if VAKYN fits, gets you a VAKYN Cloud key (or sets up your own server), makes a first call. |
+| **Start** | `get-started` | Gets you going on VAKYN Cloud: console, balance, key saved on your machine, a first call. Checks if VAKYN fits. |
 | **Find** | `research` | Finds the decisions in your app or process and ranks them in `vakyn-research.md`. Changes nothing. |
 | **Build** | `questions` | Picks `noul`, `choice` or `score`, writes options and levels, fixes a bad answer. |
 | | `convert` | Turns a prompt or a tool list (OpenAI, Anthropic, MCP) into VAKYN calls and Python or TypeScript code. |
@@ -122,6 +133,7 @@ Next: run the convert skill on the routing spot, then test it with the check ski
 | | `migrate` | Moves code from other decision APIs to VAKYN Cloud (or your own server) and points framework adapters at it. |
 | **Prove** | `check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
 | | `optimize` | Tunes a question's wording from your labeled cases: groups the mistakes, adds one rule per kind, keeps a rewrite only if it scores better, confirms on cases it never saw. |
+| **Train** | `train-request` | Looks at your setup and results and writes `vakyn-proposal.md`: what VAKYN should be trained on for your use case. You read it and send it to us. |
 
 A typical path:
 
@@ -129,6 +141,7 @@ A typical path:
 2. `convert`, `workflow`, `cascade` or `judge` builds it; `batch` runs it over what you already have.
 3. `check` proves it on your data before you switch, and again after every change.
 4. `optimize` rewrites a question's wording from the mistakes in your labeled cases, when accuracy is short.
+5. `train-request` asks us to train VAKYN on your decisions when wording is not enough: the VAKYN loop.
 
 ## What the skills always do
 
@@ -163,8 +176,8 @@ API details: [vakyn.com/docs/api](https://vakyn.com/docs/api).
 
 - Claude Code, Codex, Cursor or OpenCode.
 - A VAKYN Cloud API key ([get one](#get-a-key)). Or your own
-  open-server ([self-hosting docs](https://vakyn.com/docs/self-hosting)) with a model file and a key; the `start`
-  skill sets it up.
+  open-server ([self-hosting docs](https://vakyn.com/docs/self-hosting)) with a model file and a key; the
+  `get-started` skill sets it up.
 
 <details>
 <summary><strong>Update</strong></summary>
@@ -182,7 +195,7 @@ claude plugin update vakyn@vakyn-ai
 <summary><strong>Other coding agents: details</strong></summary>
 
 The skills land in `.agents/skills/`, which Codex, Cursor and OpenCode all read. Add `-g` for
-every project. Install all of them: they link to each other. Their folder names are short (`start`, `check`, `convert`…); if another skill already uses one of those names, install into a separate project or rename it there. Update with `npx skills update -y`,
+every project. Install all of them: they link to each other. Their folder names are short (`get-started`, `check`, `convert`…); if another skill already uses one of those names, install into a separate project or rename it there. Update with `npx skills update -y`,
 remove with `npx skills remove --all`. Details: [docs/install-other-agents.md](docs/install-other-agents.md).
 Want another agent? Open an issue and say which.
 

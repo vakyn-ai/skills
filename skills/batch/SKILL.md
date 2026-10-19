@@ -11,8 +11,8 @@ through VAKYN and writes the answers next to the data: pilot first, then the ful
 resume, progress and a review file for unsure rows.
 
 The files in [examples/](examples/) are templates to adapt, not tools to run from the plugin.
-Shared material: [API reference](../start/references/api.md), [SDK guide](../start/references/sdk.md),
-[pre-send checklist](../start/references/checklist.md),
+Shared material: [API reference](../get-started/references/api.md), [SDK guide](../get-started/references/sdk.md),
+[pre-send checklist](../get-started/references/checklist.md),
 [thresholds](../check/references/thresholds.md#starting-values-and-sample-sizes) (the
 starting values for `unsure`).
 
@@ -37,7 +37,7 @@ starting values for `unsure`).
    personal data, by name ("`guest_email` is personal data; not sent"), and leave them out unless
    a question needs them and the person agrees. Replace emails and phone
    numbers in free text in code. Say what leaves the process: which columns, to where.
-3. **Write one row's request**, run the [checklist](../start/references/checklist.md), save it as
+3. **Write one row's request**, run the [checklist](../get-started/references/checklist.md), save it as
    a `.json` file next to the script. Independent questions share one request per row.
 4. **Write the script** in the project's language from the template. It must have every part in
    [script parts](references/script.md): bounded concurrency (8; on VAKYN Cloud under 60
@@ -46,7 +46,7 @@ starting values for `unsure`).
    columns, `unsure`, a review file, and a summary.
 5. **Send the plan message** ([plan](references/plan.md#3-the-plan-message)) and wait for a yes.
    On VAKYN Cloud it includes the cost estimate: rows × input tokens per row × the price from
-   `GET /v1/models` ([cost](../start/references/cloud.md#cost)).
+   `GET /v1/models` ([cost](../get-started/references/cloud.md#cost)).
 6. **Pilot**: 30 rows spread over the data. Show every row's answers, the unsure ones, the time
    per row and the projected full-run time. Fix questions that misbehave and pilot again.
 7. **Stop and ask** before the full run, with the cost from the pilot's measured

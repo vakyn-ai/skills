@@ -16,7 +16,7 @@ Keep out: the retrieval scores, the system prompt, the model name, any note that
 fine". Those are conclusions, not evidence ([state](../../questions/references/state.md)).
 
 **Sources must fit.** State plus the longest question stays under 32,768 tokens; over it the server
-answers `400` and cuts nothing ([limits](../../start/references/api.md)). Trim in code **before**
+answers `400` and cuts nothing ([limits](../../get-started/references/api.md)). Trim in code **before**
 drafting: keep sources in retrieval order while they fit a budget (the templates use 24,000 tokens
 at about 4 characters per token, leaving room for the question, draft and claims). Then the
 cheap model, the expensive model and the check all see the same sources. A document longer than

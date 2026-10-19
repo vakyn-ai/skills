@@ -11,7 +11,7 @@ each step becomes a node or a job with the same insides. Template:
 |---|---|
 | Typed records | a dataclass, Pydantic model, TypeScript type or Zod schema for the case and for what passes between steps (`Case`, `Result`) |
 | One function per step | `run_case()` calls them in the map's order; each early stop is a `return` |
-| VAKYN requests | built from constants; independent questions about the same evidence share one request ([batching](../../workflow/references/batching.md)); each passes the [checklist](../../start/references/checklist.md) and is saved as a `.json` file |
+| VAKYN requests | built from constants; independent questions about the same evidence share one request ([batching](../../workflow/references/batching.md)); each passes the [checklist](../../get-started/references/checklist.md) and is saved as a `.json` file |
 | Code steps | dates, counts, equality, the order of outcomes; exact, tested like any code |
 | Agent steps | small: one or two tools, a fixed output schema, a timeout; stubbed in examples and tests |
 | Settings | thresholds in one versioned block or file; a changed number is a new version |

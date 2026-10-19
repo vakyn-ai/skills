@@ -35,7 +35,7 @@ size (`--max-queue`, default 32) on open-server. Over it, VAKYN answers `429` wi
 `maxRetries` for big batches). A record that still fails with `429` is kept for a later pass, never
 dropped. Raise the client timeout (30 s in the examples) on CPU or with long states. On VAKYN
 Cloud a big batch spends the person's balance: estimate it first
-([cost](../../start/references/cloud.md#cost)) and ask, or hand it to the `batch` skill.
+([cost](../../get-started/references/cloud.md#cost)) and ask, or hand it to the `batch` skill.
 
 ## Never
 

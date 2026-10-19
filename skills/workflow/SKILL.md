@@ -10,9 +10,9 @@ happens to it"). You turn it into a working decision workflow: the questions, a 
 (what evidence, from where), the code, and what happens when VAKYN is unsure. Start from the
 closest of thirteen patterns; each has a request and code that were run against a VAKYN 4B.
 
-Shared material: [fit check](../start/references/fit-check.md),
-[API reference](../start/references/api.md), [SDK guide](../start/references/sdk.md),
-[pre-send checklist](../start/references/checklist.md), and the `questions` rules for
+Shared material: [fit check](../get-started/references/fit-check.md),
+[API reference](../get-started/references/api.md), [SDK guide](../get-started/references/sdk.md),
+[pre-send checklist](../get-started/references/checklist.md), and the `questions` rules for
 writing each question.
 
 ## Pick the pattern
@@ -41,7 +41,7 @@ existing prompt or tool-calling app is the `convert` skill.
 
 ## Steps
 
-1. **Fit check.** Run the [fit check](../start/references/fit-check.md) on the task. Split off
+1. **Fit check.** Run the [fit check](../get-started/references/fit-check.md) on the task. Split off
    the parts that write text and the parts code can do exactly.
 2. **Pick the pattern(s)** from the table. Read the pattern page and open its example request
    and code. Most tasks are one pattern, or two [composed](references/compose.md).
@@ -64,7 +64,7 @@ existing prompt or tool-calling app is the `convert` skill.
 7. **Add the unsure path** for every decision ([unsure](references/unsure.md)): a threshold as a
    named setting, and where unsure answers and escape options go (a person, a chat model, a
    review queue, a safe default).
-8. **Run the [checklist](../start/references/checklist.md)** on every request. Save each request
+8. **Run the [checklist](../get-started/references/checklist.md)** on every request. Save each request
    as a `.json` file next to the code.
 9. **Send and test.** If VAKYN is reachable, send each request and show the real answers.
    Then point to the `check` skill for a test on about 30 of the person's own records

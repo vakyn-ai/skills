@@ -10,7 +10,7 @@ on the person's own records, how they compare with the chat model in use today, 
 threshold for unsure answers, and what the code needs before production.
 
 Write small scripts **into the person's project**, in their language (Python or TypeScript, with
-the official SDK; see the [SDK guide](../start/references/sdk.md)). The files in
+the official SDK; see the [SDK guide](../get-started/references/sdk.md)). The files in
 [examples/](examples/) are templates to adapt, not tools to run from these skills.
 
 ## Pick the step
@@ -44,7 +44,7 @@ question change, replay and promotion after every rule or threshold change.
    these"); redact personal data in code before anything is sent.
 4. Same evidence and the same options (escape option included) for both, by default. Their
    production prompt as it is can be an extra column. Run the
-   [pre-send checklist](../start/references/checklist.md).
+   [pre-send checklist](../get-started/references/checklist.md).
 5. Run it, stop at the sample size, keep every answer in a results file.
 6. Report agreement, accuracy against labels when they exist, every disagreement side by side,
    every unsure answer, measured time per call, chat-model cost and, on VAKYN Cloud, VAKYN's input
@@ -95,13 +95,13 @@ A plan or report for a drift check always says, in plain words:
    trust, each stored with model name, model file, question text hash and request id (so a later
    run shows what changed).
 2. **Concurrency 1 or 2** for the save and every re-run, and why: under concurrent load numbers can
-   move slightly between runs ([measured](../start/references/api.md)).
+   move slightly between runs ([measured](../get-started/references/api.md)).
 3. **Noise tolerance** (0.05): smaller moves with the same pick are not drift.
 4. **Report**: picks changed, mean change, threshold crossings, picks per option, changed records
    biggest first; pass or fail against limits the person sets.
 5. **When**: after any change to model, model file, server, question text or state builder, and in
    CI on pull requests that touch questions (key from a secret). On VAKYN Cloud each run of the
-   batch spends balance: estimate it ([cost](../start/references/cloud.md#cost)) and agree how
+   batch spends balance: estimate it ([cost](../get-started/references/cloud.md#cost)) and agree how
    often CI runs it.
 
 Details: [drift check](references/drift.md). Template: [drift.py](examples/drift.py),
@@ -142,4 +142,4 @@ item, status and fix, then the code changes.
 - **Measure, never guess.** Times and costs come from this run, with where it ran named (VAKYN
   Cloud, or the machine). VAKYN not reachable, no numbers: write the script and say how to run it.
 - **Keys stay out of the chat and out of code.** A key found in code or a log is named by where it
-  is (file and line), never repeated in the reply. See the `start` skill rules.
+  is (file and line), never repeated in the reply. See the `get-started` skill rules.

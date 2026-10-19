@@ -47,7 +47,7 @@ available, say so and add a `not_enough_evidence` option instead of guessing.
 ## 4. The code
 
 Python or TypeScript, whichever the project uses, with the official SDK
-([SDK guide](../../start/references/sdk.md)). Start from the closest pattern's example. Every
+([SDK guide](../../get-started/references/sdk.md)). Start from the closest pattern's example. Every
 design has:
 
 - the options and levels as named constants, shared by the request and the checks;

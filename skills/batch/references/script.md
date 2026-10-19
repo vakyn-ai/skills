@@ -1,7 +1,7 @@
 # The batch script: what every part does
 
 Write the script into the person's project (for example `scripts/vakyn_batch.py`), in their
-language, with the official SDK ([SDK guide](../../start/references/sdk.md)). Start from
+language, with the official SDK ([SDK guide](../../get-started/references/sdk.md)). Start from
 [batch_csv.py](../examples/batch_csv.py) for files and [batch_sql.py](../examples/batch_sql.py) for
 tables. Each part below is in both.
 
@@ -10,7 +10,7 @@ tables. Each part below is in both.
 Independent questions about the same row (team, refund, urgency) share one request: the state is
 read once. A question that needs another's answer goes in a second request for the rows that need
 it. Never put several rows in one state. See [batching](../../workflow/references/batching.md).
-Run the [pre-send checklist](../../start/references/checklist.md) on one row's request and save it
+Run the [pre-send checklist](../../get-started/references/checklist.md) on one row's request and save it
 as a `.json` file next to the script ([ticket-row.request.json](../examples/ticket-row.request.json)).
 
 ## Bounded concurrency

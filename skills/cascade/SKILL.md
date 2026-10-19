@@ -11,8 +11,8 @@ do not need the expensive model. This skill puts a cheap model in front, has VAK
 draft against the sources it should rest on, and sends only the drafts that fail to the expensive
 model, then to a person. VAKYN decides; both chat models still write.
 
-Shared material: [API reference](../start/references/api.md), [SDK guide](../start/references/sdk.md),
-[pre-send checklist](../start/references/checklist.md), the `questions` rules for
+Shared material: [API reference](../get-started/references/api.md), [SDK guide](../get-started/references/sdk.md),
+[pre-send checklist](../get-started/references/checklist.md), the `questions` rules for
 [options](../questions/references/options-and-levels.md) and
 [state](../questions/references/state.md), and the single page for
 [threshold starting values](../check/references/thresholds.md#starting-values-and-sample-sizes).
@@ -54,7 +54,7 @@ Shared material: [API reference](../start/references/api.md), [SDK guide](../sta
 7. **Check it runs**: `python3 -m py_compile`, `npx tsc --noEmit`; with VAKYN reachable, run
    the template's `--demo` (canned drafts, real VAKYN answers) and send the saved request.
 8. **Hand over**: what changed (nothing for users until they switch), the pilot's extra cost
-   (VAKYN's too on VAKYN Cloud: [cost](../start/references/cloud.md#cost)),
+   (VAKYN's too on VAKYN Cloud: [cost](../get-started/references/cloud.md#cost)),
    how to read the log with [cost_summary.py](examples/cost_summary.py), and that a person
    spot-checks accepted drafts before `CASCADE_MODE=cascade`.
 

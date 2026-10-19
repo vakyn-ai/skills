@@ -15,10 +15,10 @@ The default target is **VAKYN Cloud** (`https://api.vakyn.com`, a key from
 URL and the key. The target is their **own open-server** when they ask for it or their data
 cannot leave their network; then the base URL is their server's.
 
-Target shape: [API reference](../start/references/api.md). SDKs: [SDK guide](../start/references/sdk.md).
-Key and settings: [VAKYN Cloud](../start/references/cloud.md), or
-[self-hosting](../start/references/self-hosting.md). Every request passes the
-[pre-send checklist](../start/references/checklist.md).
+Target shape: [API reference](../get-started/references/api.md). SDKs: [SDK guide](../get-started/references/sdk.md).
+Key and settings: [VAKYN Cloud](../get-started/references/cloud.md), or
+[self-hosting](../get-started/references/self-hosting.md). Every request passes the
+[pre-send checklist](../get-started/references/checklist.md).
 
 ## Pick the step
 
@@ -31,7 +31,7 @@ Key and settings: [VAKYN Cloud](../start/references/cloud.md), or
 | Asks what will be different | [Differences](references/differences.md) |
 | Is ready to compare, switch or plan a rollback | [Side by side, switch, roll back](references/switch.md) |
 | Uses a service or field not covered here | Read their code and the provider's current docs, or ask ([below](#unverified-sources)) |
-| Has no VAKYN key yet | the `start` skill first |
+| Has no VAKYN key yet | the `get-started` skill first |
 | Has a chat-model prompt or tool-calling app, not a decision API | the `convert` skill |
 
 ## Steps
@@ -90,8 +90,8 @@ newer API version):
 - **Ask before data leaves the machine or money is spent.** Replaying requests against a hosted
   service, the old one or VAKYN Cloud, costs money and sends data out; prefer old answers from
   their logs. VAKYN Cloud cost: input tokens × the price from `GET /v1/models`
-  ([cost](../start/references/cloud.md#cost)); never a price from memory.
-- **Keys stay out of the chat and out of code.** See the `start` skill rules.
+  ([cost](../get-started/references/cloud.md#cost)); never a price from memory.
+- **Keys stay out of the chat and out of code.** See the `get-started` skill rules.
 - **Measure, never guess.** Agreement and times come from the person's run, with where it ran
   named. VAKYN not reachable, no numbers: write the script and the commands to run it.
 - **Keep the way back.** Old settings stay one change away until the person retires them.

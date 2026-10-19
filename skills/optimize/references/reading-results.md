@@ -60,6 +60,8 @@ each new look leaks a little, so add fresh labeled cases to it over time.
 - Model calls used, and on VAKYN Cloud the cost estimate the person agreed to.
 - What would make the result stronger: more labeled cases, more reserved cases, one more option
   that is rare in the labels.
+- Still short of the target after tuning: the misses wording cannot fix are what the VAKYN loop
+  trains on. The `train-request` skill writes that request from this report.
 
 Never report a score that the script did not print. If the run did not happen (no key, no
 server), say what to run and stop.

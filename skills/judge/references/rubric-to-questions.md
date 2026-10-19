@@ -45,7 +45,7 @@ these two descriptions moved held-out agreement on `next_step` from 6 of 12 to 1
 - Agent runs: put the final answer in `output` and the tool calls and results that matter in
   `steps` (a list). Long traces: keep the steps the criterion is about
   ([state](../../questions/references/state.md), size limits in the
-  [API reference](../../start/references/api.md)).
+  [API reference](../../get-started/references/api.md)).
 
 ## 3. One output per request, every criterion in it
 

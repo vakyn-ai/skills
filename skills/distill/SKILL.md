@@ -15,8 +15,8 @@ as fallback.
 
 **VAKYN decides what a thing is; code decides what follows.**
 
-Shared material: [pre-send checklist](../start/references/checklist.md),
-[SDK guide](../start/references/sdk.md), the `questions` rules, the `workflow`
+Shared material: [pre-send checklist](../get-started/references/checklist.md),
+[SDK guide](../get-started/references/sdk.md), the `questions` rules, the `workflow`
 patterns, and the `check` pages for
 [thresholds](../check/references/thresholds.md#starting-values-and-sample-sizes),
 [replay](../check/references/replay.md) and [tuning](../check/references/tuning.md).
@@ -98,6 +98,6 @@ while looking at them, so this proves the plumbing, not the accuracy.
 - **Never invent numbers.** Costs, rates and savings come from traces, records and labels, with
   their source; chat-model prices from the person, VAKYN Cloud prices from `GET /v1/models`.
 - **Ask before each stage's traffic.** On VAKYN Cloud every case the program decides spends
-  balance; estimate each stage's cost ([cost](../start/references/cloud.md#cost)) and keep under
+  balance; estimate each stage's cost ([cost](../get-started/references/cloud.md#cost)) and keep under
   60 requests per second per key.
-- **Keys stay out of the chat and out of files** (see the `start` skill rules).
+- **Keys stay out of the chat and out of files** (see the `get-started` skill rules).

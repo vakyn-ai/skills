@@ -10,8 +10,8 @@ rubric, written or in their head. This skill turns the rubric into VAKYN questio
 output in one request, checks the grades against the person's experts, and wires the grader into
 CI and monitoring. VAKYN grades; it does not write or fix the output.
 
-Shared material: [API reference](../start/references/api.md),
-[SDK guide](../start/references/sdk.md), [pre-send checklist](../start/references/checklist.md),
+Shared material: [API reference](../get-started/references/api.md),
+[SDK guide](../get-started/references/sdk.md), [pre-send checklist](../get-started/references/checklist.md),
 question rules in the `questions` skill
 ([question types](../questions/references/question-types.md),
 [options and levels](../questions/references/options-and-levels.md),
@@ -46,7 +46,7 @@ monitoring on every trace → re-run alignment when the rubric changes.
    Pairwise: a `choice` over the two, asked in both orders, combined in code.
 5. **Verdict in code**: every must-pass criterion passes, then a weighted score over all of them.
    A must-pass criterion in the unsure band means "a person grades it", never a pass.
-6. **Run the [checklist](../start/references/checklist.md)** and write each request as a `.json`
+6. **Run the [checklist](../get-started/references/checklist.md)** and write each request as a `.json`
    file (the literal JSON, so the person can read it and send it with curl). Send it if VAKYN is
    reachable and show the real answers.
 7. **Align with the experts** before trusting the grades: agreement per criterion on held-out
@@ -54,7 +54,7 @@ monitoring on every trace → re-run alignment when the rubric changes.
 8. **Wire it in**: pytest or promptfoo in CI, Langfuse scores on every trace
    ([CI and monitoring](references/ci-and-monitoring.md)). On VAKYN Cloud every graded output
    spends balance: before grading a set, a CI suite or every trace, estimate it (outputs × input
-   tokens per request × the price from `GET /v1/models`, [cost](../start/references/cloud.md#cost))
+   tokens per request × the price from `GET /v1/models`, [cost](../get-started/references/cloud.md#cost))
    and ask. Keep under 60 requests per second per key.
 
 ## Examples

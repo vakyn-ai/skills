@@ -2,7 +2,7 @@
 
 Write the change into the person's own file, in their language, with the official SDK
 (`typesafe-sdk` for Python, `@typesafe-ai/sdk` for TypeScript; see the
-[SDK guide](../../start/references/sdk.md)). Start from the closest template:
+[SDK guide](../../get-started/references/sdk.md)). Start from the closest template:
 
 - Python, OpenAI SDK app: [tool_pick_openai.py](../examples/tool_pick_openai.py)
 - TypeScript, Anthropic SDK app: [tool_pick_anthropic.ts](../examples/tool_pick_anthropic.ts)
@@ -98,7 +98,7 @@ one record share the `request_id`. When VAKYN fails, write the lines with `null`
 ## Checks before you hand over
 
 - The file parses: `python3 -m py_compile app.py`, or `npx tsc --noEmit` for TypeScript.
-- The saved request passes the [checklist](../../start/references/checklist.md).
+- The saved request passes the [checklist](../../get-started/references/checklist.md).
 - With VAKYN reachable, run one turn and show VAKYN's pick next to the request. The templates'
   `--dry` flag runs VAKYN alone, without a chat-model key.
 - The person knows the default is side by side and how to switch.

@@ -18,7 +18,7 @@ Number the steps as written ("Step 1: read the email"). Use those numbers as the
 
 ## 2. Sort each step
 
-Apply [fit-check.md](../../start/references/fit-check.md) to each step:
+Apply [fit-check.md](../../get-started/references/fit-check.md) to each step:
 
 | The step | Mark |
 |---|---|

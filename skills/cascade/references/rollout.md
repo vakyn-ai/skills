@@ -99,6 +99,6 @@ requests for the cascade against always-expensive, the saving, and the break-eve
   longer or harder than average; say so.
 - VAKYN's own cost is not in the number; name it as a separate line. On VAKYN Cloud it is the
   input tokens of the check and comparison requests × the price from `GET /v1/models`
-  ([cost](../../start/references/cloud.md#cost)); on the person's own server, their hardware.
+  ([cost](../../get-started/references/cloud.md#cost)); on the person's own server, their hardware.
 - The demo log is built to show every route (4 of 7 escalate). Its shares say nothing about a real
   pipeline; only the person's pilot does.
