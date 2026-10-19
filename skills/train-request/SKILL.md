@@ -1,6 +1,6 @@
 ---
 name: train-request
-description: "Write a training request for the VAKYN loop: look at the person's app, their VAKYN questions and results on their own data, find where VAKYN is still wrong or unsure after the wording is tuned, and write a short proposal (vakyn-proposal.md) the person sends to VAKYN, saying what VAKYN should be trained on for their use case. Use when someone asks for a custom model, to train or adapt VAKYN on their decisions, to improve accuracy beyond wording, what to send VAKYN to get it trained, or how to contact VAKYN about their use case. Wording fixes first: optimize. Finding decisions first: research."
+description: "Write a training request for the VAKYN loop: look at the person's app, their VAKYN questions and results on their own data, find where VAKYN is still wrong or unsure after the wording is tuned, write a short proposal of what VAKYN should be trained on for their use case, and, after the person reads it and says yes, send it to VAKYN with their API key (POST /v1/training-requests) and follow its status. Use when someone asks for a custom model, to train or adapt VAKYN on their decisions, to improve accuracy beyond wording, what to send VAKYN to get it trained, or how to contact VAKYN about their use case. Wording fixes first: optimize. Finding decisions first: research."
 ---
 
 # VAKYN train-request: ask for VAKYN trained on your work
@@ -9,7 +9,8 @@ The person uses VAKYN (or plans to) and it is not yet right enough on some of th
 VAKYN improves through **the loop**: measure it on the person's cases, find the cases it gets
 wrong or is unsure about, train exactly there, and measure again on the same cases. This skill
 prepares the person's side of the loop: it looks at their setup, gathers what VAKYN would need to
-know, and writes a proposal **the person reads and sends themselves**. It sends nothing.
+know, writes a proposal, and sends it **only after the person reads it and says yes**, through the
+training-requests API with their own key. They follow it in the console.
 
 Shared material: [research](../research/SKILL.md) (finding decisions),
 [optimize](../optimize/SKILL.md) (wording first), [check](../check/SKILL.md) (measuring on their
@@ -24,6 +25,7 @@ data), [VAKYN Cloud](../get-started/references/cloud.md).
 | Has measured and tuned, and is still short on some decisions | [What to collect](references/collect.md), then [the proposal](references/proposal.md) |
 | Asks what happens to their data, or what to share | [Privacy](references/proposal.md#privacy) |
 | Has a proposal ready | [Send it](#send-it) |
+| Asks what happened to a request they sent | `send_request.py status` ([API](references/api.md#follow-it)) |
 
 ## Steps
 
@@ -41,28 +43,37 @@ data), [VAKYN Cloud](../get-started/references/cloud.md).
 4. **Ask what is missing** in one short round: what a right answer is worth or a wrong one costs,
    the accuracy they need, volume, how fast an answer must come, where it must run (VAKYN Cloud or
    their own servers, region), and how many labeled cases they could share and under what terms.
-5. **Write `vakyn-proposal.md`** from the [template](references/proposal.md), in the person's
-   project. No raw records, no personal data, no keys, no internal code: describe the decisions and
-   use short **made-up examples** that show the pattern. Under 5,000 characters, so it fits the
-   contact form.
-6. **Show it and stop.** The person reads every line and decides what to send. Point out anything
-   that may be confidential (customer names, product names, volumes) so they can cut it.
+5. **Write two files** in the person's project: `vakyn-proposal.md` from the
+   [template](references/proposal.md), and `training-request.json`, the same content in the
+   [API's fields](references/api.md#send) with the whole proposal in `proposal_markdown`. No raw
+   records, no personal data, no keys, no internal code: describe the decisions, and give short
+   **made-up examples** (`made_up: true`). Keep the proposal under 5,000 characters, so the
+   contact-form fallback still works.
+6. **Check, show, ask.** Copy [send_request.py](examples/send_request.py) into their project; run
+   `check`, then `show`. The person reads every line; point out anything that may be confidential
+   (customer or product names, volumes) so they can cut it. Ask: "Send this to VAKYN?"
 
 ## Send it
 
-The person sends it, not you:
+Only after a clear yes to the request as shown:
 
-- the [contact form](https://vakyn.com/contact), topic **Test it on your data**, with the proposal
-  pasted as the message; or
-- email to the address on the contact page, with `vakyn-proposal.md` attached.
+1. `python3 send_request.py status` first: the same use case may already be with VAKYN.
+2. `python3 send_request.py send training-request.json --yes`. On `201`, give the person the console
+   link (`vakyn.com/console/training/tr_…`); VAKYN replies there. A `422` lists the fields to fix:
+   fix, show again, ask again. Other answers: [API](references/api.md#answers).
+3. Later: `python3 send_request.py status [id]` shows the status, any quote and VAKYN's messages.
+
+**Fallback** (no key, self-hosted only, or the API is not there): the person pastes
+`vakyn-proposal.md` into the [contact form](https://vakyn.com/contact), topic **Test it on your
+data**, or emails it.
 
 The labeled cases themselves are shared later, only after VAKYN replies and the terms are agreed
-(a DPA for GDPR, a BAA for HIPAA when needed). The proposal only says how many exist and what they
-look like.
+(a DPA for GDPR, a BAA for HIPAA when needed), never in the request.
 
 ## Rules
 
-- **Send nothing.** No form posts, no emails, no uploads from the agent. The person sends.
+- **Send only with a yes, only through the API.** Show the exact request first; no yes, nothing
+  is sent. Never post the contact form, send email or upload files for the person.
 - **No data leaves in the proposal.** Made-up examples only; counts and rates from their files;
   redact names of customers, people and internal systems unless the person asks to keep them.
 - **Never invent results.** Every accuracy, count or rate comes from a file in their project, named

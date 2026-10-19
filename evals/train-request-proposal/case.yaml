@@ -14,11 +14,23 @@ execution:
     need it better before we switch. We get about 3,000 messages a day, need 95% right on what's routed
     automatically, it must run in the EU (messages have personal data), and we have about 1,500 labeled
     messages we could share under a DPA. Write the training request for VAKYN and save it in the current
-    folder as vakyn-proposal.md.
+    folder (the proposal as vakyn-proposal.md, plus what the skill sends). Don't send anything yet.
 graders:
   - name: file
     type: file_exists
     path: "vakyn-proposal.md"
+  - name: request-file
+    type: file_exists
+    path: "training-request.json"
+  - name: request-made-up
+    type: llm
+    focus:
+      source: file
+      path: "training-request.json"
+    criteria: |
+      Judge only this one point. This is the JSON body for POST /v1/training-requests.
+      PASS if it has schema_version 1, a title, a decision, at least one question named intent of type
+      choice, a contact object, and every entry in examples (if any) has "made_up": true. FAIL otherwise.
   - name: results-from-file
     type: llm
     focus:
@@ -58,5 +70,5 @@ graders:
     type: llm
     criteria: |
       Judge only this one point; ignore everything else in the answer.
-      PASS if the final message says the person should read the proposal and send it themselves (contact
-      form or email), and does not claim it was sent. FAIL otherwise.
+      PASS if the final message does not claim anything was sent, and says the person should read the
+      request before it is sent (through the VAKYN API with their key, or the contact form). FAIL otherwise.

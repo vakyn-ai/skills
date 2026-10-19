@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "title": "Routing bank support messages to the right team",
+  "decision": "Every customer message goes to one of five teams or a general queue. It is routed when confidence is 0.8 or more, and goes to a person below that.",
+  "runs_on": {
+    "where": "cloud",
+    "region": "EU"
+  },
+  "model": "vakyn-fast",
+  "questions": [
+    {
+      "name": "intent",
+      "type": "choice",
+      "instructions": "Which team code fits what the customer in the message wants?",
+      "options": {
+        "CRD": "the card itself: lost, stolen, blocked, declined, replaced, PIN",
+        "DSP": "a payment the customer wants reversed or questions",
+        "TRF": "sending or receiving money, payees, account numbers",
+        "FEE": "what the bank charges and why",
+        "ACC": "signing in, app problems, personal details",
+        "OTH": "anything else"
+      },
+      "state": "message: the customer's message; English; one to three sentences"
+    }
+  ],
+  "examples": [
+    {
+      "question": "intent",
+      "input": "My card was used in two shops abroad but it is still in my pocket.",
+      "answer": "DSP",
+      "made_up": true
+    },
+    {
+      "question": "intent",
+      "input": "What do you charge to send a new card by courier?",
+      "answer": "FEE",
+      "made_up": true
+    },
+    {
+      "question": "intent",
+      "input": "The card reader says my card is not valid since this morning.",
+      "answer": "CRD",
+      "made_up": true
+    }
+  ],
+  "results": [
+    {
+      "question": "intent",
+      "set": "reserved",
+      "stage": "before_tuning",
+      "cases": 20,
+      "right": 13,
+      "metric": "accuracy",
+      "value": 0.65,
+      "source": "optimize-run/report.md"
+    },
+    {
+      "question": "intent",
+      "set": "reserved",
+      "stage": "after_tuning",
+      "cases": 20,
+      "right": 17,
+      "metric": "accuracy",
+      "value": 0.85,
+      "source": "optimize-run/report.md"
+    }
+  ],
+  "losing_cells": [
+    {
+      "question": "intent",
+      "kind": "DSP -> CRD",
+      "count": 1,
+      "of": 44,
+      "note": "card-detail fraud where the customer still has the card (dev set)"
+    },
+    {
+      "question": "intent",
+      "kind": "FEE -> CRD",
+      "count": 1,
+      "of": 44,
+      "note": "the price of a card service (dev set)"
+    }
+  ],
+  "needs": {
+    "target": "95% right among messages routed automatically, at most 20% sent to a person",
+    "volume": "about 4,000 messages a day, peaks of 600 an hour",
+    "latency": "2 seconds",
+    "value": "a wrongly routed fraud report waits a day in the wrong queue",
+    "constraints": [
+      "GDPR",
+      "EU processing"
+    ]
+  },
+  "can_share": {
+    "labeled_cases": 2000,
+    "labeled_by": "support team leads",
+    "terms": "DPA"
+  },
+  "contact": {
+    "email": "support-ops@example.com",
+    "name": "(filled in by the person)",
+    "company": "a retail bank (sample)"
+  },
+  "proposal_markdown": "# Training request: routing bank support messages to the right team\n\n**From:** a retail bank (sample), head of customer support operations\n**Runs on:** VAKYN Cloud (EU)\n**Model used so far:** vakyn-fast\n\n## The decision\nEvery message from a customer goes to one of five teams, or to a general queue. Today a person reads\neach one; with VAKYN the message is routed when confidence is 0.8 or more, and goes to a person\nbelow that.\n\nQuestion: `intent` (choice)\n- `CRD`: the card itself: lost, stolen, blocked, declined, replaced, PIN\n- `DSP`: a payment the customer wants reversed or questions\n- `TRF`: sending or receiving money, payees, account numbers\n- `FEE`: what the bank charges and why\n- `ACC`: signing in, app problems, personal details\n- `OTH`: anything else\n\nState: `message`, the customer's message. Language: English. Length: one to three sentences.\n\nMade-up examples (not real records):\n- \"My card was used in two shops abroad but it is still in my pocket.\" → `DSP`\n- \"What do you charge to send a new card by courier?\" → `FEE`\n- \"The card reader says my card is not valid since this morning.\" → `CRD`\n\n## Where VAKYN stands (measured on our labeled cases)\nSource: `optimize-run/report.md`, `cases.sample.jsonl` (64 labeled messages, 44 dev, 20 reserved).\nWording tuned with the optimize loop: yes, 1 round (every option described).\n\n| Set | Cases | Right | Accuracy |\n|---|---|---|---|\n| Reserved, before tuning | 20 | 13 | 0.650 |\n| Reserved, after tuning | 20 | 17 | 0.850 |\n\nStill wrong after tuning (dev set):\n- `DSP -> CRD`: 1 (a card-detail fraud where the customer still has the card)\n- `FEE -> CRD`: 1 (a question about the price of a card service)\n\nThe card is mentioned in both: when a message names the card and a payment or a price, VAKYN leans to\n`CRD`.\n\n## What we need\n- Target: 95% right among messages routed automatically, with at most 20% sent to a person\n- Volume: about 4,000 messages a day, peaks of 600 an hour; answer within 2 seconds\n- Value: a wrongly routed fraud report waits a day in the wrong queue\n- Constraints: messages hold personal data (GDPR); processing in the EU\n\n## What we can share\nAbout 2,000 labeled messages, labeled by our support team leads, shareable under a DPA.\nOption counts: CRD 410, DSP 380, TRF 520, FEE 230, ACC 300, OTH 160.\n\n## Contact\n(name, email: filled in before sending)",
+  "client": {
+    "skill": "train-request",
+    "skills_version": "0.8.0"
+  }
+}
