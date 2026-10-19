@@ -1,4 +1,4 @@
-<img alt="VAKYN skills: eleven skills for Claude Code, Codex, Cursor and OpenCode" src="docs/media/header-light.png">
+<img alt="VAKYN skills for Claude Code, Codex, Cursor and OpenCode" src="docs/media/header-light.png">
 
 # VAKYN skills
 
@@ -21,7 +21,7 @@ Does it ask for a refund?        noul   → yes       1.00
 How soon does it need a reply?   score  → today     0.64   (can wait 0.12 · within the hour 0.24)
 ```
 
-These twelve skills teach your coding agent to build with it.
+These skills teach your coding agent to build with it.
 
 ## Install (30 seconds)
 
