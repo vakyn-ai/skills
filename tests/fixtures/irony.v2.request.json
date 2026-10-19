@@ -1,0 +1,12 @@
+{
+  "model": "vakyn-fast",
+  "state": {
+    "tweet": "Love waiting 40 minutes for a bus. Great start to the day."
+  },
+  "questions": {
+    "ironic": {
+      "type": "noul",
+      "instructions": "Is this tweet ironic or sarcastic? It is when the literal words mean the opposite of what the author means (praising something bad, e.g. 'Love waking up early on a Saturday #not'), or when the author points out an ironic situation. A hashtag such as #not, #sarcasm or #irony at the end usually marks the tweet as ironic: read the words as meant the other way. A tweet that only talks about sarcasm or irony without being ironic itself is not ironic."
+    }
+  }
+}

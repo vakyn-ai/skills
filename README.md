@@ -21,7 +21,7 @@ Does it ask for a refund?        noul   → yes       1.00
 How soon does it need a reply?   score  → today     0.64   (can wait 0.12 · within the hour 0.24)
 ```
 
-These eleven skills teach your coding agent to build with it.
+These twelve skills teach your coding agent to build with it.
 
 ## Install (30 seconds)
 
@@ -121,12 +121,14 @@ Next: run the convert skill on the routing spot, then test it with the check ski
 | | `distill` | Turns an agent that repeats a written procedure into a program of code, VAKYN questions and small agent steps, and moves traffic to it in stages. |
 | | `migrate` | Moves code from other decision APIs to VAKYN Cloud (or your own server) and points framework adapters at it. |
 | **Prove** | `check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
+| | `optimize` | Tunes a question's wording from your labeled cases: groups the mistakes, adds one rule per kind, keeps a rewrite only if it scores better, confirms on cases it never saw. |
 
 A typical path:
 
 1. `research` finds where VAKYN fits.
 2. `convert`, `workflow`, `cascade` or `judge` builds it; `batch` runs it over what you already have.
 3. `check` proves it on your data before you switch, and again after every change.
+4. `optimize` rewrites a question's wording from the mistakes in your labeled cases, when accuracy is short.
 
 ## What the skills always do
 

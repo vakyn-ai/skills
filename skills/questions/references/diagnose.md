@@ -56,4 +56,6 @@ not predict numbers.
 
 One bad answer is one record. Before calling the request fixed, try it on a few more of the
 person's records, including easy ones, so the rewrite does not break what already worked. For a
-real test on many records, use the `check` skill.
+real test on many records, use the `check` skill. With 50 or more labeled cases, the `optimize`
+skill runs this page as a measured loop: it groups the misses, adds one rule per group and keeps a
+rewrite only if it scores better ([the loop](../../optimize/references/loop.md)).

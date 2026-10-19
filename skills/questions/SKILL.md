@@ -1,6 +1,6 @@
 ---
 name: questions
-description: "Write and fix VAKYN questions. Use when someone is writing a VAKYN request and asks whether a judgment should be a noul (yes/no), choice or score; wants options, an escape option (\"other\", \"none\", \"not enough evidence\"), structured option descriptions (includes, not) or score levels written; asks what to put in the state; has a rule, date or sum inside a question; or got a VAKYN answer that looks wrong, unsure or confidently wrong (\"why did it pick billing?\", \"why is the noul 0.4?\") and wants the cause and a rewrite. Also explains what confidence means."
+description: "Write and fix VAKYN questions. Use when someone is writing a VAKYN request and asks whether a judgment should be a noul (yes/no), choice or score; wants options, an escape option (\"other\", \"none\", \"not enough evidence\"), structured option descriptions (includes, not) or score levels written; asks what to put in the state; has a rule, date or sum inside a question; or got a VAKYN answer that looks wrong, unsure or confidently wrong (\"why did it pick billing?\", \"why is the noul 0.4?\") and wants the cause and a rewrite. Also explains what confidence means. Tuning wording on many labeled cases: optimize."
 ---
 
 # VAKYN questions: write and fix

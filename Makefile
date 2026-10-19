@@ -14,8 +14,9 @@ validate: ## Validate plugin and marketplace manifests with Claude Code
 test: ## Offline checks: manifests, skills, links, voice, example requests
 	python3 -m unittest discover -s tests -t tests -v
 
-test-live: ## Send every example request to VAKYN_BASE_URL (needs VAKYN_API_KEY)
+test-live: ## Send every example request to VAKYN_BASE_URL (needs VAKYN_API_KEY), then the optimize loop on TweetEval irony
 	python3 tests/live.py
+	python3 tests/live_optimize.py
 
 eval: ## Run skill evals in headless Claude Code, then send the requests they wrote to VAKYN_BASE_URL
 	-claude plugin eval . --trust-plugin --runs $(or $(RUNS),1) -j $(or $(JOBS),4) --ablation none --allow-tools Bash Write Edit --judge-model $(or $(JUDGE),claude-sonnet-5) \

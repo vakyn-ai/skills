@@ -1,0 +1,12 @@
+{
+  "model": "vakyn-fast",
+  "state": {
+    "tweet": "Love waiting 40 minutes for a bus. Great start to the day."
+  },
+  "questions": {
+    "ironic": {
+      "type": "noul",
+      "instructions": "Is the tweet ironic?"
+    }
+  }
+}

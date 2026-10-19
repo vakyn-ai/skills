@@ -1,0 +1,20 @@
+{
+  "model": "vakyn-fast",
+  "state": {
+    "message": "I lost my debit card on the train this morning. Please block it."
+  },
+  "questions": {
+    "intent": {
+      "type": "choice",
+      "instructions": "Which code fits the customer's message?",
+      "criteria": {
+        "CRD": "CRD",
+        "DSP": "DSP",
+        "TRF": "TRF",
+        "FEE": "FEE",
+        "ACC": "ACC",
+        "OTH": "OTH"
+      }
+    }
+  }
+}

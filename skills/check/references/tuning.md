@@ -60,7 +60,9 @@ items" nowhere. Check it on **the request each step really sends**, not on the c
    model calls ([promote.py](../examples/promote.py)); for a changed question, after a
    [drift check](drift.md) re-asks it.
 5. Promote only by the rule above; append the result to the promotion log.
-6. Rewrite the lowest-confidence question next, and repeat.
+6. Rewrite the lowest-confidence question next, and repeat. To rewrite its wording in a measured
+   loop from labeled cases (one rule per kind of mistake, kept only if better), use the `optimize`
+   skill ([the loop](../../optimize/references/loop.md)); it uses this split and this rule.
 
 Script for their project: [promote.py](../examples/promote.py) (standard library, plus
 [replay.py](../examples/replay.py)).

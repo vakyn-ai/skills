@@ -1,0 +1,64 @@
+{"id": "c001", "text": "I lost my debit card on the train this morning. Please block it.", "label": "CRD"}
+{"id": "c002", "text": "My card was stolen from my bag. Can you cancel it and send a new one?", "label": "CRD"}
+{"id": "c003", "text": "The card machine keeps saying my card is declined, but I have money in the account.", "label": "CRD"}
+{"id": "c004", "text": "My new card arrived but I can't activate it in the app.", "label": "CRD"}
+{"id": "c005", "text": "The chip on my card is damaged and shops can't read it. I need a replacement.", "label": "CRD"}
+{"id": "c006", "text": "I typed the wrong PIN three times and now my card is locked.", "label": "CRD"}
+{"id": "c007", "text": "Can I freeze my card for a few days? I think I left it at a friend's house.", "label": "CRD"}
+{"id": "c008", "text": "My card expires next month and the new one hasn't come yet.", "label": "CRD"}
+{"id": "c009", "text": "Contactless stopped working on my card after I changed my PIN.", "label": "CRD"}
+{"id": "c010", "text": "I want to order a second card for my partner on the same account.", "label": "CRD"}
+{"id": "c011", "text": "I lost my wallet yesterday with the card in it. Nothing has been charged yet but I'm worried.", "label": "CRD"}
+{"id": "c012", "text": "I think someone saw my PIN at the cash machine. Can I change it and lock the card?", "label": "CRD"}
+{"id": "c013", "text": "There's a payment of 89.99 to a shop called NOVAMART that I never made.", "label": "DSP"}
+{"id": "c014", "text": "I was charged twice for the same hotel booking. One of them should be returned.", "label": "DSP"}
+{"id": "c015", "text": "I cancelled my gym membership in May but they took money again in June.", "label": "DSP"}
+{"id": "c016", "text": "I paid for a jacket online, it never arrived and the seller stopped answering. I want my money back.", "label": "DSP"}
+{"id": "c017", "text": "A streaming service I don't use took 12.99 from my card. I never signed up.", "label": "DSP"}
+{"id": "c018", "text": "The restaurant charged me 140 instead of 40. They typed it wrong. How do I get it back?", "label": "DSP"}
+{"id": "c019", "text": "My card is still in my wallet but there are three payments in another country I didn't make.", "label": "DSP"}
+{"id": "c020", "text": "I returned the shoes two weeks ago and the shop still hasn't refunded the payment.", "label": "DSP"}
+{"id": "c021", "text": "Someone used my card details online last night. I still have the card. What do I do about the payments?", "label": "DSP"}
+{"id": "c022", "text": "The parking app charged me for a whole day when I parked for one hour.", "label": "DSP"}
+{"id": "c023", "text": "A free trial turned into a yearly charge of 99 without warning. I want to dispute it.", "label": "DSP"}
+{"id": "c024", "text": "I don't recognise a payment called 'PAYPAL *GXR' on my statement.", "label": "DSP"}
+{"id": "c025", "text": "I sent 200 to my landlord on Friday and he says it hasn't arrived.", "label": "TRF"}
+{"id": "c026", "text": "How long does an international transfer to Spain take?", "label": "TRF"}
+{"id": "c027", "text": "I sent money to the wrong account number by mistake. Can you stop it?", "label": "TRF"}
+{"id": "c028", "text": "What's the most I can send in one transfer per day?", "label": "TRF"}
+{"id": "c029", "text": "I want to set up a standing order of 500 every month to my savings account.", "label": "TRF"}
+{"id": "c030", "text": "My salary transfer from my employer hasn't come in yet. Can you check if it's on its way?", "label": "TRF"}
+{"id": "c031", "text": "How do I add a new payee so I can send money to my sister?", "label": "TRF"}
+{"id": "c032", "text": "The transfer says pending since yesterday. When will it go through?", "label": "TRF"}
+{"id": "c033", "text": "Can I schedule a payment for next Tuesday instead of today?", "label": "TRF"}
+{"id": "c034", "text": "I need the IBAN and SWIFT code so my client can pay me from abroad.", "label": "TRF"}
+{"id": "c035", "text": "Why was I charged 5 for using a cash machine abroad?", "label": "FEE"}
+{"id": "c036", "text": "What is the monthly fee on the premium account?", "label": "FEE"}
+{"id": "c037", "text": "There's a 'non-sterling transaction fee' on my statement. What is that?", "label": "FEE"}
+{"id": "c038", "text": "Do you charge for sending money to another country?", "label": "FEE"}
+{"id": "c039", "text": "I was charged an overdraft fee even though I was only overdrawn for one day. Is that right?", "label": "FEE"}
+{"id": "c040", "text": "How much does it cost to get a replacement card?", "label": "FEE"}
+{"id": "c041", "text": "Is there a fee for paying in cash at the post office?", "label": "FEE"}
+{"id": "c042", "text": "Your app says no fees but I got charged 2.50 for a transfer. Why?", "label": "FEE"}
+{"id": "c043", "text": "What interest rate do you charge on the overdraft?", "label": "FEE"}
+{"id": "c044", "text": "Can you waive the late payment fee? It was my first time.", "label": "FEE"}
+{"id": "c045", "text": "I can't log in to the app. It says my password is wrong but I just reset it.", "label": "ACC"}
+{"id": "c046", "text": "I got a new phone and now the app won't let me verify my identity.", "label": "ACC"}
+{"id": "c047", "text": "How do I change the email address on my account?", "label": "ACC"}
+{"id": "c048", "text": "The one-time code never arrives by text, so I can't sign in.", "label": "ACC"}
+{"id": "c049", "text": "I want to close my account. How do I do that?", "label": "ACC"}
+{"id": "c050", "text": "My account says 'restricted' and I can't see my balance.", "label": "ACC"}
+{"id": "c051", "text": "How do I change my address? I moved house last week.", "label": "ACC"}
+{"id": "c052", "text": "I'd like to add my daughter as a second user on my account.", "label": "ACC"}
+{"id": "c053", "text": "The app keeps crashing when I open the statements page.", "label": "ACC"}
+{"id": "c054", "text": "I'm locked out after too many tries with my password.", "label": "ACC"}
+{"id": "c055", "text": "Do you have a branch near the city centre?", "label": "OTH"}
+{"id": "c056", "text": "Are you hiring? I'd like to apply for a job at your call centre.", "label": "OTH"}
+{"id": "c057", "text": "What are your opening hours on Saturdays?", "label": "OTH"}
+{"id": "c058", "text": "I'd like to give feedback: the staff at the Market Street branch were lovely.", "label": "OTH"}
+{"id": "c059", "text": "Can you recommend a good pension fund?", "label": "OTH"}
+{"id": "c060", "text": "Is it going to rain tomorrow?", "label": "OTH"}
+{"id": "c061", "text": "I'm a journalist writing about digital banks. Who can I talk to?", "label": "OTH"}
+{"id": "c062", "text": "Do you sponsor local football clubs?", "label": "OTH"}
+{"id": "c063", "text": "What's the exchange rate for dollars today?", "label": "OTH"}
+{"id": "c064", "text": "Thanks for your help last week, all sorted now!", "label": "OTH"}

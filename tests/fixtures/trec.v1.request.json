@@ -1,0 +1,20 @@
+{
+  "model": "vakyn-fast",
+  "state": {
+    "question": "How far is it from Denver to Aspen ?"
+  },
+  "questions": {
+    "answer_type": {
+      "type": "choice",
+      "instructions": "What type of question is this?",
+      "criteria": {
+        "ABBR": "ABBR",
+        "DESC": "DESC",
+        "ENTY": "ENTY",
+        "HUM": "HUM",
+        "LOC": "LOC",
+        "NUM": "NUM"
+      }
+    }
+  }
+}

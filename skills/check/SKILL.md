@@ -1,6 +1,6 @@
 ---
 name: check
-description: "Prove a VAKYN setup on the person's own data and keep it right. Use to test VAKYN against their chat model on a sample (\"smoke test\"); summarize a side-by-side log; pick thresholds from labels, with separate cut-offs when one mistake costs more; check calibration; run a drift check after a model or question change; replay stored answers through changed rules or thresholds; decide on promotion of a new version (dev and reserved sets); keep an audit record for governance or model risk; review code before go-live. Wording: questions."
+description: "Prove a VAKYN setup on the person's own data and keep it right. Use to test VAKYN against their chat model on a sample (\"smoke test\"); summarize a side-by-side log; pick thresholds from labels, with separate cut-offs when one mistake costs more; check calibration; run a drift check after a model or question change; replay stored answers through changed rules or thresholds; decide on promotion of a new version (dev and reserved sets); keep an audit record for governance or model risk; review code before go-live. Wording: questions; tuning wording from labeled cases: optimize."
 ---
 
 # VAKYN check: test on your data, then go live

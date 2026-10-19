@@ -48,6 +48,7 @@ for your own reasoning.
 | Let a cheap draft answer and VAKYN check it | `cascade` skill |
 | Grade outputs with a rubric | `judge` skill |
 | Turn an agent that repeats a written procedure into a cheaper program, moved over in stages | `distill` skill |
+| Make a question more accurate from labeled cases (prompt tuning) | `optimize` skill |
 
 When the request is vague ("help me use VAKYN"), ask what they want to decide and whether they
 already have an app, then route with this table. A concrete request ("route these emails", "check

@@ -14,7 +14,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS = sorted(p for p in (ROOT / "skills").iterdir() if p.is_dir())
 EXPECTED_SKILLS = {
     "start", "research", "questions", "convert", "workflow", "check",
-    "cascade", "batch", "judge", "migrate", "distill",
+    "cascade", "batch", "judge", "migrate", "distill", "optimize",
 }
 SKILL_MAX_LINES = 150
 

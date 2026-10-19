@@ -1,0 +1,20 @@
+{
+  "model": "vakyn-fast",
+  "state": {
+    "question": "How far is it from Denver to Aspen ?"
+  },
+  "questions": {
+    "answer_type": {
+      "type": "choice",
+      "instructions": "What kind of answer does this question ask for? Classify by the type of the expected answer, not by the topic.",
+      "criteria": {
+        "ABBR": "an abbreviation or what an abbreviation stands for (e.g. 'What does NASA stand for?')",
+        "DESC": "a definition, description, explanation, reason or manner (e.g. 'What is a micron?', 'Why is the sky blue?', 'How do you make soap?'). Not for questions whose answer is a date, number, person, place or thing.",
+        "ENTY": "a thing or entity: an object, substance or material, animal, plant, food, color, currency, disease, event, product, term or other named thing (e.g. 'What is a mirror made of?', 'What is Hawaii's state flower?')",
+        "HUM": "a person, group or organization: who did, invented, discovered or is something (e.g. 'Who invented the calculator?', 'Who is the Prime Minister of Canada?')",
+        "LOC": "a place: country, city, state, mountain, river, planet or other location (e.g. 'Where is ...?', 'What planet ...?')",
+        "NUM": "a number or measurement: a date, year, time, season, age, count, amount, distance, size, speed, temperature, price or percentage (e.g. 'When did Elvis die?', 'How tall is the Gateway Arch?')"
+      }
+    }
+  }
+}
