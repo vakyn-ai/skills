@@ -10,7 +10,7 @@ import os
 import urllib.request
 
 # This copy's version; `make release` keeps it equal to .claude-plugin/plugin.json.
-VERSION = "0.10.0"
+VERSION = "0.10.1"
 
 
 def parse(v):
