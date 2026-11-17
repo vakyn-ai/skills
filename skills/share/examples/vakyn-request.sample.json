@@ -1,0 +1,18 @@
+{
+  "state": {
+    "channel": "email",
+    "subject": "Refund for a double charge",
+    "message": "I was charged twice for my October invoice. Please send one of the payments back."
+  },
+  "questions": {
+    "team": {
+      "type": "choice",
+      "instructions": "Which support team should handle the message in state.subject and state.message?",
+      "criteria": {
+        "billing": "Invoices, charges, refunds and plan changes",
+        "access": "Signing in, passwords and permissions",
+        "other": "None of these teams fits"
+      }
+    }
+  }
+}

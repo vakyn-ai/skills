@@ -130,6 +130,7 @@ Next: run the convert skill on the routing spot, then test it with the check ski
 | | `migrate` | Moves code from other decision APIs to VAKYN Cloud (or your own server) and points framework adapters at it. |
 | **Prove** | `check` | Tests against your chat model on 30 records, reads side-by-side logs, sets thresholds, checks calibration and drift, reviews before go-live. |
 | | `optimize` | Tunes a question's wording from your labeled cases: groups the mistakes, adds one rule per kind, keeps a rewrite only if it scores better, confirms on cases it never saw. |
+| | `share` | Turns a decision into a short playground link (`vakyn.com/p/…`) that someone else opens to see the request, run it and debug it. |
 | **Train** | `train-request` | Looks at your setup and results and writes `vakyn-proposal.md`: what VAKYN should be trained on for your use case. You read it and send it to us. |
 
 A typical path:
