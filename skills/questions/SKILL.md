@@ -25,6 +25,7 @@ Field shapes, limits and errors: [API reference](../get-started/references/api.m
 | Asks what to send as the state | [Design the state](references/state.md) |
 | Has rules, sums, dates or thresholds in a question | [Move it into code](references/state.md#move-exact-work-into-code) |
 | Has several questions, some depending on others | [One request or two](references/question-types.md#one-request-or-two) |
+| Matches a record against a list of items (one `noul` per item, or one pick) | [Many items](references/question-types.md#many-items-one-noul-each-or-one-pick) |
 | Shows a request and an answer that looks wrong | [Diagnose and rewrite](references/diagnose.md) |
 | Asks what confidence means | [Confidence](references/confidence.md) |
 | Asks where to set a threshold | the `check` skill |

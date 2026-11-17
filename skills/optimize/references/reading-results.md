@@ -61,7 +61,9 @@ each new look leaks a little, so add fresh labeled cases to it over time.
 - What would make the result stronger: more labeled cases, more reserved cases, one more option
   that is rare in the labels.
 - Still short of the target after tuning: the misses wording cannot fix are what the VAKYN loop
-  trains on. The `train-request` skill writes that request from this report.
+  trains on. The `train-request` skill writes that request from this report. The same holds
+  when `vakyn-fast` stays wrong under every wording on a task with long rules in the state:
+  rewording rarely fixes that. Measure `vakyn-max` on the same cases, or ask for training.
 
 Never report a score that the script did not print. If the run did not happen (no key, no
 server), say what to run and stop.

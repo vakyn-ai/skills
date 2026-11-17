@@ -44,6 +44,47 @@ rule that says "personal information or insults" is still two questions, in a st
 structured `instructions` object. Keep the old name in code instead: `remove = personal_info >
 0.8 or insult > 0.8`. See [compound-noul](../examples/compound-noul.md).
 
+## Many items: one noul each, or one pick
+
+A record is matched against a list in the state: an order and the parcels in today's delivery
+scan, a claim and the receipts attached to it. There are two shapes:
+
+- **One `noul` per item**: `parcel_0` … `parcel_29`, the same instructions with the index
+  ("Does parcel [3] in the delivery scan belong to the customer's order?").
+- **One `choice` over the items**, with a `none` option: "Which parcel in the delivery scan
+  belongs to the customer's order?"
+
+The test: **can more than one item be right at once?** An order shipped in three parcels has
+three right answers. Each `noul` is answered on its own, so all three get a high yes. A `choice`
+names one item; the other two are lost and nothing says so. When it can be more than one, keep
+one `noul` per item. Pick the `choice` only when the items exclude each other (exactly one, or
+none).
+
+Switching between the two shapes is a design change, not a rewording:
+
+- **Keys and code change.** The answers are read differently (a yes per item against one pick),
+  so ask the person before switching, and change the code that reads them.
+- **Confidence is on another scale.** A `choice` spreads its probability over every item, so its
+  top probability can be well below a `noul`'s yes on the same right item. A `noul` cut-off
+  does not carry over; set the threshold again from labeled cases (the `check` skill).
+- **Speed.** All questions are answered from one reading of the state, but each still takes its
+  own time, so dozens of nouls over a long state answer slower than one `choice`. To keep the
+  split case and stay fast, filter the candidates in code first: drop the items whose fields
+  cannot match (a different customer, address or order number, compared loosely), then ask a
+  `noul` only for the few left.
+
+Made-up example, after the code filter kept two parcels:
+
+```json
+{"state": {"order": "Order 4471, 3 garden chairs and 1 table, to J. Doe, 12 Elm Street",
+           "parcels": "[0] 1 table, to J. Doe, Elm St 12\n[1] 3 chairs, to J. Doe, 12 Elm Street"},
+ "questions": {
+   "parcel_0": {"type": "noul", "instructions": "Does parcel [0] in the parcels list belong to the order?"},
+   "parcel_1": {"type": "noul", "instructions": "Does parcel [1] in the parcels list belong to the order?"}}}
+```
+
+Both can be yes; code then checks that the parcels together cover the order.
+
 ## Ask by name, not by position
 
 - **Name the subject in plain words.** "Does the agent's reply answer the question in the

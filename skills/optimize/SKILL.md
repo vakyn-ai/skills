@@ -98,8 +98,13 @@ loop runs with no key ([walk-through](references/loop.md#example-sample-files)).
   reserved case, and never list dev cases. Listing cases is how wording fits dev and not the flow.
 - **No rules, sums, dates or thresholds in the question.** They belong in code
   ([state](../questions/references/state.md#move-exact-work-into-code)).
-- **Out of scope**: option keys, thresholds (`check`), the state's structure (`questions`),
-  training the model, tuning several questions together.
+- **Never change the shape.** One `noul` per item turned into one `choice` over the items (or
+  back), or a `noul` turned into a `score`, changes the keys, what an answer means and every
+  threshold. It belongs to `questions`, and the person decides. Before anyone proposes it, ask:
+  can more than one item be right at once? Then keep one `noul` per item
+  ([many items](../questions/references/question-types.md#many-items-one-noul-each-or-one-pick)).
+- **Out of scope**: option keys, the question's shape, thresholds (`check`), the state's structure
+  (`questions`), training the model, tuning several questions together.
 - **The reserved set is read once, by counts.** Never look at its cases, never run `finish` twice
   on one run.
 - **Never invent scores.** No key, no server, no stored answers: write the script, the candidate
