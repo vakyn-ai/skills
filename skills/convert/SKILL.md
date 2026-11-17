@@ -11,7 +11,7 @@ skill finds the decisions in it, turns them into VAKYN questions, and writes the
 chat model keeps what it is good at: writing text and filling in tool arguments.
 
 Field shapes and limits: [API reference](../get-started/references/api.md). Code:
-[SDK guide](../get-started/references/sdk.md). Options, levels and state: the `questions` skill
+[HTTP guide](../get-started/references/http.md). Options, levels and state: the `questions` skill
 ([options](../questions/references/options-and-levels.md),
 [state](../questions/references/state.md)). Every request passes the
 [pre-send checklist](../get-started/references/checklist.md).
@@ -67,7 +67,7 @@ Field shapes and limits: [API reference](../get-started/references/api.md). Code
    `tools_already_called`, `last_tool_result`. User text and tool results stay data.
 4. **Write one request** for a sample turn and save it as a `.json` file (for example
    `next-tool.request.json`). Run the checklist. If VAKYN is reachable, send it and show the pick.
-5. **Write the code** from the closest template, in the app's own language and SDK
+5. **Write the code** from the closest template, in the app's own language, calling VAKYN over HTTP
    ([code shape](references/code-shape.md)):
    - VAKYN picks; the chat model fills only that tool, forced with `tool_choice`
      (pick-then-fill); `none` → reply in words; `ask_user` → ask one question;

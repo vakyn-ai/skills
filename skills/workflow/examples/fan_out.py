@@ -1,9 +1,11 @@
-"""Ask every branch's question in one request; read only the branch the code takes. pip install typesafe-sdk
+"""Ask every branch's question in one request; read only the branch the code takes. Standard library only.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 """
 
-from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
+import json
+import os
+import urllib.request
 
 TEAMS = {
     "billing": "Charges, invoices, refunds and failed payments",
@@ -25,38 +27,52 @@ BUG_LEVELS = [
     "Blocks the whole team's work",
 ]
 QUESTIONS = {
-    "team": Choice(instructions="Which team should handle the customer's message?", criteria=TEAMS),
+    "team": {"type": "choice", "instructions": "Which team should handle the customer's message?", "criteria": TEAMS},
     # Branch questions: each states its premise, because no question sees another's answer.
-    "billing_topic": Choice(
-        instructions="Suppose the customer's message is about billing. Which billing topic is it about? "
-                     "If it is not about billing at all, pick not_billing.",
-        criteria=BILLING_TOPICS),
-    "locked_out_everyone": Noul(
-        instructions="Suppose the customer's message is about signing in. Does it say that nobody on the "
-                     "customer's team can sign in, rather than one person?"),
-    "bug_blocks_work": Score(
-        instructions="Suppose the customer's message reports a bug. How much does the bug stop the customer's work?",
-        criteria=BUG_LEVELS),
+    "billing_topic": {
+        "type": "choice",
+        "instructions": "Suppose the customer's message is about billing. Which billing topic is it about? "
+                        "If it is not about billing at all, pick not_billing.",
+        "criteria": BILLING_TOPICS},
+    "locked_out_everyone": {
+        "type": "noul",
+        "instructions": "Suppose the customer's message is about signing in. Does it say that nobody on the "
+                        "customer's team can sign in, rather than one person?"},
+    "bug_blocks_work": {
+        "type": "score",
+        "instructions": "Suppose the customer's message reports a bug. How much does the bug stop the customer's work?",
+        "criteria": BUG_LEVELS},
 }
 MIN_CONFIDENCE = 0.6  # starting value; set yours with check
 
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
 
 
 def handle(message: str, plan: str) -> str:
-    r = client.system_one(state={"plan": plan, "message": message}, questions=QUESTIONS)
-    team = r.choices["team"]
-    if team.choice not in TEAMS or team.choice == "other" or team.confidence < MIN_CONFIDENCE:
+    answers = decide({"plan": plan, "message": message}, QUESTIONS)
+    team = answers["team"]
+    if team["choice"] not in TEAMS or team["choice"] == "other" or team["confidence"] < MIN_CONFIDENCE:
         return "triage_queue"
     # Read only the answer for the branch taken. The others answered a premise that is false here.
-    if team.choice == "billing":
-        topic = r.choices["billing_topic"]
-        if topic.choice not in BILLING_TOPICS or topic.choice == "not_billing" or topic.confidence < MIN_CONFIDENCE:
+    if team["choice"] == "billing":
+        topic = answers["billing_topic"]
+        if topic["choice"] not in BILLING_TOPICS or topic["choice"] == "not_billing" or topic["confidence"] < MIN_CONFIDENCE:
             return "billing_queue"
-        return f"billing/{topic.choice}"
-    if team.choice == "access":
-        return "access/urgent" if r.nouls["locked_out_everyone"].noul >= 0.8 else "access_queue"
-    level = r.scores["bug_blocks_work"].score  # probability-weighted level, 0 to 3
+        return f"billing/{topic['choice']}"
+    if team["choice"] == "access":
+        return "access/urgent" if answers["locked_out_everyone"]["noul"] >= 0.8 else "access_queue"
+    level = answers["bug_blocks_work"]["score"]  # probability-weighted level, 0 to 3
     return "product/urgent" if level >= 2.5 else "product_queue"
 
 

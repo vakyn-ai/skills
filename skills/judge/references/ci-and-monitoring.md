@@ -17,8 +17,8 @@ that grades production traces. Keep one copy of the criteria and import it every
 - All cases are graded once per session, concurrently with a cap.
 
 ```sh
-pip install typesafe-sdk pytest
-TYPESAFE_BASE_URL=https://api.vakyn.com pytest -q test_replies.py   # TYPESAFE_API_KEY from the CI secret store
+pip install pytest
+pytest -q test_replies.py   # VAKYN_API_KEY from the CI secret store; VAKYN_BASE_URL for your own server
 ```
 
 Run on the sample with VAKYN-4B on open-server: 7 passed; pass rate 83% (5 of 6), one reply to a person (`c04`,
@@ -45,7 +45,7 @@ replies; point `providers` at the bot to grade live outputs.
 PROMPTFOO_PYTHON=.venv/bin/python npx promptfoo@latest eval -c promptfooconfig.yaml
 ```
 
-`PROMPTFOO_PYTHON` points at a Python that has `typesafe-sdk`. Run on the sample: 1 passed, 2
+`PROMPTFOO_PYTHON` points at the Python to run the assertion with; it needs nothing installed. Run on the sample: 1 passed, 2
 failed (the reply asking for card details; "We are looking into it").
 
 ## Langfuse: scores on every trace
@@ -71,7 +71,7 @@ Chat-model judges are often run on a few percent of traffic because each grade i
 One VAKYN request grades every criterion from one reading of the output, and VAKYN Cloud bills
 input tokens only; on the person's own server there is no per-request bill. Measured on
 open-server: the five-criterion rubric request took 51 to 58 ms per request (VAKYN-4B Q8_0, one
-RTX 5090, one short reply, 10 sequential requests on a shared server). Grade every trace when the
+RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202), one short reply, 10 sequential requests on a shared server). Grade every trace when the
 budget (VAKYN Cloud: traces per day × input tokens × the price from `GET /v1/models`) or the
 server has room for it:
 

@@ -82,7 +82,7 @@ request**:
    bar.** Any other answer escalates. Log each sentence's answer, so a reviewer sees which one failed.
 
 All questions share one state, so one request covers them; state plus all questions must stay
-under 65,536 tokens. Measured on one RTX 5090 with VAKYN 4B and two short articles: 25 to 37 ms
+under 65,536 tokens. Measured on one RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202) with VAKYN 4B and two short articles: 25 to 37 ms
 for the whole-draft check, about 75 ms with five sentence questions added (Python client, same machine).
 
 ## What the check does not catch

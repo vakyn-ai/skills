@@ -11,13 +11,13 @@ same message and do not depend on each other, so they can share one request; cod
 order.
 
 ```python
-r = client.system_one(state=build_state(ticket), questions={**RISKS, "team": TEAM_Q})
-risks = {k: r.nouls[k].noul for k in RISKS}
+answers = decide(build_state(ticket), {**RISKS, "team": TEAM_Q})   # POST /v1/systemone
+risks = {k: answers[k]["noul"] for k in RISKS}
 if risks["safety_issue"] > CLEAR or any(p >= FLAG for p in risks.values()):
     queue = "person_review"            # risk wins, whatever the team
 else:
-    team = r.choices["team"]
-    queue = team.choice if team.choice != "other" and team.confidence >= MIN_CONFIDENCE else "triage_queue"
+    team = answers["team"]
+    queue = team["choice"] if team["choice"] != "other" and team["confidence"] >= MIN_CONFIDENCE else "triage_queue"
 ```
 
 Patterns: [spot risk](patterns/spot-risk.md), [route](patterns/route.md).

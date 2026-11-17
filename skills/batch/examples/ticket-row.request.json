@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "subject": "Account locked",
     "message": "Hello team, account locked after too many attempts. It says wait 24 hours. I need to send invoices to 25 clients today. Call me on [phone] if needed.",

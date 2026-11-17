@@ -73,7 +73,7 @@ def main():
     if not KEY:
         print("FAIL: set VAKYN_API_KEY")
         return 1
-    os.environ["TYPESAFE_BASE_URL"], os.environ["TYPESAFE_API_KEY"] = BASE, KEY
+    os.environ["VAKYN_BASE_URL"], os.environ["VAKYN_API_KEY"] = BASE, KEY
 
     failed = 0
     for name in os.environ.get("DATASETS", "irony,trec").split(","):

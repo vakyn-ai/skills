@@ -66,8 +66,9 @@ def check(req):
     extra = set(req) - {"model", "state", "questions"}
     if extra:
         errors.append(f"unknown top-level fields: {sorted(extra)}")
-    if not isinstance(req.get("model"), str) or not req.get("model"):
-        errors.append("model must be a non-empty string")
+    # model is optional: left out, vakyn-max answers.
+    if "model" in req and (not isinstance(req["model"], str) or not req["model"]):
+        errors.append("model, when given, must be a non-empty string")
     if "state" not in req or req["state"] is None:
         errors.append("state is required and cannot be null")
     elif not isinstance(req["state"], (str, dict, list)):

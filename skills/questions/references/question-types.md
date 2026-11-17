@@ -67,8 +67,7 @@ All questions in a request read the same state and cannot see each other's answe
   answer, send A first, then put A's answer in B's state as a fact:
 
 ```json
-{"model": "jev-latest",
- "state": {"message": "…", "team": "billing"},
+{"state": {"message": "…", "team": "billing"},
  "questions": {"billing_topic": {"type": "choice", "instructions": "Which billing topic is the customer's message about?",
    "criteria": {"refund": "Wants money back", "invoice": "Needs an invoice or receipt changed",
                 "plan_change": "Wants to upgrade, downgrade or cancel", "other": "Another billing topic"}}}}

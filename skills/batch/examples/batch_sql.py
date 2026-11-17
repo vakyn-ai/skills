@@ -6,9 +6,9 @@ Usage:
     python3 batch_sql.py tickets.db --full           # every row without an answer yet
     python3 batch_sql.py tickets.db --full --limit 50
 
-Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server) and
-TYPESAFE_API_KEY in the environment. On VAKYN Cloud every answered row spends balance.
-The questions, state builder and unsure rules are imported from batch_csv.py (keep them in one
+Needs: Python 3 only; VAKYN_API_KEY in the environment, and VAKYN_BASE_URL for your own server
+(default https://api.vakyn.com). On VAKYN Cloud every answered row spends balance.
+The questions, state builder, retries and unsure rules are imported from batch_csv.py (keep them in one
 module so the file run and the table run ask the same thing).
 
 Resume: a row is done when ticket_answers has a row for its id with an empty error. Answers are
@@ -17,16 +17,13 @@ Postgres and DuckDB versions of the SQL: see the skill's references/sources.md.
 """
 
 import argparse
-import asyncio
 import csv
 import sqlite3
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from typesafe_sdk import AsyncTypeSafeClient, TypeSafeError
-
-from batch_csv import (CONCURRENCY, MAX_CONCURRENCY, PILOT_ROWS, RETRY, TIMEOUT_S, QUESTIONS, Progress,
-                       build_state, to_columns)
+from batch_csv import CONCURRENCY, MAX_CONCURRENCY, PILOT_ROWS, Progress, build_state, decide, to_columns
 
 SOURCE, ID = "tickets", "ticket_id"
 RESULTS = "ticket_answers"
@@ -55,13 +52,11 @@ PILOT = (f"SELECT * FROM (SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.{ID}) AS rn 
          f"WHERE (rn - 1) % ? = 0 ORDER BY {ID} LIMIT ?")
 
 
-async def answer(client, gate, row):
-    async with gate:
-        try:
-            res = await client.system_one(state=build_state(row), questions=QUESTIONS)
-            return row[ID], to_columns(res)
-        except (TypeSafeError, ValueError) as e:  # kept with its error; a rerun tries it again
-            return row[ID], {"error": f"{type(e).__name__}: {str(e)[:200]}"}
+def answer(row):
+    try:
+        return row[ID], to_columns(*decide(build_state(row)))
+    except (OSError, ValueError) as e:  # kept with its error; a rerun tries it again
+        return row[ID], {"error": f"{type(e).__name__}: {str(e)[:200]}"}
 
 
 def save(db, results):
@@ -70,11 +65,10 @@ def save(db, results):
     db.commit()  # one commit per batch: the checkpoint
 
 
-async def run(db, args, total, done):
-    gate = asyncio.Semaphore(args.concurrency)
+def run(db, args, total, done):
     progress = Progress(total, done, warmup=args.concurrency) if args.full else None
     sent, last_id = 0, ""
-    async with AsyncTypeSafeClient(timeout=TIMEOUT_S, retry=RETRY) as client:
+    with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         while True:
             if args.full:
                 size = READ_BATCH if args.limit is None else min(READ_BATCH, args.limit - sent)
@@ -86,8 +80,8 @@ async def run(db, args, total, done):
                 return sent
             last_id = rows[-1][ID]
             results = []
-            for coro in asyncio.as_completed([answer(client, gate, dict(r)) for r in rows]):
-                rid, r = await coro
+            for future in as_completed([pool.submit(answer, dict(r)) for r in rows]):
+                rid, r = future.result()
                 results.append((rid, r))
                 if progress:
                     progress.tick(not r.get("error"))
@@ -145,7 +139,7 @@ def main():
 
     t0 = time.monotonic()
     try:
-        sent = asyncio.run(run(db, args, total, done))
+        sent = run(db, args, total, done)
     except KeyboardInterrupt:
         sent = None
         print("\nStopped. Batches already saved stay saved; rerun the same command to resume.")

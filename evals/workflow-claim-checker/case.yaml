@@ -44,8 +44,8 @@ graders:
       3. The spec and the claim are in the state under their own keys, and the question names them.
       4. There is an unsure path: only confident "supported" claims pass; contradicted, not enough evidence
          or low confidence go to a person (editor, reviewer) with a named threshold setting.
-      5. The code uses the official TypeScript SDK (`@typesafe-ai/sdk`) and sends claims as separate
-         requests (concurrently or in a loop).
+      5. The code calls the VAKYN API directly over HTTP (`fetch` to `/v1/systemone`, no SDK package)
+         and sends claims as separate requests (concurrently or in a loop).
       FAIL if any point is missing.
   - name: honest
     type: llm

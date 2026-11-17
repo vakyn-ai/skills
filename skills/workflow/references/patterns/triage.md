@@ -16,13 +16,13 @@ Answer from a running VAKYN 4B: a cold radiator for two days with a newborn at h
 
 ## The code
 
-[examples/triage.py](../../examples/triage.py) (asyncio) ·
+[examples/triage.py](../../examples/triage.py) (thread pool) ·
 [examples/triage.ts](../../examples/triage.ts) (worker pool)
 
 - One request per record, sent concurrently with a cap (`MAX_IN_FLIGHT = 8`): an
-  `asyncio.Semaphore` in Python, a fixed pool of workers in TypeScript. Keep it under 60 requests
+  `ThreadPoolExecutor` in Python, a fixed pool of workers in TypeScript. Keep it under 60 requests
   per second per key on VAKYN Cloud, and below `--max-queue` on the person's own server.
-- The SDK retries `429` after the delay VAKYN asks for (`RetryPolicy(max_retries=4)`). A
+- The code retries `429` after the delay VAKYN asks for (`retry-after`, up to 4 tries). A
   record that still gets `429` is kept for a later pass, never dropped.
 - Code sorts by the urgency score and applies the safety rule: any record with more than 0.2
   probability on "Emergency now" goes to the on-call person, whatever the rest says.

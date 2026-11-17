@@ -8,7 +8,7 @@ check it.
 
 | Look for | Where | Goes into the proposal as |
 |---|---|---|
-| Each VAKYN question: type, options or levels, instructions | Request files (`*.request.json`), SDK calls (`Choice(`, `Noul(`, `Score(`), `vakyn-research.md` | Question name, type, the options in one line each |
+| Each VAKYN question: type, options or levels, instructions | Request files (`*.request.json`), code that posts to `/v1/systemone` (question dicts with `"type": "choice"`, `"noul"`, `"score"`), `vakyn-research.md` | Question name, type, the options in one line each |
 | What the state holds | The state builder (`build_state`, the dict or object sent as `state`) | Field names and what they hold ("the customer's email body, 50–400 words") |
 | What code does with each answer | The branch on the pick, thresholds | One line: "billing goes to the refunds queue; below 0.8 to a person" |
 | Language and document length | Sample inputs, the state builder, logs (counts only) | "English and German; most under 500 words, some contracts over 10,000" |

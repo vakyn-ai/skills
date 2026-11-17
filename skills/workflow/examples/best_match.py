@@ -1,9 +1,11 @@
-"""Pick the help article that best answers a question, from the top search results. pip install typesafe-sdk
+"""Pick the help article that best answers a question, from the top search results. Standard library only.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 """
 
-from typesafe_sdk import Choice, TypeSafeClient
+import json
+import os
+import urllib.request
 
 ARTICLES = [  # what your search returned; code drops what fails a hard rule before asking
     {"id": "hc_204", "lang": "en", "published": True, "title": "Change your email address",
@@ -21,24 +23,36 @@ ARTICLES = [  # what your search returned; code drops what fails a hard rule bef
 ]
 MIN_CONFIDENCE = 0.6  # starting value; set yours with check
 
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
 
 
 def best_article(question: str, lang: str) -> str | None:
     candidates = [a for a in ARTICLES if a["lang"] == lang and a["published"]][:20]  # rules in code
     options = {a["id"]: f"{a['title']}: {a['summary']}" for a in candidates}  # name items by their own id
     options["no_good_match"] = "None of these articles answers the question"
-    r = client.system_one(
-        state={"question": question},
-        questions={"article": Choice(
-            instructions="Which help article best answers the customer question in state.question?",
-            criteria=options,
-        )},
+    answers = decide(
+        {"question": question},
+        {"article": {
+            "type": "choice",
+            "instructions": "Which help article best answers the customer question in state.question?",
+            "criteria": options,
+        }},
     )
-    pick = r.choices["article"]
-    if pick.choice not in options or pick.choice == "no_good_match" or pick.confidence < MIN_CONFIDENCE:
+    pick = answers["article"]
+    if pick["choice"] not in options or pick["choice"] == "no_good_match" or pick["confidence"] < MIN_CONFIDENCE:
         return None  # no article: hand the question to a person or the chat model
-    return pick.choice
+    return pick["choice"]
 
 
 for q in [

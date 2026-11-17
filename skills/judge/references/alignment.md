@@ -66,7 +66,7 @@ not, go back to step 4 with its tune-part disagreements, or label more outputs.
 ## Example: support replies
 
 [align.py](../examples/align.py) on [40 synthetic labels](../examples/expert-labels.sample.jsonl),
-28 to tune, 12 held out, VAKYN 4B (Q8_0, one RTX 5090). Answers are stored in
+28 to tune, 12 held out, VAKYN 4B (Q8_0, one RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202)). Answers are stored in
 [vakyn-answers.sample.jsonl](../examples/vakyn-answers.sample.jsonl), so it runs offline:
 `python3 align.py --compare first aligned`.
 

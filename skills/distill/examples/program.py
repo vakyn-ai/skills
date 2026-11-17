@@ -12,7 +12,7 @@ Steps and kinds (step map in step-map.md):
 Unsure VAKYN answers go back to the agent (the old flow, as a whole case). Every request writes a
 decision record to decisions.jsonl.
 
-pip install typesafe-sdk. Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Python standard library only. Needs VAKYN_API_KEY; VAKYN_BASE_URL is optional (default https://api.vakyn.com).
   python program.py traces.sample.jsonl                     # all cases, then the report
   python program.py traces.sample.jsonl --case sup-0108 --save-requests out/
   python program.py traces.sample.jsonl --replay decisions.jsonl --set sift_drop_at=0.1   # no server calls
@@ -22,11 +22,12 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import pathlib
 import time
+import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
-
-from typesafe_sdk import Choice, Noul, TypeSafeClient
 
 PROGRAM_VERSION = "supplier-onboarding 1"
 # Thresholds are versioned settings. Starting values from check/references/thresholds.md;
@@ -40,7 +41,7 @@ SETTINGS = {
     "pick_min_confidence": 0.8,
 }
 DECISIONS = pathlib.Path("decisions.jsonl")
-client = TypeSafeClient(timeout=120.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
 
 
 # ---------- typed records passed between steps ----------
@@ -147,23 +148,43 @@ def ask(res: Result, step: str, state: dict, questions: dict, save: pathlib.Path
     if save:
         save.mkdir(parents=True, exist_ok=True)
         (save / f"{step}.request.json").write_text(json.dumps(
-            {"model": "jev-latest", "state": state, "questions": questions}, indent=2) + "\n")
+            {"state": state, "questions": questions}, indent=2) + "\n")
     key = (res.case_id, step, qhash(questions), qhash(state))
     if key in STORED:  # replay: same question, same input -> stored answer, no server call
         return STORED[key]
     if STORED:         # replaying, and this question or its input is new: it needs a live answer
         raise LookupError(f"{step} needs a new answer")
-    sdk = {k: (Choice if q["type"] == "choice" else Noul)(instructions=q["instructions"], criteria=q["criteria"])
-           for k, q in questions.items()}
     t = time.perf_counter()
-    r = client.system_one(state=state, questions=sdk)
+    body, request_id = post(state, questions)
     ms = int((time.perf_counter() - t) * 1000)
     res.vakyn_requests += 1
     res.vakyn_ms += ms
-    answers = {k: a.model_dump(exclude_none=True) for k, a in r.answers.items()}
-    record({"case_id": res.case_id, "step": step, "model": r.model, "request_id": r.request_id,
+    answers = body["answers"]
+    record({"case_id": res.case_id, "step": step, "model": body.get("model"), "request_id": request_id,
             "question_hash": key[2], "input_hash": key[3], "state": state, "answers": answers, "ms": ms})
     return answers
+
+
+def post(state: dict, questions: dict, attempts: int = 3) -> tuple[dict, str | None]:
+    """POST /v1/systemone; retries 429, 5xx and connection errors, waiting `retry-after` when given."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                return json.load(r), r.headers.get("x-vakyn-request-id")
+        except urllib.error.HTTPError as e:
+            if (e.code != 429 and e.code < 500) or attempt == attempts - 1:
+                raise
+            time.sleep(float(e.headers.get("retry-after") or 2 ** attempt))
+        except urllib.error.URLError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(2 ** attempt)
+    raise AssertionError("unreachable")
 
 
 def record(row: dict) -> None:

@@ -1,21 +1,18 @@
 """Grade every recent support-bot trace in Langfuse with VAKYN and write the grades back as scores.
 
-    pip install typesafe-sdk langfuse
+    pip install langfuse
     python3 langfuse_scores.py --hours 1 [--name support-reply] [--dry-run]
 
 Run it on a schedule (every hour, say) over every trace in the window, not a sample. Each trace gets
 one score per criterion (NUMERIC, 0 to 1) and one overall verdict (CATEGORICAL: pass, fail, review).
 Score ids are derived from the trace id, so a rerun updates the same scores instead of adding new ones.
-Needs TYPESAFE_BASE_URL, TYPESAFE_API_KEY, and LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST.
+Needs VAKYN_API_KEY (VAKYN_BASE_URL if not VAKYN Cloud), and LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST.
 """
 
 import argparse
-import asyncio
 import datetime as dt
 
-from typesafe_sdk import AsyncTypeSafeClient
-
-from judge import grade
+from judge import grade_all
 
 
 def to_item(trace):
@@ -47,17 +44,6 @@ def write_scores(langfuse, g):
         data_type="CATEGORICAL", comment=f"weighted {g['weighted']}; failed {g['failed']}; unsure {g['unsure']}")
 
 
-async def grade_items(items, concurrency):
-    client = AsyncTypeSafeClient(timeout=60.0)
-    gate = asyncio.Semaphore(concurrency)
-
-    async def one(item):
-        async with gate:
-            return await grade(client, item)
-
-    return await asyncio.gather(*(one(i) for i in items))
-
-
 def main(langfuse=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--hours", type=float, default=1.0)
@@ -72,7 +58,7 @@ def main(langfuse=None):
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=a.hours)
     traces = list(fetch_traces(langfuse, since, a.name))
     items = [i for i in (to_item(t) for t in traces) if i]
-    grades = asyncio.run(grade_items(items, a.concurrency))
+    grades = grade_all(items, a.concurrency)
     for g in grades:
         print(f"{g['id']}: {g['verdict']} (weighted {g['weighted']})")
         if not a.dry_run:

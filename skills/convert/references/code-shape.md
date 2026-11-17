@@ -1,8 +1,9 @@
 # The converted code: shape and modes
 
-Write the change into the person's own file, in their language, with the official SDK
-(`typesafe-sdk` for Python, `@typesafe-ai/sdk` for TypeScript; see the
-[SDK guide](../../get-started/references/sdk.md)). Start from the closest template:
+Write the change into the person's own file, in their language. VAKYN is one HTTP call: the
+Python standard library (`urllib.request`) or the built-in `fetch` in TypeScript, so there is
+nothing to install (see the [HTTP guide](../../get-started/references/http.md)). Key in
+`VAKYN_API_KEY`; `VAKYN_BASE_URL` only for the person's own server. Start from the closest template:
 
 - Python, OpenAI SDK app: [tool_pick_openai.py](../examples/tool_pick_openai.py)
 - TypeScript, Anthropic SDK app: [tool_pick_anthropic.ts](../examples/tool_pick_anthropic.ts)
@@ -16,6 +17,7 @@ and the chat-model calls from the [other reader](openai-tools.md).
 |---|---|
 | `OPTIONS` | tool name → one line, plus `none` and `ask_user`. Written once, in code, next to the tool list. A start-up check that every tool has an option. |
 | `build_state(messages)` | the state from [tool-pick](tool-pick.md#3-build-the-state): goal, recent turns, tools called, last tool result |
+| `decide(state, questions)` | one `POST /v1/systemone`; returns the answers by question name and the `x-vakyn-request-id` header |
 | `vakyn_pick(messages)` | one `choice` call; checks the pick is an offered option; returns `None` on any error, so VAKYN being down never stops the app |
 | `chat_call(messages, tools, tool_choice)` | the app's existing chat-model call, with the tool list made a parameter |
 | `next_step(messages)` | runs the mode below and returns the message the app acts on, as before |
@@ -58,7 +60,7 @@ One JSON line per step, appended to `VAKYN_TOOL_LOG` (default `vakyn-tool-picks.
 | Field | Value |
 |---|---|
 | `ts` | UTC time |
-| `request_id` | VAKYN's request id (`result.request_id`, or `withResponse().requestId` in TypeScript) |
+| `request_id` | VAKYN's request id (the `x-vakyn-request-id` response header) |
 | `mode` | `side_by_side` or `vakyn` |
 | `vakyn_pick`, `vakyn_confidence`, `vakyn_probabilities` | VAKYN's answer; `null` when it failed |
 | `chat_pick` | the tool the chat model called, `none` for a text reply, `null` when it was not asked |

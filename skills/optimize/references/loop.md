@@ -28,7 +28,7 @@ runs, and new cases fall on either side. Rounds only ever send dev cases; reserv
 ## Commands
 
 ```sh
-export TYPESAFE_API_KEY=...            # from the environment or a secret store, never a file
+export VAKYN_API_KEY=...               # from the environment or a secret store, never a file
 python3 optimize.py start  --request intent.v1.request.json --cases cases.jsonl --model vakyn-fast
 python3 optimize.py try    --candidate intent.v2.request.json --rule "DSP -> CRD: ..." --rule "..."
 python3 optimize.py try    --candidate intent.v3.request.json --rule "..."

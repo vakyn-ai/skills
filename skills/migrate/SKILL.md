@@ -1,21 +1,27 @@
 ---
 name: migrate
-description: "Move existing decision-API code to VAKYN Cloud (api.vakyn.com), or to the person's own VAKYN open-server when they ask for it. Use when code calls hosted Jev (typesafe-sdk, @typesafe-ai/sdk, api.typesafe.ai), OpenRouter decisions, Vercel AI Gateway, Cloudflare Clef, OpenJev or the OpenAI Decisions API, or uses a Pydantic AI, AI SDK, TanStack AI, LangChain or Langfuse adapter, and they want it on VAKYN: find call sites, change config, map fields, compare side by side, switch, roll back. Chat-model prompts or tool calls: convert. First setup: start."
+description: "Move existing decision-API code to VAKYN Cloud (api.vakyn.com), or to the person's own VAKYN open-server when they ask for it. Use when code calls hosted Jev (typesafe-sdk, @typesafe-ai/sdk, api.typesafe.ai), OpenRouter decisions, Vercel AI Gateway, Cloudflare Clef, OpenJev or the OpenAI Decisions API, or uses a Pydantic AI, AI SDK, TanStack AI, LangChain or Langfuse adapter, and they want it on VAKYN: find call sites, rewrite them as direct HTTP calls to VAKYN's API (Python standard library, fetch, curl; nothing to install), map fields, compare side by side, switch, roll back. Chat-model prompts or tool calls: convert. First setup: start."
 ---
 
 # VAKYN migrate: move decision calls to VAKYN
 
-The person already calls a decision API: hosted Jev, a gateway, another Jev-compatible model,
-or OpenAI's Decisions API, directly or through a framework adapter. This skill moves those
-calls to VAKYN with as little code change as possible, proves the move on their requests, and
+The person already calls a decision API: hosted Jev, a gateway, another server on
+`/v1/systemone`, or OpenAI's Decisions API, directly or through a framework adapter. This skill
+rewrites those calls as direct HTTP calls to VAKYN, proves the move on their requests, and
 leaves a way back.
 
-The default target is **VAKYN Cloud** (`https://api.vakyn.com`, a key from
-[vakyn.com/console](https://vakyn.com/console)): for a Jev-compatible client the move is the base
-URL and the key. The target is their **own open-server** when they ask for it or their data
-cannot leave their network; then the base URL is their server's.
+The target is always VAKYN's HTTP API: one `POST {base}/v1/systemone` from a small function in
+their code (Python standard library, `fetch`, or curl), with the key in `VAKYN_API_KEY` and the
+optional base URL in `VAKYN_BASE_URL`. The old SDK or adapter is replaced, not re-pointed at
+VAKYN. VAKYN takes the same state and questions as hosted Jev and the other `/v1/systemone`
+servers, so the request body moves over as it is; the call around it changes.
 
-Target shape: [API reference](../get-started/references/api.md). SDKs: [SDK guide](../get-started/references/sdk.md).
+The default target is **VAKYN Cloud** (`https://api.vakyn.com`, a key from
+[vakyn.com/console](https://vakyn.com/console)), with `model` left out (`vakyn-max` answers). The
+target is their **own open-server** when they ask for it or their data cannot leave their
+network; then `VAKYN_BASE_URL` is their server's root and `model` is the name its `/v1/models` lists.
+
+Target shape: [API reference](../get-started/references/api.md). Code: [HTTP guide](../get-started/references/http.md).
 Key and settings: [VAKYN Cloud](../get-started/references/cloud.md), or
 [self-hosting](../get-started/references/self-hosting.md). Every request passes the
 [pre-send checklist](../get-started/references/checklist.md).
@@ -24,9 +30,10 @@ Key and settings: [VAKYN Cloud](../get-started/references/cloud.md), or
 
 | The person… | Do |
 |---|---|
-| Uses the official TypeSafe SDK or raw HTTP to `api.typesafe.ai` | [Sources 1–2](references/sources.md#1-hosted-jev-through-the-official-sdks) |
+| Uses `typesafe-sdk`, `@typesafe-ai/sdk` or raw HTTP to `api.typesafe.ai` | [Sources 1–2](references/sources.md#1-hosted-jev-through-the-typesafe-sdks) |
 | Uses OpenRouter, Vercel AI Gateway, Clef or another `/v1/systemone` server | [Sources 3–6](references/sources.md#3-openrouter) |
 | Uses OpenAI's Decisions API | [Field maps](references/field-maps.md#openai-decisions-api) |
+| Needs the old SDK's results, retries or async client written out | [SDK results to JSON](references/field-maps.md#hosted-jev-sdk-calls) |
 | Uses Pydantic AI, the AI SDK, TanStack AI, LangChain or Langfuse | [Adapters](references/adapters.md) |
 | Asks what will be different | [Differences](references/differences.md) |
 | Is ready to compare, switch or plan a rollback | [Side by side, switch, roll back](references/switch.md) |
@@ -45,16 +52,22 @@ Key and settings: [VAKYN Cloud](../get-started/references/cloud.md), or
 3. **Go through the [differences](references/differences.md)** that touch their code: model
    names, `vk_` keys, limits (32,768 / 65,536 tokens, 255 options, 10 levels), errors and
    retries, no streaming or batch endpoint, the rate limit or queue, cost, provider-only fields.
-4. **Change config before code.** Where the SDK or adapter reads variables, change only
-   variables. Move literals (URLs, model names) into config in the same change. Map fields only
+4. **Rewrite each call site as an HTTP call.** One `decide(state, questions)` function per app,
+   from the [HTTP guide](../get-started/references/http.md); SDK question objects become plain
+   JSON, typed results become `answers[name]["choice"]` and so on
+   ([SDK calls](references/field-maps.md#hosted-jev-sdk-calls)). Write out what the old client did
+   for them: a timeout, a bounded retry on `429`/`5xx` honouring `retry-after`, a thread pool or
+   `Promise.all` for many records. URLs, keys and model names come from config. Map fields only
    where the wire format differs, and only fields documented in [field maps](references/field-maps.md).
+   Keep the old call behind one setting (for example `DECISION_BACKEND=old|vakyn`) until rollback
+   is no longer needed.
 5. **Save one request** in the new shape as a `.json` file and run the checklist. If VAKYN is
    reachable, send it and show the answer.
 6. **Compare side by side** on about 30 recorded requests (on VAKYN Cloud, 30 requests from
    their balance; say so) with
    [compare.py](examples/compare.py): agreement per question, every disagreement, failed lines,
    measured time. Agreement is not accuracy; labels decide. More in the `check` skill.
-7. **Switch by config**, check thresholds again, and write the
+7. **Switch with that one setting**, check thresholds again, and write the
    [rollback plan](references/switch.md#5-rollback-plan) before the switch.
 
 Show the person a short plan after steps 1–3 (call sites, settings, what changes) before
@@ -64,9 +77,9 @@ editing their files.
 
 | Move | Before | After |
 |---|---|---|
-| Python SDK, config only | [sdk_before.py](examples/sdk_before.py) | [sdk_after.py](examples/sdk_after.py) |
+| Python SDK to standard-library HTTP | [sdk_before.py](examples/sdk_before.py) | [sdk_after.py](examples/sdk_after.py) |
 | Raw HTTP | [http_before.sh](examples/http_before.sh) | [http_after.sh](examples/http_after.sh) + [bike-desk.request.json](examples/bike-desk.request.json) |
-| AI SDK, gateway to VAKYN | [ai_sdk_before.ts](examples/ai_sdk_before.ts) | [ai_sdk_after.ts](examples/ai_sdk_after.ts) |
+| AI SDK through a gateway to `fetch` | [ai_sdk_before.ts](examples/ai_sdk_before.ts) | [ai_sdk_after.ts](examples/ai_sdk_after.ts) |
 | OpenAI Decisions request | [openai-decisions.before.json](examples/openai-decisions.before.json) | [openai_decisions_map.py](examples/openai_decisions_map.py) → [openai-decisions.request.json](examples/openai-decisions.request.json) |
 | OpenRouter decisions request | [openrouter-decisions.before.json](examples/openrouter-decisions.before.json) | [field map](references/field-maps.md#openrouter-decisions) |
 | Compare two services | [recorded.sample.jsonl](examples/recorded.sample.jsonl) | [compare.py](examples/compare.py) (`--dry` sends nothing) |
@@ -94,4 +107,7 @@ newer API version):
 - **Keys stay out of the chat and out of code.** See the `get-started` skill rules.
 - **Measure, never guess.** Agreement and times come from the person's run, with where it ran
   named. VAKYN not reachable, no numbers: write the script and the commands to run it.
-- **Keep the way back.** Old settings stay one change away until the person retires them.
+- **Plain HTTP to VAKYN.** Never leave the old SDK or adapter in place with a new base URL; the
+  new path is a direct call to `/v1/systemone`.
+- **Keep the way back.** The old call and its settings stay one setting away until the person
+  retires them.

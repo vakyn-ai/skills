@@ -34,5 +34,5 @@ graders:
     criteria: |
       Judge only this one point; ignore everything else in the answer.
       PASS if the final message tells the person how to run it themselves: set the key in the
-      environment (TYPESAFE_API_KEY or similar, not in a file) and the optimize.py commands (start,
+      environment (VAKYN_API_KEY, not in a file) and the optimize.py commands (start,
       try, finish, or equivalent). FAIL otherwise.

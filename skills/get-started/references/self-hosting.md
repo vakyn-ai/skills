@@ -85,9 +85,6 @@ is shown once. Ask the person to put it in their environment themselves, for exa
 ```sh
 VAKYN_BASE_URL=http://127.0.0.1:8080
 VAKYN_API_KEY=vk_...
-# for the official SDKs:
-TYPESAFE_BASE_URL=http://127.0.0.1:8080
-TYPESAFE_API_KEY=vk_...
 ```
 
 Check `.env` is in `.gitignore` before they save it. Never ask them to paste the key into the chat.
@@ -108,8 +105,7 @@ To check the key is there without showing it: `set -a; . ./.env; set +a; [ -n "$
 curl -s "$VAKYN_BASE_URL/v1/models" -H "Authorization: Bearer $VAKYN_API_KEY"
 ```
 
-Expect the loaded model and the `jev-latest` alias. On open-server `model` is required: use
-`jev-latest` or the name it lists. Then make the [first call](../SKILL.md#first-call).
+Expect the loaded model. On open-server `model` is required: use the name it lists. Then make the [first call](../SKILL.md#first-call).
 
 | Symptom | Cause |
 |---|---|

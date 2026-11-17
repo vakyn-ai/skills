@@ -1,7 +1,8 @@
 """Tool pick with VAKYN in an OpenAI SDK app: pick-then-fill, side by side first.
 
-pip install typesafe-sdk openai
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key) and OPENAI_API_KEY.
+pip install openai  (VAKYN is called with the standard library, nothing to install)
+Needs VAKYN_API_KEY (a vk_ key) and OPENAI_API_KEY. VAKYN_BASE_URL is optional
+(default https://api.vakyn.com; or your own server).
 
 Settings (environment):
   VAKYN_TOOL_MODE            side_by_side (default): the chat model still picks and acts; both picks
@@ -18,9 +19,10 @@ import json
 import os
 import pathlib
 import sys
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-from typesafe_sdk import Choice, TypeSafeClient
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
 
 MODE = os.environ.get("VAKYN_TOOL_MODE", "side_by_side")
 MIN_CONFIDENCE = float(os.environ.get("VAKYN_TOOL_MIN_CONFIDENCE", "0.8"))  # starting value; set yours with check
@@ -51,7 +53,6 @@ INSTRUCTIONS = (
     "Use state.last_tool_result: a tool already called does not need to be called again."
 )
 
-vakyn = TypeSafeClient(timeout=30.0)
 chat = None if DRY else __import__("openai").OpenAI()
 
 
@@ -70,21 +71,32 @@ def build_state(messages):
     }
 
 
+def decide(state, questions, timeout=30):
+    """POST /v1/systemone; returns (answers by question name, request id)."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"], r.headers.get("x-vakyn-request-id")
+
+
 def vakyn_pick(messages):
     """VAKYN's pick, or None when the server cannot answer (the chat model then picks)."""
     try:
-        result = vakyn.system_one(
-            state=build_state(messages),
-            questions={"next_tool": Choice(instructions=INSTRUCTIONS, criteria=OPTIONS)},
+        answers, request_id = decide(
+            build_state(messages),
+            {"next_tool": {"type": "choice", "instructions": INSTRUCTIONS, "criteria": OPTIONS}},
         )
     except Exception as err:  # unreachable, timeout, 4xx: never block the app on VAKYN
         print(f"VAKYN unavailable: {err}", file=sys.stderr)
         return None
-    answer = result.choices["next_tool"]
-    if answer.choice not in OPTIONS:  # code checks the pick is an offered option
+    answer = answers["next_tool"]
+    if answer["choice"] not in OPTIONS:  # code checks the pick is an offered option
         return None
-    return {"pick": answer.choice, "confidence": answer.confidence,
-            "probabilities": dict(answer.probabilities), "request_id": result.request_id}
+    return {"pick": answer["choice"], "confidence": answer["confidence"],
+            "probabilities": answer["probabilities"], "request_id": request_id}
 
 
 def chat_call(messages, tools=None, tool_choice=None):

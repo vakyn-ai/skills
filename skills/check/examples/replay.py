@@ -8,7 +8,7 @@ Usage:
     python3 replay.py replay --answers answers.jsonl --policy routing-policy.v2.json \
         [--request drift.request.json] [--show 30]
 
-record needs the SDK (pip install typesafe-sdk; TYPESAFE_BASE_URL and TYPESAFE_API_KEY).
+record calls VAKYN (Python 3 only; VAKYN_API_KEY, and VAKYN_BASE_URL when not VAKYN Cloud).
 replay needs nothing but the stored file: it never calls the server, so it runs in seconds on
 thousands of cases and costs nothing.
 
@@ -27,7 +27,9 @@ import collections
 import datetime
 import hashlib
 import json
+import os
 import sys
+import urllib.request
 
 STEP = "route_ticket"
 
@@ -63,23 +65,25 @@ def build_state(record):
 
 
 def record(a):
-    from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
-
+    base_url = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
     template = json.load(open(a.request))
     policy, policy_hash = load_policy(a.policy)
-    kinds = {"choice": Choice, "score": Score, "noul": Noul}
-    questions = {k: kinds[q["type"]](instructions=q["instructions"], criteria=q.get("criteria"))
-                 for k, q in template["questions"].items()}
-    client = TypeSafeClient(timeout=60.0)
     with open(a.out, "w") as out:
         for line in open(a.records):
             if not line.strip():
                 continue
             rec = json.loads(line)
             state = build_state(rec)
-            res = client.system_one(state=state, questions=questions, model=template.get("model"))
+            body = {"state": state, "questions": template["questions"]}
+            if template.get("model"):
+                body["model"] = template["model"]
+            req = urllib.request.Request(
+                f"{base_url}/v1/systemone", data=json.dumps(body).encode(),
+                headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                res, request_id = json.load(r), r.headers.get("x-vakyn-request-id")
             answers = {}
-            for name, ans in res.model_dump()["answers"].items():
+            for name, ans in res["answers"].items():
                 ans.pop("stats", None)
                 ans.pop("type", None)
                 answers[name] = ans
@@ -87,7 +91,7 @@ def record(a):
             row = {
                 "case_id": rec["id"], "step": STEP,
                 "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-                "request_id": res.request_id, "model": res.model,
+                "request_id": request_id, "model": res.get("model"),
                 # Keep the input itself only where your data policy allows; otherwise its hash and where it lives.
                 "input": state, "input_hash": digest(state), "input_ref": f"{a.records}#{rec['id']}",
                 "questions": {k: digest(q) for k, q in template["questions"].items()},

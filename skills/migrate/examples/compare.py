@@ -1,11 +1,11 @@
-"""Replay saved decision requests against two Jev-compatible servers and report how often they agree.
+"""Replay saved decision requests against two /v1/systemone servers and report how often they agree.
 
 Use it before switching: A is where the requests go today, B is VAKYN (VAKYN Cloud or the
 person's own open-server). On VAKYN Cloud every request sent to B spends balance; --dry sends nothing.
 
 Usage:
     python3 compare.py recorded.jsonl --a https://old.example --b https://api.vakyn.com \
-        [--a-model NAME] [--b-model jev-latest] [--a-key-env OLD_API_KEY] [--b-key-env VAKYN_API_KEY] \
+        [--a-model NAME] [--b-model NAME] [--a-key-env OLD_API_KEY] [--b-key-env VAKYN_API_KEY] \
         [--n 30] [--out compare-results.jsonl] [--dry]
     python3 compare.py recorded.jsonl --a recorded --b https://api.vakyn.com   # A = answers saved in the file
 
@@ -13,7 +13,9 @@ recorded.jsonl: one request per line, either a bare /v1/systemone body or
     {"id": "...", "request": {...}, "old_answers": {...}}   ("old_answers" only with --a recorded:
     the `answers` object the old service returned, taken from the person's logs).
 
-Base URLs are server roots; the script adds /v1/systemone. Keys are read from the environment
+Base URLs are server roots; the script adds /v1/systemone. The recorded `model` is the old
+service's: it goes to A only. B gets no model (on VAKYN Cloud vakyn-max answers) unless --b-model
+names one (own open-server: the name from /v1/models). Keys are read from the environment
 variables named by --a-key-env and --b-key-env and never printed.
 --dry sends nothing: it checks every line and prints what would be sent where.
 Standard library only. Each request is sent once per side; nothing is rerun.
@@ -64,7 +66,7 @@ def send(base, key, body, timeout):
         t0 = time.perf_counter()
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.status, json.loads(r.read()), time.perf_counter() - t0, r.headers.get("x-typesafe-request-id")
+                return r.status, json.loads(r.read()), time.perf_counter() - t0, (r.headers.get("x-vakyn-request-id") or r.headers.get("x-typesafe-request-id"))
         except urllib.error.HTTPError as e:
             if e.code in (429, 503) and attempt < 3:
                 time.sleep(float(e.headers.get("retry-after") or 2))
@@ -97,7 +99,7 @@ def main():
     p.add_argument("--a", required=True, help="old base URL, or 'recorded' to use old_answers from the file")
     p.add_argument("--b", required=True, help="new base URL (https://api.vakyn.com, or the person's open-server)")
     p.add_argument("--a-model", help="model name for A (default: the model in each request)")
-    p.add_argument("--b-model", default="jev-latest")
+    p.add_argument("--b-model", help="model name for B (default: none; VAKYN Cloud answers with vakyn-max)")
     p.add_argument("--a-key-env", default="OLD_API_KEY")
     p.add_argument("--b-key-env", default="VAKYN_API_KEY")
     p.add_argument("--n", type=int, default=30)
@@ -117,7 +119,7 @@ def main():
     nq = sum(len(r["request"]["questions"]) for r in rows)
     print(f"{len(rows)} requests, {nq} questions")
     print(f"A: {sides['A']}" + ("" if recorded else f"  model={args.a_model or 'as in each request'}  key=${args.a_key_env}"))
-    print(f"B: {sides['B']}  model={args.b_model}  key=${args.b_key_env}")
+    print(f"B: {sides['B']}  model={args.b_model or 'none (server default)'}  key=${args.b_key_env}")
     for rid, pr in bad:
         print(f"  problem {rid}: {pr}")
     if args.dry or bad:
@@ -140,6 +142,8 @@ def main():
                 out["A"] = {"status": 200, "answers": row["old_answers"], "seconds": None}
                 continue
             body = dict(row["request"])
+            if side == "B":
+                body.pop("model", None)  # the recorded model is the old service's
             if model:
                 body["model"] = model
             status, res, secs, rid = send(base.rstrip("/"), keys[side], body, args.timeout)

@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "task": "Reply to a customer of a weekly meal-kit delivery service.",
     "input": "I want to skip next week's box. Today is Monday.",

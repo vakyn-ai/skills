@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": "Hi, I returned the cargo bike on Tuesday but the deposit is still not back on my card. It's been five days.",
   "questions": {
     "refund": {

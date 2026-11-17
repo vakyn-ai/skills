@@ -15,7 +15,6 @@ Request:
 
 ```json
 {
-  "model": "jev-latest",
   "state": "The lamp I ordered turns on but the light flickers all the time, and the box was dented when it arrived. I want to send it back.",
   "questions": {
     "return_reason": {

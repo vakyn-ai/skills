@@ -11,7 +11,7 @@ through VAKYN and writes the answers next to the data: pilot first, then the ful
 resume, progress and a review file for unsure rows.
 
 The files in [examples/](examples/) are templates to adapt, not tools to run from the plugin.
-Shared material: [API reference](../get-started/references/api.md), [SDK guide](../get-started/references/sdk.md),
+Shared material: [API reference](../get-started/references/api.md), [HTTP guide](../get-started/references/http.md),
 [pre-send checklist](../get-started/references/checklist.md),
 [thresholds](../check/references/thresholds.md#starting-values-and-sample-sizes) (the
 starting values for `unsure`).
@@ -41,7 +41,7 @@ starting values for `unsure`).
    a `.json` file next to the script. Independent questions share one request per row.
 4. **Write the script** in the project's language from the template. It must have every part in
    [script parts](references/script.md): bounded concurrency (8; on VAKYN Cloud under 60
-   requests per second per key, self-hosted never above `--max-queue`, default 32), retries on 429 and 503 honoring `retry-after`, a timeout above the SDK's 10 s,
+   requests per second per key, self-hosted never above `--max-queue`, default 32), retries on 429 and 503 honoring `retry-after`, a timeout on every call (60 s),
    a checkpoint and resume, a progress line (done/total, %, rows/s, ETA, errors), answer
    columns, `unsure`, a review file, and a summary.
 5. **Send the plan message** ([plan](references/plan.md#3-the-plan-message)) and wait for a yes.
@@ -68,12 +68,12 @@ Details: [script parts](references/script.md#answer-columns).
 
 | File | What |
 |---|---|
-| [batch_csv.py](examples/batch_csv.py) | CSV or JSONL, `AsyncTypeSafeClient`, checkpoint in `<out>.progress.jsonl` |
+| [batch_csv.py](examples/batch_csv.py) | CSV or JSONL, standard library only, worker threads, checkpoint in `<out>.progress.jsonl` |
 | [batch_sql.py](examples/batch_sql.py) | SQLite, answers in a new table, keyset reads, upserts |
 | [tickets.sample.csv](examples/tickets.sample.csv) | 120 synthetic support tickets with personal-data columns |
 | [ticket-row.request.json](examples/ticket-row.request.json) | One row's request: three questions |
 
-Measured on the sample on open-server (VAKYN-4B, one RTX 5090, 8 in flight, 3 questions per
+Measured on the sample on open-server (VAKYN-4B, one RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202), 8 in flight, 3 questions per
 row): about 33 rows per second, pilot median 108 ms per row. Measure in the person's own pilot;
 never quote these as theirs, and never as VAKYN Cloud's.
 
@@ -87,4 +87,4 @@ never quote these as theirs, and never as VAKYN Cloud's.
   summary counts them. Nothing is dropped from the counts.
 - **Never resend done rows** to get different numbers. One run's answers are the record.
 - **Ask before personal data leaves the process**, and name the columns that do.
-- **Keys stay out of the chat and out of files**: `TYPESAFE_API_KEY` in the environment.
+- **Keys stay out of the chat and out of files**: `VAKYN_API_KEY` in the environment.

@@ -54,10 +54,11 @@ graders:
       - it POSTs to `<base URL>/v1/systemone`, with the base URL from an environment variable or config;
       - the key comes from an environment variable meant for the VAKYN key (for example
         VAKYN_API_KEY), not a key literal;
-      - the model is `jev-latest` or comes from configuration, not `typesafe/jev-1.13`;
+      - the model comes from configuration (their own server needs the name from /v1/models), not
+        `typesafe/jev-1.13` or `jev-latest`;
       - the OpenRouter-only fields `provider` and `session_id` are removed;
       - it no longer reads `usage.cost` or `data.id` as if VAKYN returned them (it may log the
-        `x-typesafe-request-id` header instead);
+        `x-vakyn-request-id` header instead);
       - it checks the HTTP status before reading answers.
       FAIL if any of these is missing.
   - name: no-invented-fields

@@ -61,8 +61,8 @@ graders:
     criteria: |
       Judge this TypeScript file.
       PASS if all hold:
-      - it calls VAKYN with the official SDK (`@typesafe-ai/sdk`, `TypeSafeClient`, `systemOne`, `choice`)
-        or plain HTTP to /v1/systemone;
+      - it calls VAKYN directly over HTTP (`fetch` POST to /v1/systemone, no SDK package for VAKYN)
+        with a choice over the tools plus none/ask_user, the key from VAKYN_API_KEY;
       - pick-then-fill: the chat model is then called with only the picked tool and
         `tool_choice: { type: "tool", name: ... }`;
       - the code checks the pick is one of the offered options, and handles none and ask_user;

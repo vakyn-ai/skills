@@ -54,9 +54,6 @@ Save it once, in a file only you can read, so every project, script and skill fi
 mkdir -p ~/.config/vakyn && umask 077 && cat > ~/.config/vakyn/env <<'ENV'
 VAKYN_BASE_URL=https://api.vakyn.com
 VAKYN_API_KEY=paste-your-key-here
-# the official TypeSafe SDKs, used in generated code, read their own names:
-TYPESAFE_BASE_URL=https://api.vakyn.com
-TYPESAFE_API_KEY=paste-your-key-here
 ENV
 ```
 
@@ -156,11 +153,10 @@ A typical path:
   estimates the cost from the live prices in `GET /v1/models` and waits for your yes.
 - **Never invent answers.** If VAKYN is not reachable, the agent says so and still writes the
   request and the code.
-- **Keep your key out of the chat.** It lives in `VAKYN_API_KEY` (or `TYPESAFE_API_KEY` for the
-  official SDKs).
+- **Keep your key out of the chat.** It lives in `VAKYN_API_KEY`.
 
-Generated code uses the official TypeSafe SDKs (`typesafe-sdk`, `@typesafe-ai/sdk`). They work
-with VAKYN's Jev-compatible API once their base URL points at VAKYN Cloud or your own server.
+Generated code calls the API over plain HTTP: Python's standard library, `fetch` in TypeScript, or
+curl. There is nothing to install, and `VAKYN_BASE_URL` points it at VAKYN Cloud or your own server.
 API details: [vakyn.com/docs/api](https://vakyn.com/docs/api).
 
 ## How we test it

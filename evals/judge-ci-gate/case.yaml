@@ -46,5 +46,5 @@ graders:
          tests is a VAKYN question).
       4. CI fails below a named pass-rate setting (or on any must-pass failure, with a pass-rate gate as
          well); unsure answers are not counted as passes.
-      5. The key comes from the environment (TYPESAFE_API_KEY or similar), never written in the file.
+      5. The key comes from the environment (VAKYN_API_KEY or similar), never written in the file.
       FAIL if any point is missing or if several summaries are graded in one request.

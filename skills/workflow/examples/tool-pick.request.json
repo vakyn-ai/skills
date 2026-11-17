@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "conversation": [
       {"role": "user", "text": "Hi, I booked a flight to Lisbon for the 12th, booking ref KX4P2Q."},

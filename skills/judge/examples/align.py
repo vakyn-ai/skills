@@ -14,11 +14,10 @@ Expert labels, one line per graded output (expert-labels.sample.jsonl):
 
 The labels are split once, at random with a fixed seed: about 70% to read disagreements and rewrite
 criteria on ("tune"), 30% held out to report on ("check"). Disagreements are only ever shown from the
-tune part. --live needs typesafe-sdk, TYPESAFE_BASE_URL and TYPESAFE_API_KEY; offline needs nothing.
+tune part. --live needs VAKYN_API_KEY (and VAKYN_BASE_URL if not VAKYN Cloud); offline needs nothing.
 """
 
 import argparse
-import asyncio
 import json
 import pathlib
 import random
@@ -93,21 +92,19 @@ def print_disagreements(rows):
             print(f"    output: {it['output'][:110]}")
 
 
-async def grade_live(items, draft, concurrency=2):
-    from typesafe_sdk import AsyncTypeSafeClient
+def grade_live(items, draft, concurrency=2):
+    from concurrent.futures import ThreadPoolExecutor
 
     from judge import ask  # one output per request, every criterion in it, 429 retry
 
     criteria = criteria_for(draft)
-    client = AsyncTypeSafeClient(timeout=60.0)
-    gate = asyncio.Semaphore(concurrency)
 
-    async def one(it):
-        async with gate:
-            answers, request_id = await ask(client, it, criteria)
+    def one(it):
+        answers, request_id = ask(it, criteria)
         return {"id": it["id"], "draft": draft, "request_id": request_id, "answers": answers}
 
-    return await asyncio.gather(*(one(it) for it in items))
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        return list(pool.map(one, items))
 
 
 def main():
@@ -124,7 +121,7 @@ def main():
     if a.live:
         lines = []
         for draft in ("first", "aligned"):
-            lines += asyncio.run(grade_live(items, draft))
+            lines += grade_live(items, draft)
         ANSWERS.write_text("".join(json.dumps(x) + "\n" for x in lines))
         print(f"Stored {len(lines)} answers in {ANSWERS.name}")
 

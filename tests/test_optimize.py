@@ -91,9 +91,9 @@ class OptimizeLoop(unittest.TestCase):
         self.dir = pathlib.Path(tempfile.mkdtemp())
         self.run_dir = self.dir / "run"
         shutil.copy(EXAMPLES / "intent.v1.request.json", self.dir / "v1.json")
-        self.env = {k: os.environ.get(k) for k in ("TYPESAFE_BASE_URL", "TYPESAFE_API_KEY")}
-        os.environ["TYPESAFE_BASE_URL"] = self.fake.url
-        os.environ["TYPESAFE_API_KEY"] = "vk_test"
+        self.env = {k: os.environ.get(k) for k in ("VAKYN_BASE_URL", "VAKYN_API_KEY")}
+        os.environ["VAKYN_BASE_URL"] = self.fake.url
+        os.environ["VAKYN_API_KEY"] = "vk_test"
         dev = sorted(DEV)
         self.fake.wrong[optimize.wording_hash(question(self.dir / "v1.json"))] = set(dev[:10]) | set(sorted(RESERVED)[:4])
 
@@ -232,10 +232,10 @@ class OptimizeLoop(unittest.TestCase):
         self.assertEqual(code, 2, "the reserved set is scored once per run")
 
     def test_no_key_no_scores(self):
-        os.environ.pop("TYPESAFE_API_KEY")
+        os.environ.pop("VAKYN_API_KEY")
         code, out = self.start("--yes")
         self.assertEqual(code, 2)
-        self.assertIn("TYPESAFE_API_KEY is not set", out)
+        self.assertIn("VAKYN_API_KEY is not set", out)
         self.assertNotIn("accuracy", out)
         self.assertEqual(self.fake.sent, [])
 
@@ -259,8 +259,8 @@ class SampleReplay(unittest.TestCase):
         run = d / "run"
         run.mkdir()
         shutil.copy(EXAMPLES / "answers.sample.jsonl", run / "answers.jsonl")
-        key = os.environ.pop("TYPESAFE_API_KEY", None)
-        self.addCleanup(lambda: key is None or os.environ.__setitem__("TYPESAFE_API_KEY", key))
+        key = os.environ.pop("VAKYN_API_KEY", None)
+        self.addCleanup(lambda: key is None or os.environ.__setitem__("VAKYN_API_KEY", key))
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             self.assertEqual(optimize.main(["start", "--request", str(EXAMPLES / "intent.v1.request.json"),

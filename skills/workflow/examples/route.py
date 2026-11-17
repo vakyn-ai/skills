@@ -1,9 +1,11 @@
-"""Route each support ticket to a team. pip install typesafe-sdk
+"""Route each support ticket to a team. Standard library only, nothing to install.
 
-Needs TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server) and TYPESAFE_API_KEY (vk_...).
+Needs VAKYN_API_KEY (vk_...). VAKYN_BASE_URL is optional (default https://api.vakyn.com, or your own server).
 """
 
-from typesafe_sdk import Choice, TypeSafeClient
+import json
+import os
+import urllib.request
 
 TEAMS = {
     "billing": "Invoices, charges, refunds, plan changes and seat counts",
@@ -14,7 +16,18 @@ TEAMS = {
 }
 MIN_CONFIDENCE = 0.6  # starting value; set yours with check
 
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> tuple[dict, str]:
+    """POST /v1/systemone; returns the answers by question name and the request id."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"], r.headers.get("x-vakyn-request-id", "")
 
 
 def build_state(ticket: dict) -> dict:
@@ -28,21 +41,22 @@ def build_state(ticket: dict) -> dict:
 
 
 def route(ticket: dict) -> tuple[str, float]:
-    result = client.system_one(
-        state=build_state(ticket),
-        questions={
-            "team": Choice(
-                instructions="Which support team should handle the ticket in state.subject and state.message?",
-                criteria=TEAMS,
-            )
+    answers, request_id = decide(
+        build_state(ticket),
+        {
+            "team": {
+                "type": "choice",
+                "instructions": "Which support team should handle the ticket in state.subject and state.message?",
+                "criteria": TEAMS,
+            }
         },
     )
-    team = result.choices["team"]
-    if team.choice not in TEAMS:  # code checks the pick is one we offered
-        raise ValueError(f"unexpected option {team.choice!r} (request {result.request_id})")
-    if team.choice == "other" or team.confidence < MIN_CONFIDENCE:
-        return "triage_queue", team.confidence  # unsure or off-topic: a person routes it
-    return team.choice, team.confidence
+    team = answers["team"]
+    if team["choice"] not in TEAMS:  # code checks the pick is one we offered
+        raise ValueError(f"unexpected option {team['choice']!r} (request {request_id})")
+    if team["choice"] == "other" or team["confidence"] < MIN_CONFIDENCE:
+        return "triage_queue", team["confidence"]  # unsure or off-topic: a person routes it
+    return team["choice"], team["confidence"]
 
 
 TICKETS = [

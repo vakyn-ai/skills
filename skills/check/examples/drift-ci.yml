@@ -24,14 +24,13 @@ jobs:
     runs-on: ubuntu-latest   # or [self-hosted, vakyn-test] next to your own test server
     timeout-minutes: 30
     env:
-      TYPESAFE_BASE_URL: ${{ vars.VAKYN_TEST_BASE_URL }}
-      TYPESAFE_API_KEY: ${{ secrets.VAKYN_TEST_API_KEY }}
+      VAKYN_BASE_URL: ${{ vars.VAKYN_TEST_BASE_URL }}
+      VAKYN_API_KEY: ${{ secrets.VAKYN_TEST_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install typesafe-sdk
       - name: Re-run the reference batch and compare
         run: |
           set -o pipefail   # fail the job when drift.py fails, even through tee

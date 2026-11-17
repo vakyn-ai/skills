@@ -5,7 +5,34 @@ person's code uses that is not here: read the provider's current docs, or ask. N
 what an unknown field does.
 
 Target shape: [API reference](../../get-started/references/api.md). Every mapped request passes the
-[pre-send checklist](../../get-started/references/checklist.md).
+[pre-send checklist](../../get-started/references/checklist.md). Every mapped request is sent with
+a direct HTTP call ([HTTP guide](../../get-started/references/http.md)).
+
+## Hosted Jev SDK calls
+
+`typesafe-sdk` (Python) and `@typesafe-ai/sdk` (TypeScript) send the same body VAKYN takes, so
+the request moves over as it is. What changes is the code around it: the SDK's objects become
+plain JSON. Checked in the package source (`typesafe-sdk` 0.7.2, `@typesafe-ai/sdk` 0.6.0).
+
+| Old SDK code | Direct HTTP to VAKYN |
+|---|---|
+| `TypeSafeClient(api_key=, base_url=, model=, timeout=)`, `new TypeSafeClient({...})` | one `decide(state, questions)` function: `VAKYN_API_KEY`, `VAKYN_BASE_URL`, a timeout on the call |
+| `client.system_one(state=, questions=)`, `client.systemOne({state, questions})` | `POST {base}/v1/systemone` with `{"state", "questions"}`; read `["answers"]` |
+| `Choice(instructions=, criteria={...})`, `choice(instructions, criteria)` | `{"type": "choice", "instructions": ..., "criteria": {...}}` |
+| `Noul(instructions=, criteria=)`, `noul(...)` | `{"type": "noul", "instructions": ...}` (plus `criteria` `{true, false}` if it had one) |
+| `Score(instructions=, criteria=[...])`, `score(...)` | `{"type": "score", "instructions": ..., "criteria": [...]}` |
+| `result.choices[q].choice`, `.confidence`, `.probabilities` | `answers[q]["choice"]`, `["confidence"]`, `["probabilities"]` |
+| `result.nouls[q].noul` | `answers[q]["noul"]` (probability of yes) |
+| `result.scores[q].score`, `.legend`, `.probabilities` (integer keys) | `answers[q]["score"]`, `["legend"]`, `["probabilities"]` (string keys `"0"`, `"1"`, …) |
+| TypeScript `{ answers }` from `systemOne`, `answers.q.choice` | the same `answers` object from the JSON body |
+| `result.request_id`, `.withResponse().requestId` | the `x-vakyn-request-id` response header |
+| `result.model`, `result.usage` | `body["model"]`, `body["usage"]["input_tokens"]` |
+| SDK errors (`APIStatusError`, …) | non-2xx status with JSON `{"detail": ...}`; Python `urllib.error.HTTPError` (`e.code`, `e.headers`, `e.read()`) |
+| automatic retries of `408`, `429`, `5xx` | a small loop: up to 3 retries, sleeping `retry-after` seconds (or 1–2 s) |
+| `AsyncTypeSafeClient` + `asyncio.gather` | `concurrent.futures.ThreadPoolExecutor` with a cap; `Promise.all` over batches in TypeScript |
+| `model="jev-latest"`, `TYPESAFE_DEFAULT_MODEL` | leave out (`vakyn-max` answers); own open-server: the name from `/v1/models` |
+
+Example: [sdk_before.py](../examples/sdk_before.py) → [sdk_after.py](../examples/sdk_after.py).
 
 ## OpenRouter decisions
 
@@ -14,13 +41,13 @@ Example: [openrouter-decisions.before.json](../examples/openrouter-decisions.bef
 
 | OpenRouter request | VAKYN |
 |---|---|
-| `model` `typesafe/jev-1.13`, `~typesafe/jev-latest` | `jev-latest` |
+| `model` `typesafe/jev-1.13`, `~typesafe/jev-latest` | leave out (`vakyn-max` answers); own open-server: the name from `/v1/models` |
 | `state`, `questions` (same `type`, `instructions`, `criteria`) | unchanged |
 | `provider`, `session_id`, `user`, `trace` | drop (OpenRouter routing and tracing) |
 
 | OpenRouter response | VAKYN |
 |---|---|
-| `id` | none; use the `x-typesafe-request-id` header |
+| `id` | none; use the `x-vakyn-request-id` header |
 | `provider`, `usage.cost` | none |
 | `model`, `answers`, `usage.input_tokens`, `usage.output_tokens` | same |
 
@@ -30,7 +57,7 @@ Example: [openrouter-decisions.before.json](../examples/openrouter-decisions.bef
 
 | Gateway | VAKYN |
 |---|---|
-| `model` `typesafe-ai/jev` | `jev-latest` |
+| `model` `typesafe-ai/jev` | leave out (`vakyn-max` answers); own open-server: the name from `/v1/models` |
 | question `type: "boolean"` | `type: "noul"` (same `instructions`, `criteria` `{true, false}`) |
 | `choice`, `score` questions | unchanged |
 | `providerOptions` | drop |
@@ -46,7 +73,7 @@ The gateway's choice and score examples show no `confidence`; VAKYN returns one.
 
 | Clef | VAKYN |
 |---|---|
-| `model` `clef`, `clef-flash` | `jev-latest` |
+| `model` `clef`, `clef-flash` | leave out (`vakyn-max` answers); own open-server: the name from `/v1/models` |
 | `state`, `questions` | unchanged (Clef allows 1–64 questions) |
 | `images` | no field in the VAKYN API; keep image questions where they are, or put a text description in the state |
 | `Authorization: Bearer $CLOUDFLARE_AUTH_TOKEN` | `Bearer $VAKYN_API_KEY` |
@@ -64,7 +91,7 @@ changing the code that reads it.
 
 | OpenAI request | VAKYN |
 |---|---|
-| `model` `gpt-6-luna` | `jev-latest` |
+| `model` `gpt-6-luna` | leave out (`vakyn-max` answers); own open-server: the name from `/v1/models` |
 | `input` (string) | `state` (string) |
 | `input` (list of user messages) | `state`: the text parts; an `input_image` part has no mapping |
 | `questions` (list; `name` optional) | `questions` (object); key = `name`, or a made-up `q0`, `q1`… |

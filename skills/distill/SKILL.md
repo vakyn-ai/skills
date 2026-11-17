@@ -16,7 +16,7 @@ as fallback.
 **VAKYN decides what a thing is; code decides what follows.**
 
 Shared material: [pre-send checklist](../get-started/references/checklist.md),
-[SDK guide](../get-started/references/sdk.md), the `questions` rules, the `workflow`
+[HTTP guide](../get-started/references/http.md), the `questions` rules, the `workflow`
 patterns, and the `check` pages for
 [thresholds](../check/references/thresholds.md#starting-values-and-sample-sizes),
 [replay](../check/references/replay.md) and [tuning](../check/references/tuning.md).

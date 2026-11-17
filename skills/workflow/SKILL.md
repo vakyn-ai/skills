@@ -11,7 +11,7 @@ happens to it"). You turn it into a working decision workflow: the questions, a 
 closest of thirteen patterns; each has a request and code that were run against a VAKYN 4B.
 
 Shared material: [fit check](../get-started/references/fit-check.md),
-[API reference](../get-started/references/api.md), [SDK guide](../get-started/references/sdk.md),
+[API reference](../get-started/references/api.md),
 [pre-send checklist](../get-started/references/checklist.md), and the `questions` rules for
 writing each question.
 
@@ -57,8 +57,8 @@ existing prompt or tool-calling app is the `convert` skill.
    each field under a plain name. No conclusions, no candidates that fail a hard rule
    ([design](references/design.md#3-the-state-builder)). Documents over 32,768 tokens: pick the
    relevant part in code, or split and combine ([long documents](references/long-documents.md)).
-6. **Write the code** in the project's language (Python or TypeScript) with the official SDK,
-   starting from the pattern's example. Batch by [dependency and volume](references/batching.md):
+6. **Write the code** in the project's language (Python or TypeScript), calling the API
+   directly over HTTP (no package to install), starting from the pattern's example. Batch by [dependency and volume](references/batching.md):
    independent questions in one request; dependent steps as separate requests; many records
    concurrently with a cap and `429` retry.
 7. **Add the unsure path** for every decision ([unsure](references/unsure.md)): a threshold as a
@@ -107,4 +107,4 @@ existing prompt or tool-calling app is the `convert` skill.
 - **Every decision has an unsure path.** Thresholds are named settings, tuned later on the
   person's own records with `check`.
 - **Never invent answers.** VAKYN not reachable, no numbers. Write the requests and code; say how to send them.
-- **Keys stay out of the chat and out of files**: `TYPESAFE_API_KEY` in the environment.
+- **Keys stay out of the chat and out of files**: `VAKYN_API_KEY` in the environment.

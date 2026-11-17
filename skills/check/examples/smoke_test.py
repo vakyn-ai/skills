@@ -10,8 +10,8 @@ plus "label" when a person has said what is right.
 The request file holds the question (only its first question is compared); each record's
 state replaces the example state.
 
-VAKYN side: pip install typesafe-sdk; TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server)
-and TYPESAFE_API_KEY. On VAKYN Cloud the ~30 requests spend a little balance; input tokens are printed.
+VAKYN side: Python 3 only; VAKYN_API_KEY, and VAKYN_BASE_URL (default https://api.vakyn.com, or
+your own server). On VAKYN Cloud the ~30 requests spend a little balance; input tokens are printed.
 Chat-model side, one of:
   --chat-answers FILE   picks the chat model already made ({"id": ..., "chat_pick": ...}); nothing is sent
   --ask-chat-model      sends the records to an OpenAI-compatible chat API (CHAT_BASE_URL,
@@ -30,7 +30,7 @@ import statistics
 import time
 import urllib.request
 
-from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
 
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE = re.compile(r"\+?\d[\d\s().-]{7,}\d")
@@ -61,19 +61,15 @@ def pick_sample(records, n):
     return out
 
 
-def sdk_question(q):
-    if q["type"] == "choice":
-        return Choice(instructions=q["instructions"], criteria=q["criteria"])
-    if q["type"] == "score":
-        return Score(instructions=q["instructions"], criteria=q["criteria"])
-    return Noul(instructions=q["instructions"], criteria=q.get("criteria"))
-
-
-def vakyn_answer(client, state, qid, q):
+def vakyn_answer(state, qid, q):
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone", data=json.dumps({"state": state, "questions": {qid: q}}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"})
     t0 = time.perf_counter()
-    res = client.system_one(state=state, questions={qid: sdk_question(q)})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        res, request_id = json.load(r), r.headers.get("x-vakyn-request-id")
     ms = (time.perf_counter() - t0) * 1000
-    a = res.model_dump()["answers"][qid]
+    a = res["answers"][qid]
     if q["type"] == "noul":
         pick, conf = ("true" if a["noul"] >= 0.5 else "false"), abs(2 * a["noul"] - 1)
         probs = {"true": a["noul"], "false": round(1 - a["noul"], 2)}
@@ -83,7 +79,8 @@ def vakyn_answer(client, state, qid, q):
     else:
         pick, conf, probs = a["choice"], a["confidence"], a["probabilities"]
     return {"vakyn_pick": pick, "vakyn_confidence": conf, "vakyn_probabilities": probs,
-            "request_id": res.request_id, "vakyn_ms": round(ms), "vakyn_tokens_in": res.usage.input_tokens or 0}
+            "request_id": request_id, "vakyn_ms": round(ms),
+            "vakyn_tokens_in": (res.get("usage") or {}).get("input_tokens") or 0}
 
 
 def chat_answer(state, q):
@@ -133,14 +130,13 @@ def main():
     if a.chat_answers:
         chat_given = {r["id"]: r["chat_pick"] for r in map(json.loads, open(a.chat_answers)) if r.get("id")}
 
-    client = TypeSafeClient(timeout=30.0)
     results = []
     with open(a.out, "w") as out:
         for r in sample:
             state = r.get("state") or {"message": r["text"]}
             if not a.no_redact:
                 state = redact(state)
-            row = {"id": r.get("id"), "label": r.get("label"), **vakyn_answer(client, state, qid, q)}
+            row = {"id": r.get("id"), "label": r.get("label"), **vakyn_answer(state, qid, q)}
             if r.get("id") in chat_given:
                 row["chat_pick"] = chat_given[r["id"]]
             elif a.ask_chat_model:
@@ -177,7 +173,7 @@ def main():
             print(f"  {r['id']}: VAKYN {r['vakyn_pick']} ({r['vakyn_confidence']:.2f})  chat {r['chat_pick']}"
                   f"  label {r['label'] or '-'}")
     vms = [r["vakyn_ms"] for r in results]
-    where = os.environ.get("TYPESAFE_BASE_URL", "(SDK default)")
+    where = BASE_URL
     print(f"VAKYN time per call: median {statistics.median(vms):.0f} ms, max {max(vms)} ms ({where}, one at a time)")
     vtin = sum(r.get("vakyn_tokens_in", 0) for r in results)
     print(f"VAKYN input tokens: {vtin} for {len(results)} calls (VAKYN Cloud cost: x the price per million "

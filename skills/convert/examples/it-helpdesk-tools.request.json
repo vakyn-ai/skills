@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "assistant": "IT helpdesk assistant for employees. It calls one tool at a time.",
     "user_request": "Got a new phone over the weekend and now I can't get my sign-in codes, so I'm locked out of email.",

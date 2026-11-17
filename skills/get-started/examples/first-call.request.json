@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "channel": "email",
     "customer": {"plan": "team", "seats": 12},

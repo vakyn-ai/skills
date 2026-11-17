@@ -11,7 +11,7 @@ do not need the expensive model. This skill puts a cheap model in front, has VAK
 draft against the sources it should rest on, and sends only the drafts that fail to the expensive
 model, then to a person. VAKYN decides; both chat models still write.
 
-Shared material: [API reference](../get-started/references/api.md), [SDK guide](../get-started/references/sdk.md),
+Shared material: [API reference](../get-started/references/api.md), [HTTP guide](../get-started/references/http.md),
 [pre-send checklist](../get-started/references/checklist.md), the `questions` rules for
 [options](../questions/references/options-and-levels.md) and
 [state](../questions/references/state.md), and the single page for
@@ -79,5 +79,5 @@ Shared material: [API reference](../get-started/references/api.md), [SDK guide](
   spot-check shows quality. Say which one a number is.
 - **Never invent prices or savings.** Prices come from the person; savings from their log.
 - **The log holds user text** when `texts` is on: keep it private or drop it.
-- **Keys stay out of the chat and out of files**: `TYPESAFE_API_KEY` and the chat-model keys in
+- **Keys stay out of the chat and out of files**: `VAKYN_API_KEY` and the chat-model keys in
   the environment.

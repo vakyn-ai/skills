@@ -2,7 +2,7 @@
 
 Read the person's VAKYN code and config and walk this list. For each item, say **ok**, or what is
 missing and the fix (with the code change). Limits and errors:
-[API reference](../../get-started/references/api.md); SDK behavior: [SDK guide](../../get-started/references/sdk.md).
+[API reference](../../get-started/references/api.md); calling it from code: [HTTP guide](../../get-started/references/http.md).
 
 ## Requests
 
@@ -22,9 +22,9 @@ missing and the fix (with the code change). Limits and errors:
    open-server queues up to `--max-queue` requests (default 32). Beyond either, the answer is 429
    with `retry-after`. Cap in-flight calls in the app (a semaphore or a worker pool), summed over
    every app instance using the key or the server.
-6. **429 and 503 are retried after `retry-after`.** The SDKs do this (2 retries with backoff). Hand-
-   written HTTP code must read `retry-after` / `retry-after-ms` and wait; no tight loops.
-7. **A timeout on every call.** The SDK default is 10 seconds per attempt. On CPU or with long
+6. **429 and 503 are retried after `retry-after`.** The code reads `retry-after` /
+   `retry-after-ms` and waits, a few times with backoff; no tight loops.
+7. **A timeout on every call.** 10 seconds per attempt is a good start. On CPU or with long
    states, raise it (for example 30 s) instead of letting retries pile up. Plain HTTP clients
    often have no timeout at all; set one.
 8. **A fallback when VAKYN is down or keeps failing**: the chat model, a person, or a queue to
@@ -34,7 +34,7 @@ missing and the fix (with the code change). Limits and errors:
 
 ## Keys
 
-9. **The key comes from the environment** (`TYPESAFE_API_KEY` / `VAKYN_API_KEY`) or a secret store;
+9. **The key comes from the environment** (`VAKYN_API_KEY`) or a secret store;
    never in code, config in git, logs or error messages. If one is in a tracked file, it is leaked:
    revoke it and create a new one (VAKYN Cloud: the console's API keys page; open-server:
    `vakyn keys revoke`, `vakyn keys create --name <app>`), move it out.
@@ -48,7 +48,7 @@ missing and the fix (with the code change). Limits and errors:
 ## Logging and monitoring
 
 12. **Keep an audit record of every decision** ([format below](#audit-record)): request id
-    (`x-typesafe-request-id`), model name from the response, the input or its hash, question
+    (`x-vakyn-request-id`), model name from the response, the input or its hash, question
     hashes, every answer with its probabilities, the policy version, the outcome. Not the raw
     personal data, unless their policy allows it.
 13. **Watch the unsure rate**: the share below the threshold per day. A rise means the inputs
@@ -87,7 +87,7 @@ inputs, which policy version decided this case? Show me", and the same lines dri
 | `case_id` | the person's id for the case (ticket, claim, alert) |
 | `step` | which step of the workflow decided (`route_ticket`); one record per step when there are several |
 | `ts` | UTC time |
-| `request_id` | `x-typesafe-request-id` of the VAKYN request |
+| `request_id` | `x-vakyn-request-id` of the VAKYN request |
 | `model` | model name from the response; add the model file as `/v1/models` describes it when it matters |
 | `input` or `input_hash` + `input_ref` | the state as sent, or, where policy forbids keeping it, its hash and where the input is stored |
 | `questions` | per question name, a hash of the question as sent |

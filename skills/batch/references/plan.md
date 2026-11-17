@@ -12,9 +12,9 @@ Agree the setup first, then pilot, then the full run. Nothing is sent before the
    `workflow` or `questions` skill first. Batching runs questions; it does not design them.
 3. **Which columns are evidence?** Only those go into the state. Everything else stays in the
    person's process.
-4. **Where does it run?** VAKYN Cloud (`TYPESAFE_BASE_URL=https://api.vakyn.com`, the default)
+4. **Where does it run?** VAKYN Cloud (`VAKYN_BASE_URL=https://api.vakyn.com`, the default)
    or their own server (its URL, and whether it runs with the default `--max-queue` of 32). The
-   key goes in `TYPESAFE_API_KEY` in the environment (never in the chat or in a file).
+   key goes in `VAKYN_API_KEY` in the environment (never in the chat or in a file).
 5. **Where do answers go?** A new file next to the input, or a new table. Never over the source.
 
 ## 2. Pick the columns

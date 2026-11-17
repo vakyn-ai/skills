@@ -44,7 +44,7 @@ Full request: [structured-options.request.json](../examples/structured-options.r
 descriptions ("Charges, invoices and refunds") and to `billing` (1.00) with the structured ones,
 because "failed payments" is listed under billing.
 
-Measured on 20 hard routing messages over 5 teams (VAKYN-4B Q8_0, one RTX 5090, one request at
+Measured on 20 hard routing messages over 5 teams (VAKYN-4B Q8_0, one RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202), one request at
 a time): structured 18/20 right, the same words as one long string 17/20, plain one-line
 descriptions 16/20. The sample is small, and most of the gain comes from the extra includes and
 not information, not from the format. Write the information first; use a structure when it makes

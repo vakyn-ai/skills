@@ -42,10 +42,9 @@ Every decision has an unsure path: a `category` or `impact` below the threshold,
 import datetime
 import json
 import os
+import urllib.request
 
-from typesafe_sdk import TypeSafeClient
-
-vakyn = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
 REQUEST = json.load(open("ticket-triage.request.json"))  # questions as plain dicts; state per ticket
 CATEGORIES = REQUEST["questions"]["category"]["criteria"]
 MODE = os.environ.get("VAKYN_TRIAGE_MODE", "side_by_side")  # the person flips it to "vakyn" after check
@@ -56,17 +55,27 @@ def priority_from(level, plan):  # rules in code
     priority = {3: 1, 2: 2}.get(level, 3)            # P1, P2, else P3
     return max(1, priority - 1) if plan == "enterprise" else priority
 
+def decide(state, questions, timeout=30):
+    """POST /v1/systemone; returns the response body plus its request id."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return {**json.load(resp), "request_id": resp.headers.get("x-vakyn-request-id")}
+
 def ask_vakyn(ticket):
     """VAKYN's answers, None for each one it is unsure about; (None, {}) when VAKYN fails."""
     try:
-        r = vakyn.system_one(state={"ticket": {"subject": ticket.subject, "body": ticket.body}},
-                             questions=REQUEST["questions"])
+        r = decide({"ticket": {"subject": ticket.subject, "body": ticket.body}}, REQUEST["questions"])
     except Exception:
         return None, {}
-    cat, impact, p = r.choices["category"], r.scores["impact"], r.nouls["cancel_threat"].noul
+    a = r["answers"]
+    cat, impact, p = a["category"], a["impact"], a["cancel_threat"]["noul"]
     return r, {
-        "category": cat.choice if cat.choice in CATEGORIES and cat.confidence >= MIN_CONFIDENCE else None,
-        "level": round(impact.score) if impact.confidence >= MIN_CONFIDENCE else None,  # 0..3
+        "category": cat["choice"] if cat["choice"] in CATEGORIES and cat["confidence"] >= MIN_CONFIDENCE else None,
+        "level": round(impact["score"]) if impact["confidence"] >= MIN_CONFIDENCE else None,  # 0..3
         "churn_risk": True if p >= YES_AT else False if p <= NO_AT else None,
     }
 
@@ -86,7 +95,7 @@ def triage(ticket):  # ticket: your record with subject, body, plan, created_at,
         }
     result.update(language=detect_language(ticket.body),
                   overdue=not ticket.replied and hours_since(ticket.created_at) > 48,
-                  vakyn_request_id=r and r.request_id)
+                  vakyn_request_id=r and r["request_id"])
     return result
 # The summary and the first reply stay with the chat model, after triage, with the category given.
 
@@ -97,11 +106,12 @@ def log_answers(r, v, old, ticket, path="vakyn-triage.jsonl"):
             "cancel_threat": None if old.get("churn_risk") is None else "yes" if old["churn_risk"] else "no"}
     mine = {q: (None, None, None) for q in chat}
     if r is not None:
-        cat, impact, p = r.choices["category"], r.scores["impact"], r.nouls["cancel_threat"].noul
+        a = r["answers"]
+        cat, impact, p = a["category"], a["impact"], a["cancel_threat"]["noul"]
         mine = {
-            "category": (cat.choice, cat.confidence, dict(cat.probabilities)),
-            "priority": (f"P{priority_from(round(impact.score), ticket.plan)}", impact.confidence,  # compared
-                         {str(k): x for k, x in impact.probabilities.items()}),                   # after the rules
+            "category": (cat["choice"], cat["confidence"], cat["probabilities"]),
+            "priority": (f"P{priority_from(round(impact['score']), ticket.plan)}", impact["confidence"],  # compared
+                         impact["probabilities"]),                                                      # after the rules
             "cancel_threat": ("yes" if p >= 0.5 else "no", abs(2 * p - 1), {"yes": p, "no": 1 - p}),
         }
     unsure = {"category": "category", "priority": "level", "cancel_threat": "churn_risk"}
@@ -109,7 +119,7 @@ def log_answers(r, v, old, ticket, path="vakyn-triage.jsonl"):
     with open(path, "a") as f:
         for q, (pick, conf, probs) in mine.items():
             used = "vakyn" if MODE == "vakyn" and v and v[unsure[q]] is not None else "chat"
-            f.write(json.dumps({"ts": ts, "request_id": r and r.request_id, "question": q,
+            f.write(json.dumps({"ts": ts, "request_id": r and r["request_id"], "question": q,
                                 "vakyn_pick": pick, "vakyn_confidence": conf, "vakyn_probabilities": probs,
                                 "chat_pick": chat[q], "agree": None if None in (pick, chat[q]) else pick == chat[q],
                                 "mode": MODE, "used": used}) + "\n")

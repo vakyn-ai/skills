@@ -1,9 +1,11 @@
-"""Grade a support reply on three rubric criteria and combine them in code. pip install typesafe-sdk
+"""Grade a support reply on three rubric criteria and combine them in code. Standard library only.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 """
 
-from typesafe_sdk import Score, TypeSafeClient
+import json
+import os
+import urllib.request
 
 RUBRIC = {  # criterion -> (question, levels lowest first, weight)
     "answers_question": ("How fully does state.agent_reply deal with what state.customer_message asks for?", [
@@ -26,24 +28,35 @@ MIN_CONFIDENCE = 0.6  # starting value; set yours with check
 POLICY = ("Refunds: full refund within 30 days of purchase. After 30 days, store credit only. "
           "Agents may not promise dates for engineering fixes.")
 
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
 
 
 def grade(customer_message: str, agent_reply: str) -> dict:
-    r = client.system_one(  # independent criteria: one request, one score each
-        state={"policy": POLICY, "customer_message": customer_message, "agent_reply": agent_reply},
-        questions={k: Score(instructions=q, criteria=levels) for k, (q, levels, _) in RUBRIC.items()},
+    answers = decide(  # independent criteria: one request, one score each
+        {"policy": POLICY, "customer_message": customer_message, "agent_reply": agent_reply},
+        {k: {"type": "score", "instructions": q, "criteria": levels} for k, (q, levels, _) in RUBRIC.items()},
     )
-    scores = {k: r.scores[k] for k in RUBRIC}
+    scores = {k: answers[k] for k in RUBRIC}
     top = {k: len(RUBRIC[k][1]) - 1 for k in RUBRIC}
-    total = sum(RUBRIC[k][2] * s.score / top[k] for k, s in scores.items())  # weighted, 0 to 1
-    unsure = [k for k, s in scores.items() if s.confidence < MIN_CONFIDENCE]
-    if scores["follows_policy"].score < 1.5:  # a rule in code: any policy breach goes to a lead
+    total = sum(RUBRIC[k][2] * s["score"] / top[k] for k, s in scores.items())  # weighted, 0 to 1
+    unsure = [k for k, s in scores.items() if s["confidence"] < MIN_CONFIDENCE]
+    if scores["follows_policy"]["score"] < 1.5:  # a rule in code: any policy breach goes to a lead
         verdict = "lead_review"
     else:
         verdict = "lead_review" if unsure else ("pass" if total >= 0.7 else "coach")
     return {"total": round(total, 2), "verdict": verdict, "unsure": unsure,
-            **{k: round(s.score, 2) for k, s in scores.items()}}
+            **{k: round(s["score"], 2) for k, s in scores.items()}}
 
 
 CASES = [

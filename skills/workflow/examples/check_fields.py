@@ -1,14 +1,15 @@
 """Check each field of a structured output against the evidence it cited; send back only the failing
-fields; drop what is still unsupported after the last try. pip install typesafe-sdk
+fields; drop what is still unsupported after the last try. Standard library only, nothing to install.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY. The agent that fills the fields is stubbed with
+Needs VAKYN_API_KEY; VAKYN_BASE_URL is optional (default https://api.vakyn.com). The agent that fills the fields is stubbed with
 AGENT_FIRST and AGENT_RETRY; replace ask_agent() with your own call (same session, so it keeps context).
 """
 
 import datetime
+import json
+import os
 import re
-
-from typesafe_sdk import Choice, TypeSafeClient
+import urllib.request
 
 LEASE = ("RESIDENTIAL LEASE. Landlord: Ostrava Homes LLC. Tenant: Priya Raman. Premises: Flat 4B, 22 Cedar Row. "
          "Term: 12 months starting 1 November 2026. Rent: $1,850 per month, due on the 1st. "
@@ -49,7 +50,18 @@ VERDICTS = {
 MAX_TRIES = 2          # first answer plus one retry
 MIN_CONFIDENCE = 0.8   # starting value; set yours with check
 
-client = TypeSafeClient(timeout=60.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 60.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
 
 
 def date_check(value, evidence):
@@ -82,17 +94,18 @@ def check(output):
             asked[field] = {"meaning": MEANING[field], "value": value, "evidence": evidence}
     if asked:
         questions = {
-            f"check_{field}": Choice(
-                instructions=f"Does the quoted evidence in state.fields.{field}.evidence support that the lease's "
-                             f"{field} ({MEANING[field]}) is state.fields.{field}.value?",
-                criteria=VERDICTS)
+            f"check_{field}": {
+                "type": "choice",
+                "instructions": f"Does the quoted evidence in state.fields.{field}.evidence support that the lease's "
+                                f"{field} ({MEANING[field]}) is state.fields.{field}.value?",
+                "criteria": VERDICTS}
             for field in asked
         }
-        r = client.system_one(state={"fields": asked}, questions=questions)
+        answers = decide({"fields": asked}, questions)
         for field in asked:
-            a = r.choices[f"check_{field}"]
-            verdict = a.choice if a.choice in VERDICTS and a.confidence >= MIN_CONFIDENCE else "unsure"
-            results[field] = (verdict, round(a.confidence, 2))
+            a = answers[f"check_{field}"]
+            verdict = a["choice"] if a["choice"] in VERDICTS and a["confidence"] >= MIN_CONFIDENCE else "unsure"
+            results[field] = (verdict, round(a["confidence"], 2))
     return results
 
 

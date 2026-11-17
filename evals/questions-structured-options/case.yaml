@@ -10,8 +10,7 @@ execution:
     Our VAKYN router keeps mixing up two teams. "Please remove my old user so it can't sign in" goes to
     privacy, and "Delete all the data you have on me" sometimes goes to access. Here is the request we send:
 
-    {"model": "jev-latest",
-     "state": {"message": "<the customer's message>"},
+    {"state": {"message": "<the customer's message>"},
      "questions": {"team": {"type": "choice", "instructions": "Pick one.",
        "criteria": {"billing": "Billing", "access": "Access", "privacy": "Privacy",
                     "other": "Anything else"}}}}

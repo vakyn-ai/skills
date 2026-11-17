@@ -1,9 +1,11 @@
-"""Decide which form field to ask about next in a claim intake chat. pip install typesafe-sdk
+"""Decide which form field to ask about next in a claim intake chat. Standard library only, nothing to install.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 """
 
-from typesafe_sdk import Choice, TypeSafeClient
+import json
+import os
+import urllib.request
 
 FIELDS = {  # every field of the form, with what it is for
     "emergency_help": "Whether the damage is still happening and the person needs an emergency repair sent now",
@@ -19,7 +21,18 @@ ENDINGS = {
 }
 MIN_CONFIDENCE = 0.6  # starting value; set yours with check. Below it, ask the empty fields in their fixed order
 
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
 
 
 def next_field(filled: dict, latest_reply: str) -> str:
@@ -27,20 +40,21 @@ def next_field(filled: dict, latest_reply: str) -> str:
     if not empty:
         return "ready_to_submit"  # nothing to ask: no question needed
     options = {**empty, **ENDINGS}
-    r = client.system_one(
-        state={"form": "Home insurance claim", "filled": filled, "latest_reply": latest_reply},
-        questions={"next_field": Choice(
-            instructions=(
+    answers = decide(
+        {"form": "Home insurance claim", "filled": filled, "latest_reply": latest_reply},
+        {"next_field": {
+            "type": "choice",
+            "instructions": (
                 "Which empty field of the form should the assistant ask about next? Ask first about what "
                 "matters most for the person right now, given state.filled and state.latest_reply."
             ),
-            criteria=options,
-        )},
+            "criteria": options,
+        }},
     )
-    pick = r.choices["next_field"]
-    if pick.choice not in options or pick.confidence < MIN_CONFIDENCE:
+    pick = answers["next_field"]
+    if pick["choice"] not in options or pick["confidence"] < MIN_CONFIDENCE:
         return next(iter(empty))  # unsure: fall back to the fixed order
-    return pick.choice  # a field (your chat model or template words the question), or an ending
+    return pick["choice"]  # a field (your chat model or template words the question), or an ending
 
 
 STEPS = [

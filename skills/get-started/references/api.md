@@ -1,4 +1,4 @@
-# API reference (Jev-compatible)
+# API reference
 
 VAKYN Cloud and open-server serve the same API. Full reference: [vakyn.com/docs/api](https://vakyn.com/docs/api).
 
@@ -6,7 +6,7 @@ VAKYN Cloud and open-server serve the same API. Full reference: [vakyn.com/docs/
 |---|---|---|
 | Base URL | `https://api.vakyn.com` | the person's server, default `http://localhost:8080`; HTTPS through a reverse proxy |
 | Key | from [vakyn.com/console/keys](https://vakyn.com/console/keys) | `vakyn keys create` or its dashboard |
-| `model` | optional: `vakyn-max` (default), `vakyn-fast`, aliases `jev-latest`, `vakyn-latest` | required: `jev-latest` or the name from `/v1/models` |
+| `model` | optional: `vakyn-max` (default), `vakyn-fast`, alias `vakyn-latest` | required: the name from `/v1/models` |
 | Cost | per input token from a prepaid balance; output free, errors free | the person's own hardware |
 | Load | 60 requests per second per key, then `429` | `--max-queue` requests at once (default 32), then `429` |
 
@@ -17,15 +17,14 @@ Base URLs have no `/v1`. A key works only where it was made.
 | `POST` | `/v1/systemone` | Answer questions about a state |
 | `GET` | `/v1/models` | List the models and aliases (on VAKYN Cloud with live prices, no key needed) |
 
-Auth: `Authorization: Bearer vk_...`. Every response carries `x-typesafe-request-id` (VAKYN Cloud
-also sends the same id as `x-vakyn-request-id`); log it.
+Auth: `Authorization: Bearer vk_...`. Every response carries a request id (on VAKYN Cloud the
+`x-vakyn-request-id` header); log it. Calling it from code: [HTTP guide](http.md).
 There is no streaming and no batch endpoint: send independent requests concurrently instead.
 
 ## Request
 
 ```json
 {
-  "model": "jev-latest",
   "state": {"ticket": "I was charged twice this month and need one refunded."},
   "questions": {
     "team":    {"type": "choice", "instructions": "Which team should handle the ticket?",
@@ -39,8 +38,8 @@ There is no streaming and no batch endpoint: send independent requests concurren
 }
 ```
 
-- `model`: `jev-latest` runs on both; on VAKYN Cloud also `vakyn-max` or `vakyn-fast`, or leave it
-  out. Anything else is a `400`.
+- `model`: on VAKYN Cloud `vakyn-max` or `vakyn-fast`, or leave it out (`vakyn-max` answers); on
+  open-server required, the name from `/v1/models`. Anything else is a `400`.
 - `state`: a string, an object or an array; never null. Every question sees all of it.
 - `questions`: an object; the key is the question's name and the key you read the answer by.
   - `type`: `noul`, `choice` or `score`.

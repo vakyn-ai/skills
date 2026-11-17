@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "task": "Answer an employee's question using only the handbook passages retrieved for it.",
     "input": "How many days of parental leave do I get, and is it paid?",

@@ -3,6 +3,8 @@
 Usage: VAKYN_API_KEY=vk_... python3 tests/live.py
 Base URL from VAKYN_BASE_URL. The default is a local open-server, for development; the skills
 themselves default to VAKYN Cloud. Pointing it at https://api.vakyn.com spends real balance.
+The example requests leave `model` out (VAKYN Cloud answers with vakyn-max); open-server needs one:
+set VAKYN_MODEL to the name its /v1/models lists, and it is added to every request without one.
 Exits 0 and prints SKIP when no server answers, so it is safe in CI without a server.
 """
 
@@ -16,9 +18,12 @@ import urllib.request
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BASE = os.environ.get("VAKYN_BASE_URL", "http://127.0.0.1:8080").rstrip("/")
 KEY = os.environ.get("VAKYN_API_KEY", "")
+MODEL = os.environ.get("VAKYN_MODEL", "")
 
 
 def post(body):
+    if MODEL and "model" not in body:
+        body = {"model": MODEL, **body}
     req = urllib.request.Request(
         f"{BASE}/v1/systemone",
         data=json.dumps(body).encode(),

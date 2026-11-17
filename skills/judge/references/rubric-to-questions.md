@@ -69,7 +69,7 @@ From [rubric.py](../examples/rubric.py):
 ## Example: support replies
 
 Five criteria: `answers_request`, `follows_rules`, `asks_for_secret` (must-pass, fails when true),
-`next_step`, `tone`. Answers from a VAKYN 4B (Q8_0, one RTX 5090):
+`next_step`, `tone`. Answers from a VAKYN 4B (Q8_0, one RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202)):
 
 | Request | answers_request | follows_rules | asks_for_secret | next_step | tone | Verdict |
 |---|---|---|---|---|---|---|
@@ -89,14 +89,15 @@ To compare two outputs (model A vs model B, old prompt vs new), ask one `choice`
 state and a `neither` option, then ask again with the two swapped. Combine in code:
 
 ```python
-def compare(client, item, a, b):
-    q = {"better": Choice(
-        instructions="Which reply would serve the customer in state.input better, given state.rules?",
-        criteria={"reply_a": "state.reply_a serves the customer better",
-                  "reply_b": "state.reply_b serves the customer better",
-                  "neither": "Both serve the customer equally well or equally badly"})}
-    first = client.system_one(state={**item, "reply_a": a, "reply_b": b}, questions=q).choices["better"].choice
-    second = client.system_one(state={**item, "reply_a": b, "reply_b": a}, questions=q).choices["better"].choice
+def compare(item, a, b):  # decide(state, questions): POST /v1/systemone, returns the "answers"
+    q = {"better": {
+        "type": "choice",
+        "instructions": "Which reply would serve the customer in state.input better, given state.rules?",
+        "criteria": {"reply_a": "state.reply_a serves the customer better",
+                     "reply_b": "state.reply_b serves the customer better",
+                     "neither": "Both serve the customer equally well or equally badly"}}}
+    first = decide({**item, "reply_a": a, "reply_b": b}, q)["better"]["choice"]
+    second = decide({**item, "reply_a": b, "reply_b": a}, q)["better"]["choice"]
     swapped = {"reply_a": "reply_b", "reply_b": "reply_a", "neither": "neither"}[second]
     return first if first == swapped else "tie"  # the two orders disagree: position decided it, not quality
 ```

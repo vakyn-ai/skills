@@ -79,8 +79,8 @@ graders:
     criteria: |
       Judge this Python file.
       PASS if all hold:
-      - the small model drafts from the retrieved sections, and VAKYN (typesafe_sdk / TypeSafeClient,
-        or HTTP to /v1/systemone) checks the draft against those same sections;
+      - the small model drafts from the retrieved sections, and VAKYN (an HTTP call to
+        /v1/systemone) checks the draft against those same sections;
       - only a "supported" verdict at or above a confidence threshold that is a named setting
         accepts the small model's draft;
       - other verdicts go to the big model; the big model's answer is checked once more, and if it

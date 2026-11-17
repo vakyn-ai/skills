@@ -30,12 +30,13 @@ BANNED = [
     (r"(?i)\bclassifiers?\b", "say decision model"),
     (r"(?i)\brevolutionary\b|\bgame-changing\b|\bcutting-edge\b", "hype"),
     (r"(?i)\bSystem One\b", "say System 1"),
-    (r"(?i)\bthe Jev API\b", "say Jev-compatible API"),
+    (r"(?i)\bjev-compatible\b", "VAKYN is its own HTTP API, not Jev-compatible (owner, 2026-11-17)"),
     (r"(?i)\bcoming soon\b|\bin development\b", "no planning words"),
     (r"(?i)\bGGUF\b", "the release format is UQFF"),
     (r"(?i)\bfine-?tun", "no base model or fine-tune in public text"),
     (r"(?i)\bbeats GPT\b|\bbetter than GPT\b", "no vendor comparisons"),
     (r"/code/|/home/", "no local paths"),
+    (r"(?i)\bRTX 5090\b|\bGeForce\b", "say RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202)"),
 ]
 
 # Internal names that must never appear in public text are kept out of the repo, in a
@@ -163,6 +164,23 @@ class CloudFirst(unittest.TestCase):
                 line = text.count("\n", 0, m.start()) + 1
                 self.fail(f"{f.relative_to(ROOT)}:{line}: '{m.group(0)}'; prices are per million input tokens")
 
+    def test_plain_http_no_typesafe_sdk(self):
+        # No TypeSafe SDK and no Jev compatibility (owner, 2026-11-17): examples call the API over HTTP with
+        # VAKYN_API_KEY. Only migrate may name the source APIs it moves code away from.
+        files = [ROOT / "README.md", ROOT / "docs" / "install-other-agents.md",
+                 *(p for p in (ROOT / "skills").rglob("*") if p.is_file() and p.suffix in TEXT_SUFFIXES),
+                 *(p for p in (ROOT / "evals").rglob("*") if p.is_file() and p.suffix in TEXT_SUFFIXES)]
+        for f in files:
+            if "__pycache__" in f.parts:
+                continue
+            rel = f.relative_to(ROOT)
+            migrate = rel.parts[:2] == ("skills", "migrate") or (rel.parts[0] == "evals" and rel.parts[1].startswith("migrate-"))
+            pattern = r"(?i)jev-compatible" if migrate else r"(?i)typesafe|jev-latest|jev-compatible|\bjev\b"
+            text = f.read_text()
+            for m in re.finditer(pattern, text):
+                line = text.count("\n", 0, m.start()) + 1
+                self.fail(f"{rel}:{line}: '{m.group(0)}'; call VAKYN over HTTP with VAKYN_API_KEY")
+
     def test_no_free_tier_promise(self):
         for f in PUBLIC_TEXT:
             text = f.read_text()
@@ -206,7 +224,12 @@ class ExampleRequests(unittest.TestCase):
 
 class Checklist(unittest.TestCase):
     def base(self, **q):
-        return {"model": "jev-latest", "state": "x", "questions": {"q": q}}
+        return {"model": "vakyn-max", "state": "x", "questions": {"q": q}}
+
+    def test_model_is_optional(self):
+        req = {"state": "x", "questions": {"q": {"type": "noul", "instructions": "Is it a refund request?"}}}
+        self.assertEqual(check(req)[0], [])
+        self.assertNotEqual(check({**req, "model": ""})[0], [])
 
     def test_good_request(self):
         req = self.base(type="choice", instructions="Which team handles state?",
@@ -215,7 +238,7 @@ class Checklist(unittest.TestCase):
 
     def test_errors(self):
         cases = [
-            {"model": "jev-latest", "state": None, "questions": {"q": {"type": "noul", "instructions": "x?"}}},
+            {"model": "vakyn-max", "state": None, "questions": {"q": {"type": "noul", "instructions": "x?"}}},
             self.base(type="choice", instructions="Which?", criteria={"a": "A"}),
             self.base(type="choice", instructions="Which?", criteria={"a": "", "none": "n"}),
             self.base(type="score", instructions="How?", criteria=["1", "2", "3"]),
@@ -229,7 +252,7 @@ class Checklist(unittest.TestCase):
             self.base(type="score", instructions="How?", criteria=["none", {"level": ""}]),
             self.base(type="noul", instructions={}),
             self.base(type="noul", instructions=None),
-            {"model": "jev-latest", "state": "x", "questions": {}, "stream": True},
+            {"model": "vakyn-max", "state": "x", "questions": {}, "stream": True},
         ]
         for req in cases:
             with self.subTest(req=req):

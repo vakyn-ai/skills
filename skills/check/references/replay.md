@@ -47,7 +47,7 @@ outcome and the reason. The same line serves the audit, the replay and the
    and a reserved set before the new version goes live: [tuning](tuning.md).
 
 Script for their project: [replay.py](../examples/replay.py) (`replay` needs only the standard
-library; `record` needs the SDK).
+library; `record` calls VAKYN over HTTP, also with the standard library only).
 
 ## Example (sample file)
 

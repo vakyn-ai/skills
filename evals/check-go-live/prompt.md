@@ -16,7 +16,7 @@ VAKYN_URL = "http://10.0.4.12:8080/v1/systemone"
 HEADERS = {"Authorization": "Bearer vk_live_3c1d9a7e5b2f8046"}
 
 async def ask(client, ticket, name, question):
-    body = {"model": "jev-latest", "state": {"ticket": ticket["body"]}, "questions": {name: question}}
+    body = {"model": "vakyn-max", "state": {"ticket": ticket["body"]}, "questions": {name: question}}
     r = await client.post(VAKYN_URL, json=body, headers=HEADERS, timeout=None)
     return r.json()["answers"][name]
 

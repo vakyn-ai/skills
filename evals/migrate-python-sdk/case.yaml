@@ -47,27 +47,30 @@ graders:
     criteria: |
       Judge this Python file, a migration of a hosted-Jev module to the person's own server.
       PASS if all hold:
-      - it still uses the official SDK (`typesafe_sdk`, `TypeSafeClient`, `system_one`);
-      - the pinned hosted model name `jev-1.13.0` is gone: the model is `jev-latest` or comes from
-        configuration (e.g. TYPESAFE_DEFAULT_MODEL or another environment variable);
-      - the base URL comes from configuration (TYPESAFE_BASE_URL or another environment variable),
-        not a hardcoded hosted URL;
-      - no API key literal is written in the file;
-      - the questions are kept (abusive noul, topic choice with an escape option).
-      FAIL if `jev-1.13.0` is still the model, if a key is written into the file, or if the code
-      no longer calls VAKYN's /v1/systemone through the SDK or HTTP.
+      - it calls VAKYN directly over HTTP: a POST to `<base URL>/v1/systemone` (standard library
+        `urllib.request`, or the app's own HTTP client), with no `typesafe_sdk` import on the new path;
+      - the pinned hosted model name `jev-1.13.0` is gone: the model comes from configuration (for
+        example VAKYN_MODEL, the name from their server's /v1/models), not `jev-latest`;
+      - the base URL and key come from environment variables (for example VAKYN_BASE_URL and
+        VAKYN_API_KEY), not a hardcoded hosted URL or key;
+      - the questions are kept as JSON (abusive noul, topic choice with an escape option) and the
+        function still returns the abusive probability (`answers["abusive"]["noul"]`) and the topic
+        (`answers["topic"]["choice"]`);
+      - a timeout is set on the call.
+      FAIL if `jev-1.13.0` is still the model, if a key is written into the file, if the new path
+      still goes through the TypeSafe SDK, or if the code no longer calls VAKYN's /v1/systemone.
   - name: advice
     type: llm
     criteria: |
       Judge the final answer to the person.
       PASS if all hold:
-      - it says pinned hosted model names do not exist on their server (use jev-latest or the name
-        from /v1/models);
+      - it says pinned hosted model names do not exist on their server (use the name from
+        /v1/models);
       - it says the key changes to one made on their own server (vk_ key, e.g. `vakyn keys create`),
         kept in an environment variable;
       - it recommends running old and new side by side on recorded requests (about 30) and comparing
         agreement before switching, and says agreement is not accuracy (labels decide);
-      - it gives a way back (rollback by switching the configuration back);
+      - it gives a way back (the old call kept behind a setting, switched back by configuration);
       - it mentions at least one practical difference such as the 5 s timeout being too short on
         their hardware, limits, or error/retry behavior.
       FAIL if it claims VAKYN answered anything or invents agreement numbers or speeds, or if it

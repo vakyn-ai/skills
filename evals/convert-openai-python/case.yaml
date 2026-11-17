@@ -77,8 +77,9 @@ graders:
     criteria: |
       Judge this Python file.
       PASS if all hold:
-      - it calls VAKYN with the official Python SDK (`typesafe_sdk`, `TypeSafeClient`, `system_one`
-        or an equivalent HTTP call to /v1/systemone) with a choice over the tools plus none/ask_user;
+      - it calls VAKYN directly over HTTP (a POST to /v1/systemone with the standard library or the
+        app's own HTTP client, no SDK package for VAKYN) with a choice over the tools plus
+        none/ask_user, the key from VAKYN_API_KEY;
       - pick-then-fill: when VAKYN's pick is used, the chat model is called with only that tool and
         `tool_choice` forced to it (`{"type": "function", "function": {"name": ...}}`);
       - the code checks VAKYN's pick is one of the offered options;

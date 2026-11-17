@@ -1,7 +1,7 @@
 """Cheap draft, VAKYN check, expensive model only when the draft fails. Side by side first.
 
-pip install typesafe-sdk openai
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key). Outside --demo, also
+pip install openai   # the chat-model side only; VAKYN is called with the standard library
+Needs VAKYN_API_KEY (a vk_ key) and, for your own server, VAKYN_BASE_URL (default https://api.vakyn.com). Outside --demo, also
 CHEAP_MODEL and EXPENSIVE_MODEL, plus the key for your chat-model provider (OPENAI_API_KEY, or
 CHEAP_API_KEY / EXPENSIVE_API_KEY with CHEAP_BASE_URL / EXPENSIVE_BASE_URL for any
 OpenAI-compatible endpoint).
@@ -28,9 +28,9 @@ import os
 import re
 import sys
 import time
+import urllib.error
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-
-from typesafe_sdk import Choice, TypeSafeClient
 
 MODE = os.environ.get("CASCADE_MODE", "side_by_side")
 MIN_CONFIDENCE = float(os.environ.get("CASCADE_MIN_CONFIDENCE", "0.8"))  # starting value; set yours with check
@@ -74,7 +74,24 @@ LOG_FIELDS = [  # the shared side-by-side fields first, then the cascade's own
     "cheap_model", "expensive_model", "tokens", "ms", "label", "texts",
 ]
 
-vakyn = TypeSafeClient(timeout=60.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state, questions, timeout=60):
+    """POST /v1/systemone. Returns (answers by question name, request id). Retries 429/5xx twice."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)["answers"], r.headers.get("x-vakyn-request-id")
+        except urllib.error.HTTPError as e:
+            if attempt == 2 or not (e.code == 429 or e.code >= 500):
+                raise
+            time.sleep(float(e.headers.get("retry-after") or 2 ** attempt))
 
 
 def trim_sources(sources, budget=SOURCE_BUDGET_TOKENS):
@@ -108,24 +125,26 @@ def split_claims(draft):
 def check(question, sources, draft):
     """VAKYN's verdict on a draft. Long drafts also get one question per sentence, in the same request."""
     state = {"question": question, "sources": sources, "draft": draft}
-    questions = {"verdict": Choice(
-        instructions="Is the draft answer in state.draft backed by state.sources, as an answer to state.question?",
-        criteria=VERDICT)}
+    questions = {"verdict": {
+        "type": "choice",
+        "instructions": "Is the draft answer in state.draft backed by state.sources, as an answer to state.question?",
+        "criteria": VERDICT}}
     claims = split_claims(draft) if PER_CLAIM_FROM else []
     if len(claims) >= PER_CLAIM_FROM > 0:
         state["claims"] = {f"c{i + 1}": c for i, c in enumerate(claims)}
         for key in state["claims"]:
-            questions[key] = Choice(
-                instructions=f"Is the sentence in state.claims.{key} backed by state.sources?", criteria=CLAIM)
-    result = vakyn.system_one(state=state, questions=questions)
-    v = result.choices["verdict"]
-    if v.choice not in VERDICT:  # code checks the pick is an offered option
-        raise ValueError(f"unexpected verdict {v.choice}")
-    out = {"pick": v.choice, "confidence": v.confidence, "probabilities": dict(v.probabilities),
-           "request_id": result.request_id, "claims": None}
+            questions[key] = {
+                "type": "choice",
+                "instructions": f"Is the sentence in state.claims.{key} backed by state.sources?", "criteria": CLAIM}
+    answers, request_id = decide(state, questions)
+    v = answers["verdict"]
+    if v["choice"] not in VERDICT:  # code checks the pick is an offered option
+        raise ValueError(f"unexpected verdict {v['choice']}")
+    out = {"pick": v["choice"], "confidence": v["confidence"], "probabilities": dict(v["probabilities"]),
+           "request_id": request_id, "claims": None}
     if "claims" in state:
-        out["claims"] = [{"text": text, "pick": result.choices[k].choice,
-                          "confidence": result.choices[k].confidence}
+        out["claims"] = [{"text": text, "pick": answers[k]["choice"],
+                          "confidence": answers[k]["confidence"]}
                          for k, text in state["claims"].items()]
     return out
 
@@ -137,13 +156,14 @@ def accepted(v):
 
 
 def compare(question, draft, reference):
-    result = vakyn.system_one(
-        state={"question": question, "reference_answer": reference, "draft": draft},
-        questions={"match": Choice(
-            instructions="Compared with the reference answer in state.reference_answer, "
-                         "how does the draft in state.draft answer state.question?",
-            criteria=MATCH)})
-    return result.choices["match"].choice
+    answers, _ = decide(
+        {"question": question, "reference_answer": reference, "draft": draft},
+        {"match": {
+            "type": "choice",
+            "instructions": "Compared with the reference answer in state.reference_answer, "
+                            "how does the draft in state.draft answer state.question?",
+            "criteria": MATCH}})
+    return answers["match"]["choice"]
 
 
 # --- chat models -------------------------------------------------------------------------------

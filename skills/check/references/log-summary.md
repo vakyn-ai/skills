@@ -17,7 +17,7 @@ JSON lines, one decision per line:
 | Field | Meaning |
 |---|---|
 | `ts` | UTC time of the decision |
-| `request_id` | VAKYN's `x-typesafe-request-id`; finds the record again |
+| `request_id` | VAKYN's `x-vakyn-request-id`; finds the record again |
 | `question` | the question name; only in logs with several questions (a converted prompt) |
 | `vakyn_pick` | VAKYN's option; `"yes"` / `"no"` for a `noul`; the level index for a `score`; `null` when VAKYN failed |
 | `vakyn_confidence` | `confidence`; for a `noul`, `abs(2 * noul - 1)`; `null` when VAKYN failed |

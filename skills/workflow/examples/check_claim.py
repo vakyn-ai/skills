@@ -1,11 +1,12 @@
-"""Check each marketing claim against the product spec. pip install typesafe-sdk
+"""Check each marketing claim against the product spec. Standard library only, nothing to install.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 """
 
+import json
+import os
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-
-from typesafe_sdk import Choice, TypeSafeClient
 
 VERDICTS = {
     "supported": "The spec states facts that make the claim true",
@@ -26,23 +27,35 @@ COPY = [  # one claim per item: split the copy into sentences in code before ask
     "Made from 80% recycled plastic.",
 ]
 
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
 
 
-def check(claim: str) -> tuple[str, float]:
-    r = client.system_one(
-        state={"product_spec": SPEC, "claim": claim},
-        questions={"verdict": Choice(
-            instructions="Does state.product_spec back up the marketing claim in state.claim?",
-            criteria=VERDICTS,
-        )},
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
     )
-    v = r.choices["verdict"]
-    if v.choice != "supported" or v.confidence < MIN_CONFIDENCE:
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
+
+
+def check(claim: str) -> tuple[str, dict]:
+    answers = decide(
+        {"product_spec": SPEC, "claim": claim},
+        {"verdict": {
+            "type": "choice",
+            "instructions": "Does state.product_spec back up the marketing claim in state.claim?",
+            "criteria": VERDICTS,
+        }},
+    )
+    v = answers["verdict"]
+    if v["choice"] != "supported" or v["confidence"] < MIN_CONFIDENCE:
         return "editor_review", v  # contradicted, unknown or unsure: a person decides before it ships
     return "ok_to_publish", v
 
 
 with ThreadPoolExecutor(max_workers=4) as pool:  # claims are independent: send them concurrently
     for claim, (action, v) in zip(COPY, pool.map(check, COPY)):
-        print(f"{action:14} {v.choice:20} {v.confidence:.2f}  {claim}")
+        print(f"{action:14} {v['choice']:20} {v['confidence']:.2f}  {claim}")

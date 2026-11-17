@@ -1,6 +1,6 @@
 ---
 name: get-started
-description: "Get started with VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence, on VAKYN Cloud (the hosted API). Use when someone wants to try VAKYN or get started; needs an account, a balance or an API key from the console; asks where to save the key so scripts and other skills find it; wants a first call; asks what VAKYN could do in their app or whether it fits; what the Jev-compatible API accepts; troubleshoots 401, 402, 422, 429, 503. Running it on their own servers: self-hosting reference. Moving from hosted Jev, TypeSafe or OpenRouter: migrate."
+description: "Get started with VAKYN, the decision model that answers typed questions (noul yes/no, choice, score) over a document with a confidence, on VAKYN Cloud (the hosted API). Use when someone wants to try VAKYN or get started; needs an account, a balance or an API key from the console; asks where to save the key so scripts and other skills find it; wants a first call; asks what VAKYN could do in their app or whether it fits; what the API accepts; how to call it over HTTP from code; troubleshoots 401, 402, 422, 429, 503. Running it on their own servers: self-hosting reference. Moving from another decision API or OpenRouter: migrate."
 ---
 
 # VAKYN: get started
@@ -13,8 +13,8 @@ probability distribution, not generated text:
 - `score`: a level on an ordered scale → `score: 1.86` (probability-weighted), `legend`, `probabilities`
 
 It runs on **VAKYN Cloud**, the hosted API at `https://api.vakyn.com`: nothing to install, an
-account and a prepaid balance in the console, one API key. The API is **Jev-compatible**, so the
-official TypeSafe SDKs work once their base URL points at VAKYN.
+account and a prepaid balance in the console, one API key. It is plain HTTP and JSON: curl,
+Python's standard library or `fetch` call it, with nothing to install.
 
 You are the person's guide and builder. Help them decide, set up and write code. Do not use VAKYN
 for your own reasoning.
@@ -30,7 +30,7 @@ for your own reasoning.
 | Save the key so every project, script and skill finds it | [Save the key](references/cloud.md#save-the-key) |
 | Make a first call | [First call](#first-call) below |
 | Know what the API accepts, returns and refuses | [API reference](references/api.md) |
-| Call it from Python or TypeScript | [SDK guide](references/sdk.md) |
+| Call it from Python, TypeScript or curl | [HTTP guide](references/http.md) |
 | Fix an error: `401`, `402`, `422`, `429`, `503` | [API errors](references/api.md#errors) |
 | Run VAKYN on their own servers (data cannot leave their network) | [Self-hosting](references/self-hosting.md) |
 
@@ -52,9 +52,9 @@ organization of their own is created.
 
 ### 3. Save the key once per machine
 
-Every skill, script and SDK here reads the key from the environment, so save it once, in a file
-only the person can read: `~/.config/vakyn/env` with `VAKYN_BASE_URL`, `VAKYN_API_KEY`,
-`TYPESAFE_BASE_URL` and `TYPESAFE_API_KEY` ([how, with the commands and Windows](references/cloud.md#save-the-key)).
+Every skill and script here reads the key from the environment, so save it once, in a file
+only the person can read: `~/.config/vakyn/env` with `VAKYN_API_KEY` (and optionally
+`VAKYN_BASE_URL`) ([how, with the commands and Windows](references/cloud.md#save-the-key)).
 Create the file without the key; the person pastes the key in their editor, never in the chat.
 **Ask first**, then add the one line that loads it to their shell startup file. Check with
 `[ -n "$VAKYN_API_KEY" ] && echo set`. A project that needs another key keeps it in its own
@@ -73,7 +73,7 @@ Offer the next skill: `research` (find decisions in their app), `convert` (a pro
 
 | The person wants to… | Skill |
 |---|---|
-| Move from hosted Jev, TypeSafe, OpenRouter or another decision API | `migrate` |
+| Move from OpenRouter or another decision API | `migrate` |
 | Find where VAKYN helps in an existing app | `research` |
 | Write or fix questions | `questions` |
 | Turn a prompt-and-parse step or a tool-calling app into decisions | `convert` |
@@ -119,8 +119,7 @@ When someone asks what VAKYN could make possible in their app and has no step in
 
 ## Rules for every skill in this set
 
-- **Keys stay out of the chat.** The key lives in the environment (`VAKYN_API_KEY`, or
-  `TYPESAFE_API_KEY` for the SDKs), loaded from `~/.config/vakyn/env` or a git-ignored `.env`.
+- **Keys stay out of the chat.** The key lives in the environment (`VAKYN_API_KEY`), loaded from `~/.config/vakyn/env` or a git-ignored `.env`.
   Never ask the person to paste a key, never print one, never write one into a tracked file. A key
   pasted into the chat anyway: do not repeat it; they revoke it on the console's API keys page
   (open-server: `vakyn keys revoke`) and create a new one.
@@ -137,8 +136,9 @@ When someone asks what VAKYN could make possible in their app and has no step in
   backend holds the key and calls VAKYN. Never put the key in front-end code, and never call
   VAKYN from the browser with a key.
 - **Base URL and model.** Default base URL `https://api.vakyn.com` (no `/v1`); self-hosted is the
-  person's server URL (default `http://localhost:8080`). Model `jev-latest`, which works on both;
-  on VAKYN Cloud `vakyn-fast` is the cheaper option.
+  person's server URL (default `http://localhost:8080`). On VAKYN Cloud leave `model` out
+  (`vakyn-max` answers) or write `vakyn-fast`, the cheaper option; open-server needs the name its
+  `/v1/models` lists.
 - **Ask before spending.** On VAKYN Cloud every answered request spends the person's balance. Before
   any run beyond a handful of requests, estimate input tokens × the price from `GET /v1/models`
   ([cost](references/cloud.md#cost)), show it and wait for a yes; if `skills.latest` there is newer

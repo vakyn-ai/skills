@@ -18,7 +18,7 @@ Answer from a running VAKYN 4B: a ticket about Slack alerts that stopped after a
 [examples/route.py](../../examples/route.py) · [examples/route.ts](../../examples/route.ts)
 
 - `build_state(ticket)` copies the subject, the body and the plan from your records. Nothing else.
-- One request per ticket. Read the answer by name: `result.choices["team"]`.
+- One request per ticket. Read the answer by name: `answers["team"]["choice"]`.
 - Code checks the pick is one of `TEAMS` before it moves the ticket.
 
 Run on three tickets: Slack alerts → `integrations` (1.00), a double charge → `billing` (1.00),

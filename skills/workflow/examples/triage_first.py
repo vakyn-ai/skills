@@ -1,14 +1,15 @@
 """Triage first, stop early: one noul per search hit in one request, open the dangerous hits first,
-stop when nothing left could change the outcome. pip install typesafe-sdk
+stop when nothing left could change the outcome. Standard library only, nothing to install.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY. Opening a hit (fetching the full article, or a
+Needs VAKYN_API_KEY; VAKYN_BASE_URL is optional (default https://api.vakyn.com). Opening a hit (fetching the full article, or a
 research agent that reads it) is stubbed with FULL_TEXT below; replace open_hit() with yours.
 """
 
 import concurrent.futures
 import datetime
-
-from typesafe_sdk import Choice, Noul, TypeSafeClient
+import json
+import os
+import urllib.request
 
 SUPPLIER = ("Harlow Precision Castings Ltd, company number 08814522, Brightside Lane, Sheffield, UK. "
             "Aluminium die-casting. Directors: Meera Okafor, Tom Lindqvist. Founded 2013.")
@@ -51,18 +52,30 @@ COULD_STOP_AT = 0.2         # starting values; set yours with check. Unsure coun
 SAME_AT, BLOCKER_AT = 0.8, 0.8
 WAVE = 3                    # hits opened in parallel per wave
 
-client = TypeSafeClient(timeout=60.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 60.0) -> tuple[dict, str]:
+    """POST /v1/systemone; returns the answers by question name and the request id."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"], r.headers.get("x-vakyn-request-id", "")
 
 
 def triage_questions(hits):
     return {
-        f"could_stop_{hid}": Noul(
-            instructions=f"Suppose search hit {hid} in state.hits is about the supplier in state.supplier, even "
+        f"could_stop_{hid}": {
+            "type": "noul",
+            "instructions": f"Suppose search hit {hid} in state.hits is about the supplier in state.supplier, even "
                          "if the name, place or company type differs. Does the hit report one of the blockers "
                          "in state.blockers?",
-            criteria={"true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
+            "criteria": {"true": "The hit reports, or may report, a blocker in state.blockers, whoever it names",
                       "false": "The hit reports nothing on that list (awards, hiring, people, ordinary "
-                               "filings, events with no wrongdoing)"})
+                               "filings, events with no wrongdoing)"}}
         for hid in hits
     }
 
@@ -71,8 +84,8 @@ def triage(hits):
     """One request: one noul per hit, all over the same state. Returns {hit: probability it could stop}."""
     state = {"supplier": SUPPLIER, "blockers": BLOCKERS,
              "hits": {hid: f"{date}: {text}" for hid, (date, text) in hits.items()}}
-    r = client.system_one(state=state, questions=triage_questions(hits))
-    return {hid: r.nouls[f"could_stop_{hid}"].noul for hid in hits}, r.request_id
+    answers, request_id = decide(state, triage_questions(hits))
+    return {hid: answers[f"could_stop_{hid}"]["noul"] for hid in hits}, request_id
 
 
 def open_hit(hid):
@@ -91,29 +104,31 @@ BLOCKER_KINDS = {
 def confirm(hid):
     """Open one hit and ask: is it really this supplier, and which blocker does it report?"""
     doc = open_hit(hid)
-    r = client.system_one(
-        state={"supplier": SUPPLIER, "document": doc},
-        questions={
-            "same_company": Noul(instructions="Is the company state.document is about the same company as "
-                                              "state.supplier (same name, country, and number or address)?"),
-            "blocker": Choice(instructions="Suppose state.document is about the supplier. Which of these does it "
-                                           "report against that company?", criteria=BLOCKER_KINDS),
+    answers, request_id = decide(
+        {"supplier": SUPPLIER, "document": doc},
+        {
+            "same_company": {"type": "noul",
+                             "instructions": "Is the company state.document is about the same company as "
+                                             "state.supplier (same name, country, and number or address)?"},
+            "blocker": {"type": "choice",
+                        "instructions": "Suppose state.document is about the supplier. Which of these does it "
+                                        "report against that company?", "criteria": BLOCKER_KINDS},
         })
-    same, kind = r.nouls["same_company"].noul, r.choices["blocker"]
+    same, kind = answers["same_company"]["noul"], answers["blocker"]
     date = datetime.date.fromisoformat(HITS[hid][0])
     recent = (TODAY - date).days <= 365 * LOOKBACK_YEARS
     if same < 1 - SAME_AT:
         verdict = "not this supplier"
-    elif same < SAME_AT or kind.choice not in BLOCKER_KINDS or kind.confidence < BLOCKER_AT:
+    elif same < SAME_AT or kind["choice"] not in BLOCKER_KINDS or kind["confidence"] < BLOCKER_AT:
         verdict = "unsure: to a person"
-    elif kind.choice == "none":
+    elif kind["choice"] == "none":
         verdict = "this supplier, no blocker"
     elif not recent:
-        verdict = f"this supplier, {kind.choice}, older than {LOOKBACK_YEARS} years: does not block"
+        verdict = f"this supplier, {kind['choice']}, older than {LOOKBACK_YEARS} years: does not block"
     else:
-        verdict = f"BLOCKER: {kind.choice}"
-    return {"hit": hid, "same_company": round(same, 2), "blocker": kind.choice,
-            "blocker_confidence": round(kind.confidence, 2), "verdict": verdict, "request_id": r.request_id}
+        verdict = f"BLOCKER: {kind['choice']}"
+    return {"hit": hid, "same_company": round(same, 2), "blocker": kind["choice"],
+            "blocker_confidence": round(kind["confidence"], 2), "verdict": verdict, "request_id": request_id}
 
 
 def review(hits):

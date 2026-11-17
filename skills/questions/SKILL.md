@@ -12,7 +12,7 @@ rule the model was asked to compute. This skill writes requests that avoid these
 requests that hit them.
 
 Field shapes, limits and errors: [API reference](../get-started/references/api.md). Code:
-[SDK guide](../get-started/references/sdk.md). Every request you write or fix passes the
+[HTTP guide](../get-started/references/http.md). Every request you write or fix passes the
 [pre-send checklist](../get-started/references/checklist.md).
 
 ## Pick the step

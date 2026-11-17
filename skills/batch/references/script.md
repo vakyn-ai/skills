@@ -1,7 +1,7 @@
 # The batch script: what every part does
 
 Write the script into the person's project (for example `scripts/vakyn_batch.py`), in their
-language, with the official SDK ([SDK guide](../../get-started/references/sdk.md)). Start from
+language, with plain HTTP calls ([HTTP guide](../../get-started/references/http.md)). Start from
 [batch_csv.py](../examples/batch_csv.py) for files and [batch_sql.py](../examples/batch_sql.py) for
 tables. Each part below is in both.
 
@@ -16,27 +16,25 @@ as a `.json` file next to the script ([ticket-row.request.json](../examples/tick
 ## Bounded concurrency
 
 - A fixed number of requests in flight: a pool of workers taking rows from a queue (Python
-  `asyncio` with `AsyncTypeSafeClient`; TypeScript: N workers over one list). Never one task per row
+  threads over a `queue.Queue`, or a `ThreadPoolExecutor`; TypeScript: N workers over one list). Never one task per row
   for the whole file at once.
 - **Default 8.** On VAKYN Cloud, stay under 60 requests per second per key; self-hosted, never
   above the server's `--max-queue` (default 32). Both are summed over every process using the
   key or the server. The examples refuse more than 32.
 - More is not faster. Measured on open-server with [batch_csv.py](../examples/batch_csv.py), 400 short tickets,
-  3 questions per row, VAKYN-4B on one RTX 5090, server started with defaults and shared with
+  3 questions per row, VAKYN-4B on one RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202), server started with defaults and shared with
   other jobs: 1 in flight 21.5 rows/s, 4 → 31.9, 8 → 32.7 to 34.5 (several runs), 16 → 25.2, 32 → 22.5 with 2 rows
   still failing with `429` after every retry. Measure on the person's machine in the pilot.
 
 ## Retries and timeouts
 
-- `RetryPolicy(max_retries=6, backoff_max=30, timeout=600, respect_retry_after=True)`: the SDK retries `408`, `429` and
-  `5xx` and waits the `retry-after` the server sends. The SDK's own default gives up after 2
-  retries and 30 s, which is short for a long run.
-- Client timeout 60 s per attempt (the SDK default is 10 s). Raise it on CPU or with long states.
+- Retry `408`, `429`, `5xx` and dropped connections, waiting the `retry-after` the server sends
+  (read `retry-after` / `retry-after-ms`; no tight loops). The examples allow 6 retries, at most
+  30 s between them and 10 min in all; 2 retries and 30 s is short for a long run.
+- A timeout of 60 s per attempt. Raise it on CPU or with long states.
 - A row that still fails is **kept with its error** in the checkpoint and counted, never dropped.
   A rerun tries it again. `400` (too big) will fail again: trim the state in code
   ([long documents](../../workflow/references/long-documents.md)).
-- Plain HTTP code instead of the SDK: read `retry-after` / `retry-after-ms` on `429` and `503`
-  and wait that long; no tight loops.
 
 ## Checkpoint and resume
 

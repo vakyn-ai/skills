@@ -42,7 +42,7 @@ sees the state as `key: value` lines (nested objects indented, lists as `- item`
 | A backticked path | "Does `thread.messages[1].text` set a deadline?" |
 
 Measured on a thread of four similar messages, asking about one of them (128 `noul` questions per
-style, VAKYN-4B Q8_0, one RTX 5090): every style got 128/128 right. The lowest probability given
+style, VAKYN-4B Q8_0, one RTX PRO 6000-class GPU (NVIDIA Blackwell, GB202)): every style got 128/128 right. The lowest probability given
 to the right answer was 0.93 for plain words that name the field, and 0.68 to 0.76 for the paths
 and for "the second message". Plain words keep the hardest cases further from 0.5.
 

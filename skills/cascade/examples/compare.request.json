@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "question": "How do I export all my invoices from last year?",
     "reference_answer": "Open Reports > Invoices, set the date range to last year and choose Export, as CSV or PDF. If there are more than 500 invoices, you get the download link by email.",

@@ -106,6 +106,6 @@ loop runs with no key ([walk-through](references/loop.md#example-sample-files)).
   files and the commands, say how to run them, and stop. No number in the reply.
 - **Measure on their data, never quote ours.** The gain depends on the question, the cases and the
   model.
-- **Keys stay in the environment** (`TYPESAFE_API_KEY`), never in files or the chat.
+- **Keys stay in the environment** (`VAKYN_API_KEY`), never in files or the chat.
 - **Be gentle with the API**: concurrency 8 by default, retries on `429` / `503` after
   `retry-after`, a clear stop on `401`, `402` or repeated `429`.

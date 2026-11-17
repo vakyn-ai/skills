@@ -103,7 +103,7 @@ graders:
     criteria: |
       Judge this TypeScript file.
       PASS if all hold:
-      - it calls VAKYN (`@typesafe-ai/sdk` `systemOne`, or an HTTP call to /v1/systemone);
+      - it calls VAKYN directly over HTTP (`fetch` POST to /v1/systemone, no SDK package for VAKYN);
       - code rebuilds a `ReviewInsight` value from the answers, including the nested
         `author: { mentions_switching }` object and severity mapped from the score level back to
         "low" / "medium" / "high", and validates or types it as `ReviewInsight`;

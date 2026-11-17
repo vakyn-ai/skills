@@ -6,56 +6,50 @@ Usage:
 Each input line: {"id": "...", "input": "the customer's message", "output": "the reply to grade"}.
 Each output line: the per-criterion results, the overall verdict, the request id.
 One output per request, every criterion in that request. The verdict is computed in code (rubric.py).
-Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL and TYPESAFE_API_KEY in the environment.
+Needs: Python 3 only; VAKYN_API_KEY in the environment (VAKYN_BASE_URL if not VAKYN Cloud).
 """
 
 import argparse
-import asyncio
 import json
+import os
 import time
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
-from typesafe_sdk import AsyncTypeSafeClient, Noul, Score, TypeSafeRateLimitError
+from rubric import CRITERIA, answers_from_response, build_state, criterion_results, overall, request_body
 
-from rubric import CRITERIA, answers_from_response, build_state, criterion_results, overall
-
-
-def sdk_questions(criteria=CRITERIA):
-    qs = {}
-    for name, c in criteria.items():
-        if c["type"] == "noul":
-            qs[name] = Noul(instructions=c["instructions"], criteria=c.get("criteria"))
-        else:
-            qs[name] = Score(instructions=c["instructions"], criteria=c["criteria"])
-    return qs
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
 
 
-async def ask(client, item, criteria=CRITERIA):
+def ask(item, criteria=CRITERIA, timeout=60):
     """One request for one output. Returns (answers dict, request id)."""
-    for wait in (2, 5, 10, 20, None):  # the SDK retries 429 twice; a busy shared server can stay full longer
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps(request_body(item, criteria)).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    for wait in (2, 5, 10, 20, None):  # a busy shared server can stay full for a while
         try:
-            r = await client.system_one(state=build_state(item), questions=sdk_questions(criteria))
-            return answers_from_response(r, criteria), r.request_id
-        except TypeSafeRateLimitError:
-            if wait is None:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                answers = json.load(r)["answers"]
+                return answers_from_response(answers, criteria), r.headers.get("x-vakyn-request-id")
+        except urllib.error.HTTPError as e:
+            if wait is None or not (e.code == 429 or e.code >= 500):
                 raise
-            await asyncio.sleep(wait)
+            time.sleep(float(e.headers.get("retry-after") or wait))
 
 
-async def grade(client, item, criteria=CRITERIA):
-    answers, request_id = await ask(client, item, criteria)
+def grade(item, criteria=CRITERIA):
+    answers, request_id = ask(item, criteria)
     results = criterion_results(answers, criteria)
     return {"id": item["id"], **overall(results, criteria), "criteria": results, "request_id": request_id}
 
 
-async def grade_all(items, concurrency=4):
-    client = AsyncTypeSafeClient(timeout=60.0)
-    gate = asyncio.Semaphore(concurrency)
-
-    async def one(item):
-        async with gate:
-            return await grade(client, item)
-
-    return await asyncio.gather(*(one(i) for i in items))
+def grade_all(items, concurrency=4, criteria=CRITERIA):
+    """Grade every item, at most `concurrency` requests at a time, results in input order."""
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        return list(pool.map(lambda item: grade(item, criteria), items))
 
 
 def main():
@@ -67,7 +61,7 @@ def main():
 
     items = [json.loads(line) for line in open(a.file) if line.strip()]
     start = time.perf_counter()
-    grades = asyncio.run(grade_all(items, a.concurrency))
+    grades = grade_all(items, a.concurrency)
     took = time.perf_counter() - start
     with open(a.out, "w") as f:
         for g in grades:

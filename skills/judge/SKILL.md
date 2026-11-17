@@ -11,7 +11,7 @@ output in one request, checks the grades against the person's experts, and wires
 CI and monitoring. VAKYN grades; it does not write or fix the output.
 
 Shared material: [API reference](../get-started/references/api.md),
-[SDK guide](../get-started/references/sdk.md), [pre-send checklist](../get-started/references/checklist.md),
+[HTTP guide](../get-started/references/http.md), [pre-send checklist](../get-started/references/checklist.md),
 question rules in the `questions` skill
 ([question types](../questions/references/question-types.md),
 [options and levels](../questions/references/options-and-levels.md),
@@ -86,4 +86,4 @@ All answered by VAKYN-4B on open-server; numbers in the reference pages.
 - **Re-run alignment when the rubric, the state or the model file changes.**
 - **Never invent grades.** VAKYN not reachable, no numbers: write the requests and code; say how to
   send them.
-- **Keys stay out of the chat and out of files**: `TYPESAFE_API_KEY` in the environment.
+- **Keys stay out of the chat and out of files**: `VAKYN_API_KEY` in the environment.

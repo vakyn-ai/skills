@@ -1,96 +1,107 @@
 # Framework adapters
 
-How to point each adapter at VAKYN Cloud (`https://api.vakyn.com`) or the person's own server. Checked 2026-10-09 in each package's source
-or official docs, and run against a live VAKYN server where marked. Model: `jev-latest`.
+How to find each adapter in the person's code and replace it with a direct HTTP call to VAKYN
+Cloud (`https://api.vakyn.com`) or the person's own server. The package names, settings and
+answer shapes below are the adapters' own, checked 2026-10-09 in each package's source or
+official docs; they are here so the calls can be found and their callers kept working.
 
-| Adapter | Package | Base URL setting | Key | Ran live |
-|---|---|---|---|---|
-| Pydantic AI | `pydantic-ai-slim[typesafe]` 2.54 | `TYPESAFE_BASE_URL` or `TypeSafeProvider(base_url=)` | `TYPESAFE_API_KEY` | yes |
-| Vercel AI SDK | `@ai-sdk/typesafe-ai` 3.0.17, `ai` ≥ 7.0.128 | `TYPESAFE_AI_BASE_URL` or `createTypeSafeAi({ baseURL })`, **with `/v1`** | `TYPESAFE_AI_API_KEY` | yes |
-| TanStack AI | `@tanstack/ai-typesafe` 0.1.9 | `typesafeDecider(model, { baseURL })`; no variable | `TYPESAFE_API_KEY` | yes |
-| LangChain | `langchain-typesafe` 0.0.1a3 (beta) | `TYPESAFE_BASE_URL` or `TypeSafeClassifier(base_url=)` | `TYPESAFE_API_KEY` | yes |
-| Langfuse decision-model evaluator | Langfuse UI | none documented | | no; use the wrapper below |
+The replacement is the same every time: one `decide(state, questions)` function over HTTP
+([HTTP guide](../../get-started/references/http.md)), reading `VAKYN_API_KEY` and `VAKYN_BASE_URL`,
+plus a few lines that hand the caller what the adapter used to return. The adapter package stays
+installed only while the old path is kept for rollback.
+
+| Adapter | Package | How to find it | What callers got back |
+|---|---|---|---|
+| Pydantic AI | `pydantic-ai-slim[typesafe]` 2.54 | `TypeSafeModel`, `TypeSafeProvider`, `typesafe:` model strings; reads `TYPESAFE_BASE_URL`, `TYPESAFE_API_KEY` | the agent's `output_type` object |
+| Vercel AI SDK | `@ai-sdk/typesafe-ai` 3.0.17, `ai` ≥ 7.0.128 | `experimental_decide`, `typeSafeAi`, `createTypeSafeAi`, `decisionModel(`; reads `TYPESAFE_AI_BASE_URL` (with `/v1`), `TYPESAFE_AI_API_KEY` | `answers` with `boolean` answers as `probability`; confidence in `providerMetadata.typesafe` |
+| TanStack AI | `@tanstack/ai-typesafe` 0.1.9 | `typesafeDecider`, `createTypesafeDecider`; key from `TYPESAFE_API_KEY`, base URL only in code | `{type: "boolean", value, probability}` for yes/no |
+| LangChain | `langchain-typesafe` 0.0.1a3 (beta) | `langchain_typesafe`, `TypeSafeClassifier` (a Runnable); reads `TYPESAFE_BASE_URL`, `TYPESAFE_API_KEY` | the answers, inside a chain |
+| Langfuse decision-model evaluator | Langfuse UI | an evaluator set up with the `typesafe` adapter | a Langfuse score |
 
 ## Pydantic AI
 
-`TypeSafeModel` builds its client from `TypeSafeProvider`, which reads `TYPESAFE_BASE_URL` and
-`TYPESAFE_API_KEY`. With the variables set, `Agent('typesafe:jev-latest', ...)` needs no code
-change. Explicit:
+Find: `grep -rnE "TypeSafeModel|TypeSafeProvider|typesafe:jev" .` A typical call:
+`Agent('typesafe:jev-latest', output_type=Handling)` or `TypeSafeModel("jev-1.13.0", provider=...)`.
 
-```python
-from pydantic_ai import Agent
-from pydantic_ai.models.typesafe import TypeSafeModel
-from pydantic_ai.providers.typesafe import TypeSafeProvider
-
-model = TypeSafeModel("jev-latest", provider=TypeSafeProvider(base_url=os.environ["TYPESAFE_BASE_URL"]))
-agent = Agent(model, output_type=Handling)
-```
-
-A pinned name (`jev-1.13.0`) or `jev-preview` in `TypeSafeModel(...)` or the `typesafe:` string
-must become `jev-latest`. Find: `grep -rnE "TypeSafeModel|TypeSafeProvider|typesafe:jev" .`
+Replace the agent call with `decide(...)`: each field of the `output_type` becomes a question
+(an enum a `choice`, a bool a `noul`, a rating a `score`), and code builds the same `Handling`
+object from the answers, so callers do not change. The method is the `convert` skill's
+[output schema](../../convert/references/output-schema.md) page.
 
 ## Vercel AI SDK
 
-The TypeSafe provider has its **own** variable names, and its base URL **ends in `/v1`**
-(default `https://api.typesafe.ai/v1`; it appends `/systemone`). Without `/v1` the call goes to
-`/systemone` and gets 404 (seen on open-server).
-
-```sh
-TYPESAFE_AI_BASE_URL=https://api.vakyn.com/v1   # own server: its URL + /v1
-TYPESAFE_AI_API_KEY=vk_...
-```
-
-A call through AI Gateway (`model: 'typesafe-ai/jev'` as a string, or `gateway.decisionModel`)
-becomes `typeSafeAi.decisionModel('jev-latest')`. The `decide` call, `boolean` questions and
-`answers` stay the same; `confidence` is in `result.providerMetadata.typesafe.confidence`.
-Before/after: [ai_sdk_before.ts](../examples/ai_sdk_before.ts), [ai_sdk_after.ts](../examples/ai_sdk_after.ts).
-
 Find: `grep -rnE "experimental_decide|experimental_evaluate|@ai-sdk/typesafe-ai|createTypeSafeAi|typeSafeAi|decisionModel\(" .`
+A call through AI Gateway (`model: 'typesafe-ai/jev'` as a string, or `gateway.decisionModel`)
+and a call through the TypeSafe provider look the same apart from `model`.
+
+Replace `decide({ model, state, questions })` with a `fetch` POST to
+`${VAKYN_BASE_URL}/v1/systemone` (the root, no `/v1` in the variable). The body changes in two
+places: question `type: "boolean"` becomes `"noul"` (same `instructions`, `criteria`
+`{true, false}`), and `model` goes (or is the `/v1/models` name on open-server). In the answers,
+a yes/no answer's `probability` is `noul`; `confidence` is on each choice and score answer, not in
+provider metadata. Before/after: [ai_sdk_before.ts](../examples/ai_sdk_before.ts),
+[ai_sdk_after.ts](../examples/ai_sdk_after.ts).
 
 ## TanStack AI
 
-`typesafeDecider(model, config)` reads the key from `TYPESAFE_API_KEY` but takes the base URL
-**only from code** (`baseURL`, alias `baseUrl`; no `/v1`; the adapter appends `/v1/systemone`).
-Make it config:
+Find: `grep -rnE "@tanstack/ai-typesafe|typesafeDecider|createTypesafeDecider" .`
+
+Replace the decider with a `fetch` call. Callers that read `{type: "boolean", value, probability}`
+keep working with a two-line map from VAKYN's noul answer:
 
 ```ts
-const adapter = typesafeDecider(process.env.DECISION_MODEL ?? "jev-latest", {
-  baseURL: process.env.TYPESAFE_BASE_URL, // https://api.vakyn.com, or your own server
-});
+const yesNo = (a: { noul: number }) => ({ type: "boolean", value: a.noul >= 0.5, probability: a.noul });
 ```
-
-Answers come back as `{type: "boolean", value, probability}` for yes/no questions. Find:
-`grep -rnE "@tanstack/ai-typesafe|typesafeDecider|createTypesafeDecider" .`
 
 ## LangChain
 
-`TypeSafeClassifier` (a Runnable, beta) reads `TYPESAFE_BASE_URL` and `TYPESAFE_API_KEY`;
-`base_url=`, `api_key=`, `model=` override them. Default model `jev-latest`. The experimental
-middlewares are built on the same class. Find: `grep -rnE "langchain_typesafe|TypeSafeClassifier" .`
+Find: `grep -rnE "langchain_typesafe|TypeSafeClassifier" .` The experimental middlewares are
+built on the same class.
+
+Replace `TypeSafeClassifier(...)` with a `RunnableLambda` around the HTTP function, so the chain
+around it stays the same:
+
+```python
+from langchain_core.runnables import RunnableLambda
+
+QUESTIONS = {"topic": {"type": "choice", "instructions": "What is state.text mainly about?",
+                       "criteria": {"billing": "Charges and refunds", "other": "None of these fits"}}}
+classify = RunnableLambda(lambda text: decide({"text": text}, QUESTIONS))  # decide: the HTTP guide's function
+```
 
 ## Langfuse
 
 The decision-model evaluator is set up in the Langfuse UI with the `typesafe` adapter and one of
 three upstreams (TypeSafe, Vercel AI Gateway, OpenRouter). Its docs say no base URL is needed and
-show no way to set one, so it cannot be pointed at VAKYN as documented. Do not
-claim otherwise; if the person's Langfuse version shows a base URL field, follow its docs.
+show no way to set one, so it cannot be pointed at VAKYN as documented. Do not claim otherwise.
 
-Alternative: a small job that reads observations, asks VAKYN with the official SDK, and writes
-each answer back as a Langfuse score:
+Replace it with a small job that reads observations, asks VAKYN over HTTP, and writes each
+answer back as a Langfuse score:
 
 ```python
-from langfuse import get_client
-from typesafe_sdk import Noul, TypeSafeClient
+import json
+import os
+import urllib.request
 
-langfuse, vakyn = get_client(), TypeSafeClient()  # TYPESAFE_BASE_URL / TYPESAFE_API_KEY → VAKYN
+from langfuse import get_client
+
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+QUESTION = {"type": "noul", "instructions": "Does state.answer answer state.question without making things up?"}
+langfuse = get_client()
+
 
 def judge(trace_id: str, question: str, answer: str) -> None:
-    r = vakyn.system_one(
-        state={"question": question, "answer": answer},
-        questions={"grounded": Noul(instructions="Does state.answer answer state.question without making things up?")},
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": {"question": question, "answer": answer},
+                         "questions": {"grounded": QUESTION}}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
     )
-    langfuse.create_score(trace_id=trace_id, name="grounded", value=r.nouls["grounded"].noul,
-                          data_type="NUMERIC", comment=r.request_id)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        noul = json.load(r)["answers"]["grounded"]["noul"]
+        request_id = r.headers.get("x-vakyn-request-id")
+    langfuse.create_score(trace_id=trace_id, name="grounded", value=noul,
+                          data_type="NUMERIC", comment=request_id)
 ```
 
 `create_score` (Python, checked in `langfuse` 4.17 source) and `langfuse.score.create`
@@ -98,7 +109,7 @@ def judge(trace_id: str, question: str, answer: str) -> None:
 
 ## Any other adapter
 
-Read its source or docs for: the variable or option that sets the base URL, whether the base
-URL includes `/v1`, which variable holds the key, and how the model name is passed. If there is
-no base URL setting, wrap the official SDK in a small function with the same inputs and outputs
-the adapter had, as with Langfuse above.
+Read its source or docs for: which calls it makes, how it builds the questions, what it hands
+back to the caller, and which variables hold its URL and key (so they can be found and retired).
+Then replace it with a small HTTP function with the same inputs and outputs the adapter had,
+as with Langfuse above.

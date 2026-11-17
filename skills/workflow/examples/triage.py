@@ -1,11 +1,41 @@
-"""Triage a batch of repair requests by trade and urgency, many at a time. pip install typesafe-sdk
+"""Triage a batch of repair requests by trade and urgency, many at a time. Standard library only.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 """
 
-import asyncio
+import json
+import os
+import time
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
-from typesafe_sdk import AsyncTypeSafeClient, Choice, RetryPolicy, Score, TypeSafeRateLimitError
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+MAX_RETRIES = 4  # retries 429 after the delay VAKYN asks for, and 5xx after a short wait
+
+
+class RateLimited(Exception):
+    """Still 429 after every retry."""
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone with retries; returns the answers by question name."""
+    body = json.dumps({"state": state, "questions": questions}).encode()
+    headers = {"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"}
+    for attempt in range(MAX_RETRIES + 1):
+        req = urllib.request.Request(f"{BASE_URL}/v1/systemone", data=body, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)["answers"]
+        except urllib.error.HTTPError as e:
+            if e.code != 429 and e.code < 500:
+                raise
+            if attempt == MAX_RETRIES:
+                if e.code == 429:
+                    raise RateLimited() from e
+                raise
+            time.sleep(float(e.headers.get("retry-after") or 2 ** attempt))
+
 
 TRADES = {
     "plumbing": "Leaks, taps, toilets, drains, water pressure",
@@ -24,36 +54,35 @@ URGENCY = [
 ]
 # Both questions only need the request text, so they go in ONE request per record.
 QUESTIONS = {
-    "trade": Choice(instructions="Which trade is needed for the repair request in state.request?", criteria=TRADES),
-    "urgency": Score(instructions="How soon does the repair in state.request need someone on site?", criteria=URGENCY),
+    "trade": {"type": "choice", "instructions": "Which trade is needed for the repair request in state.request?",
+              "criteria": TRADES},
+    "urgency": {"type": "score", "instructions": "How soon does the repair in state.request need someone on site?",
+                "criteria": URGENCY},
 }
 MAX_IN_FLIGHT = 8  # VAKYN Cloud: under 60 requests/s per key; own server: below --max-queue
 MIN_CONFIDENCE = 0.6  # starting value; set yours with check
 
 
-async def triage(client, gate, record):
-    async with gate:  # bounded concurrency: at most MAX_IN_FLIGHT requests at once
-        try:
-            r = await client.system_one(
-                state={"building": record["building"], "unit": record["unit"], "request": record["text"]},
-                questions=QUESTIONS,
-            )
-        except TypeSafeRateLimitError:  # still 429 after the SDK's retries: keep it for a later pass
-            return {**record, "queue": "retry_later"}
-    trade, urgency = r.choices["trade"], r.scores["urgency"]
-    unsure = trade.choice == "other" or min(trade.confidence, urgency.confidence) < MIN_CONFIDENCE
-    if urgency.probabilities.get(3, 0) > 0.2:  # a rule in code: any real chance of an emergency goes to on-call
+def triage(record):
+    try:
+        answers = decide(
+            {"building": record["building"], "unit": record["unit"], "request": record["text"]}, QUESTIONS
+        )
+    except RateLimited:  # still 429 after the retries: keep it for a later pass
+        return {**record, "queue": "retry_later"}
+    trade, urgency = answers["trade"], answers["urgency"]
+    unsure = trade["choice"] == "other" or min(trade["confidence"], urgency["confidence"]) < MIN_CONFIDENCE
+    if urgency["probabilities"].get("3", 0) > 0.2:  # a rule in code: any real chance of an emergency goes to on-call
         queue = "on_call_now"
     else:
-        queue = "dispatcher_review" if unsure else trade.choice
-    return {**record, "trade": trade.choice, "urgency": urgency.score, "queue": queue}
+        queue = "dispatcher_review" if unsure else trade["choice"]
+    return {**record, "trade": trade["choice"], "urgency": urgency["score"], "queue": queue}
 
 
-async def main(records):
-    gate = asyncio.Semaphore(MAX_IN_FLIGHT)
-    retry = RetryPolicy(max_retries=4)  # retries 429 after the delay VAKYN asks for
-    async with AsyncTypeSafeClient(timeout=30.0, retry=retry) as client:
-        results = await asyncio.gather(*(triage(client, gate, rec) for rec in records))
+def main(records):
+    # Bounded concurrency: at most MAX_IN_FLIGHT requests at once.
+    with ThreadPoolExecutor(max_workers=MAX_IN_FLIGHT) as pool:
+        results = list(pool.map(triage, records))
     for r in sorted(results, key=lambda r: -r.get("urgency", 0)):  # most urgent first
         print(f"{r['unit']:4} {r['queue']:18} {r.get('urgency', 0):.2f}  {r['text'][:60]}")
 
@@ -67,4 +96,4 @@ RECORDS = [
     {"building": "Elm Court", "unit": "6B", "text": "The oven does not heat up anymore, the hob still works."},
 ]
 
-asyncio.run(main(RECORDS))
+main(RECORDS)

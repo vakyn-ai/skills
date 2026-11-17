@@ -5,8 +5,9 @@
 //         quality; the chat model writes only suggested_title, plus any field VAKYN was unsure
 //         about. Code rebuilds the same ListingReview, so callers do not change.
 //
-// npm install @typesafe-ai/sdk ai @ai-sdk/openai zod
-// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key) and OPENAI_API_KEY.
+// npm install ai @ai-sdk/openai zod   (VAKYN is called with the built-in fetch)
+// Needs VAKYN_API_KEY (a vk_ key) and OPENAI_API_KEY. VAKYN_BASE_URL is optional
+// (default https://api.vakyn.com; or your own server).
 //
 // Settings (environment):
 //   VAKYN_SCHEMA_MODE  side_by_side (default): the old generateObject call is used, as before;
@@ -16,7 +17,6 @@
 // npx tsx schema_zod_after.ts --stub      runs two sample listings; the chat model is stubbed
 // npx tsx schema_zod_after.ts --request   prints the compiled request for the first sample
 import { openai } from "@ai-sdk/openai";
-import { choice, noul, score, TypeSafeClient } from "@typesafe-ai/sdk";
 import { generateObject } from "ai";
 import { appendFileSync } from "node:fs";
 import { z } from "zod";
@@ -47,6 +47,12 @@ type FieldName = keyof ListingReview;
 // ---- The compiled questions -------------------------------------------------------------------------
 // Field descriptions became the criteria. Each question's text carries the meaning: question names
 // are never sent to VAKYN.
+// Questions are plain JSON objects; these helpers only save typing.
+type Question = { type: "choice" | "noul" | "score"; instructions: string; criteria?: unknown };
+const choice = (instructions: string, criteria: Record<string, string>): Question => ({ type: "choice", instructions, criteria });
+const noul = (instructions: string, criteria?: { true: string; false: string }): Question =>
+  criteria ? { type: "noul", instructions, criteria } : { type: "noul", instructions };
+const score = (instructions: string, criteria: string[]): Question => ({ type: "score", instructions, criteria });
 type Issue = (typeof ISSUES)[number];
 // list of enums -> one noul per label, each its own yes/no question.
 const ISSUE_QUESTIONS: Record<Issue, string> = {
@@ -65,7 +71,7 @@ const QUESTIONS = {
   }),
   ...(Object.fromEntries(ISSUES.map((i) => [`issue_${i}`, noul(ISSUE_QUESTIONS[i])])) as Record<
     `issue_${Issue}`,
-    ReturnType<typeof noul>
+    Question
   >),
   // nested object -> a flat, named question; code puts it back under seller.
   seller_looks_like_business: noul("Does state.listing read like it was written by a shop or trader?", {
@@ -83,7 +89,26 @@ const QUESTIONS = {
 const VAKYN_FIELDS: FieldName[] = ["decision", "issues", "seller", "quality"];
 const KEPT_FIELDS: FieldName[] = ["suggested_title"]; // free text: stays with the chat model
 
-const vakyn = new TypeSafeClient({ timeout: 30_000 });
+const BASE_URL = process.env.VAKYN_BASE_URL ?? "https://api.vakyn.com";
+
+// The answers by question name, as VAKYN returns them.
+type Answers = {
+  decision: { choice: string; confidence: number; probabilities: Record<string, number> };
+  quality: { score: number; confidence: number; legend: string[]; probabilities: Record<string, number> };
+} & Record<`issue_${Issue}` | "seller_looks_like_business", { noul: number }>;
+
+// POST /v1/systemone; returns the answers by question name and the request id.
+async function decide(state: unknown, questions: Record<string, Question>) {
+  const response = await fetch(`${BASE_URL}/v1/systemone`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.VAKYN_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ state, questions }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) throw new Error(`VAKYN ${response.status}: ${await response.text()}`);
+  const body = (await response.json()) as { answers: Answers };
+  return { answers: body.answers, requestId: response.headers.get("x-vakyn-request-id") ?? undefined };
+}
 
 // ---- VAKYN answers -> field values -----------------------------------------------------------------
 type Answered = {
@@ -96,12 +121,12 @@ type Answered = {
 async function askVakyn(listing: string): Promise<Answered | null> {
   let res;
   try {
-    res = await vakyn.systemOne({ state: { listing }, questions: QUESTIONS }).withResponse();
+    res = await decide({ listing }, QUESTIONS);
   } catch (err) {
     console.error("VAKYN unavailable:", err); // every field then goes to the chat model
     return null;
   }
-  const a = res.data.answers;
+  const a = res.answers;
   const yesNo = (p: number) => (p >= YES_AT ? true : p <= NO_AT ? false : null);
   const sure = (p: number) => Math.round(Math.abs(2 * p - 1) * 100) / 100;
   const out: Answered = { values: {}, top: {}, confidence: {}, requestId: res.requestId };
@@ -194,7 +219,7 @@ const SAMPLES = [
 ];
 
 if (process.argv.includes("--request")) {
-  console.log(JSON.stringify({ model: "jev-latest", state: { listing: SAMPLES[0] }, questions: QUESTIONS }, null, 2));
+  console.log(JSON.stringify({ state: { listing: SAMPLES[0] }, questions: QUESTIONS }, null, 2));
 } else if (process.argv[1]?.endsWith("schema_zod_after.ts")) {
   for (const s of SAMPLES) {
     const r = await reviewListing(s);

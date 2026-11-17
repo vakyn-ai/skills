@@ -18,7 +18,7 @@ The person does these steps themselves, in the browser:
 
 ## Save the key
 
-Every skill, script and SDK in this set reads the key from the environment, so save it once per
+Every skill and script in this set reads the key from the environment, so save it once per
 machine, not once per project. The person pastes the key into a file themselves; never into the
 chat, and you never open or print the file.
 
@@ -28,12 +28,11 @@ chat, and you never open or print the file.
 mkdir -p ~/.config/vakyn && umask 077 && cat > ~/.config/vakyn/env <<'ENV'
 VAKYN_BASE_URL=https://api.vakyn.com
 VAKYN_API_KEY=paste-your-key-here
-TYPESAFE_BASE_URL=https://api.vakyn.com
-TYPESAFE_API_KEY=paste-your-key-here
 ENV
 ```
 
-They open `~/.config/vakyn/env` in their editor and paste the key on both key lines. Then, **after
+They open `~/.config/vakyn/env` in their editor and paste the key on the `VAKYN_API_KEY` line. `VAKYN_BASE_URL` is optional
+(that is the default); change it only for another server. Then, **after
 asking**, add one line to their shell startup file (`~/.bashrc` or `~/.zshrc`) so every new terminal
 has it:
 
@@ -50,8 +49,8 @@ fish: `test -f ~/.config/vakyn/env; and export (grep -v '^#' ~/.config/vakyn/env
 
 ```powershell
 $k = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host -AsSecureString "VAKYN key")))
-foreach ($n in "VAKYN_API_KEY","TYPESAFE_API_KEY") { [Environment]::SetEnvironmentVariable($n, $k, "User") }
-foreach ($n in "VAKYN_BASE_URL","TYPESAFE_BASE_URL") { [Environment]::SetEnvironmentVariable($n, "https://api.vakyn.com", "User") }
+[Environment]::SetEnvironmentVariable("VAKYN_API_KEY", $k, "User")
+[Environment]::SetEnvironmentVariable("VAKYN_BASE_URL", "https://api.vakyn.com", "User")  # optional
 ```
 
 New terminals see them.
@@ -92,10 +91,10 @@ current.
 |---|---|
 | `vakyn-max` | the default when `model` is left out |
 | `vakyn-fast` | the cheaper option, for yes/no and score questions on short documents |
-| `jev-latest`, `vakyn-latest` | aliases for `vakyn-max` |
+| `vakyn-latest` | alias for `vakyn-max` |
 
-`model` is optional on VAKYN Cloud and required on open-server. Write `jev-latest` in code that
-should run on both, and mention `vakyn-fast` when price matters most.
+`model` is optional on VAKYN Cloud and required on open-server (the name its `/v1/models` lists).
+Leave it out for VAKYN Cloud, and mention `vakyn-fast` when price matters most.
 
 ## Cost
 
@@ -111,8 +110,8 @@ should run on both, and mention `vakyn-fast` when price matters most.
 
 ## Rate limit
 
-60 requests per second per key. Over it, `429` with `retry-after`; the official SDKs wait and
-retry. Keep bulk runs under it: bounded concurrency, summed over every process using the key.
+60 requests per second per key. Over it, `429` with `retry-after`: wait that long and retry
+([retries](http.md#retries)). Keep bulk runs under it: bounded concurrency, summed over every process using the key.
 Need more: [vakyn.com/contact](https://vakyn.com/contact).
 
 ## What else differs from open-server
@@ -121,8 +120,8 @@ Need more: [vakyn.com/contact](https://vakyn.com/contact).
 |---|---|
 | Keys | from the console; a key works only where it was made |
 | Errors | `402` no balance left; `429` rate limit; `502` and `503` from the model service; bodies `{"detail": {"error_type", "message"}}` |
-| Request id | `x-vakyn-request-id`, plus `x-typesafe-request-id` |
-| Same | requests, answers, limits (32,768 / 65,536 tokens, 255 options, 10 levels), SDKs |
+| Request id | `x-vakyn-request-id` header |
+| Same | requests, answers, limits (32,768 / 65,536 tokens, 255 options, 10 levels), the same HTTP code |
 
 Moving between VAKYN Cloud and open-server is one change: the base URL and the key.
 Running it on the person's own servers: [self-hosting](self-hosting.md).

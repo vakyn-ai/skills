@@ -108,7 +108,7 @@ def request_body(item, criteria=CRITERIA):
         if c.get("criteria"):
             q["criteria"] = c["criteria"]
         qs[name] = q
-    return {"model": "jev-latest", "state": build_state(item), "questions": qs}
+    return {"state": build_state(item), "questions": qs}
 
 
 def criterion_results(answers, criteria=CRITERIA):
@@ -143,13 +143,13 @@ def overall(results, criteria=CRITERIA):
     return {"verdict": verdict, "weighted": round(weighted, 3), "failed": failed, "unsure": unsure}
 
 
-def answers_from_response(r, criteria=CRITERIA):
-    """SDK response -> plain dict, the same shape as the stored answers file."""
+def answers_from_response(answers, criteria=CRITERIA):
+    """The response's "answers" -> plain dict, the same shape as the stored answers file."""
     out = {}
     for name, c in criteria.items():
         if c["type"] == "noul":
-            out[name] = {"noul": r.nouls[name].noul}
+            out[name] = {"noul": answers[name]["noul"]}
         else:
-            s = r.scores[name]
-            out[name] = {"score": s.score, "confidence": s.confidence}
+            s = answers[name]
+            out[name] = {"score": s["score"], "confidence": s["confidence"]}
     return out

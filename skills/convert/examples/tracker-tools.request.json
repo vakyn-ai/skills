@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "assistant": "Project assistant connected to the team's issue tracker. It calls one tool at a time.",
     "user_request": "The nightly export job crashed again with an out-of-memory error. Can you log it so someone picks it up?",

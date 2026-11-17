@@ -5,8 +5,8 @@ Usage:
     python3 batch_csv.py tickets.csv --full          # every row not done yet
     python3 batch_csv.py tickets.csv --full --limit 50   # stop after 50 new rows (resume later)
 
-Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL (https://api.vakyn.com, or your own server) and
-TYPESAFE_API_KEY in the environment. On VAKYN Cloud every answered row spends balance: the pilot
+Needs: Python 3 only; VAKYN_API_KEY in the environment, and VAKYN_BASE_URL for your own server
+(default https://api.vakyn.com). On VAKYN Cloud every answered row spends balance: the pilot
 prints the input tokens, so the full run's cost can be estimated before --full.
 
 Writes, next to --out (default <input>.vakyn.csv):
@@ -17,18 +17,21 @@ Rerunning never sends a done row again, and rebuilds the same output files.
 """
 
 import argparse
-import asyncio
 import collections
 import csv
 import json
 import os
 import pathlib
+import queue
 import re
 import statistics
 import sys
+import threading
 import time
+import urllib.error
+import urllib.request
 
-from typesafe_sdk import AsyncTypeSafeClient, Choice, Noul, RetryPolicy, Score, TypeSafeError
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
 
 # ---- What is sent. Only these columns go into the state; every other column stays here. ----
 ID_COLUMN = "ticket_id"
@@ -49,10 +52,11 @@ URGENCY = {  # name -> level description, lowest first
     "high": "High: the customer cannot work, has lost data or money, or threatens legal action",
 }
 QUESTIONS = {
-    "team": Choice(instructions="Which team should handle the support ticket in state.message?", criteria=TEAMS),
-    "refund": Noul(instructions="Does the customer in state.message ask for money back?"),
-    "urgency": Score(instructions="How urgent is the support ticket in state.message?",
-                     criteria=list(URGENCY.values())),
+    "team": {"type": "choice", "instructions": "Which team should handle the support ticket in state.message?",
+             "criteria": TEAMS},
+    "refund": {"type": "noul", "instructions": "Does the customer in state.message ask for money back?"},
+    "urgency": {"type": "score", "instructions": "How urgent is the support ticket in state.message?",
+                "criteria": list(URGENCY.values())},
 }
 
 # ---- Unsure rules: starting values from check's thresholds page; tune on labeled rows. ----
@@ -64,9 +68,10 @@ ESCAPE = {"team": "other"}                     # an escape pick is unsure too
 # VAKYN Cloud takes 60 requests per second per key; open-server queues --max-queue (default 32).
 CONCURRENCY = 8      # requests in flight
 MAX_CONCURRENCY = 32
-TIMEOUT_S = 60.0     # per attempt; the SDK default is 10 s
-# Retries 408, 429 and 5xx, waiting the retry-after the server sends; gives up after 6 tries or 10 min.
-RETRY = RetryPolicy(max_retries=6, backoff_max=30.0, timeout=600.0, respect_retry_after=True)
+TIMEOUT_S = 60.0     # per attempt
+# Retries 408, 429, 5xx and dropped connections, waiting the retry-after the server sends;
+# gives up after 6 retries or 10 min.
+MAX_RETRIES, BACKOFF_MAX_S, RETRY_BUDGET_S = 6, 30.0, 600.0
 PILOT_ROWS = 30
 
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
@@ -93,25 +98,48 @@ def build_state(row):
     return state
 
 
-def to_columns(res):
-    team, refund, urgency = res.choices["team"], res.nouls["refund"].noul, res.scores["urgency"]
-    if team.choice not in TEAMS:
-        raise ValueError(f"team pick {team.choice!r} is not an offered option")
-    top_level = max(urgency.probabilities, key=urgency.probabilities.get)
+def decide(state):
+    """POST /v1/systemone with retries. Returns (response JSON, request id)."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone", data=json.dumps({"state": state, "questions": QUESTIONS}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"})
+    start = time.monotonic()
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT_S) as r:
+                return json.load(r), r.headers.get("x-vakyn-request-id")
+        except urllib.error.HTTPError as e:
+            if not (e.code in (408, 429) or e.code >= 500):
+                raise  # 400 too big, 401, 402: retrying will not help
+            wait = float(e.headers.get("retry-after") or min(2 ** attempt, BACKOFF_MAX_S))
+            error = e
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            wait, error = min(2 ** attempt, BACKOFF_MAX_S), e
+        if attempt == MAX_RETRIES or time.monotonic() - start + wait > RETRY_BUDGET_S:
+            raise error
+        time.sleep(wait)
+
+
+def to_columns(res, request_id):
+    answers = res["answers"]
+    team, refund, urgency = answers["team"], answers["refund"]["noul"], answers["urgency"]
+    if team["choice"] not in TEAMS:
+        raise ValueError(f"team pick {team['choice']!r} is not an offered option")
+    top_level = max(urgency["probabilities"], key=urgency["probabilities"].get)
     why = []
-    if team.confidence < MIN_CONFIDENCE["team"] or team.choice == ESCAPE["team"]:
+    if team["confidence"] < MIN_CONFIDENCE["team"] or team["choice"] == ESCAPE["team"]:
         why.append("team")
     if NOUL_NO < refund < NOUL_YES:
         why.append("refund")
-    if urgency.confidence < MIN_CONFIDENCE["urgency"]:
+    if urgency["confidence"] < MIN_CONFIDENCE["urgency"]:
         why.append("urgency")
     return {
-        "team": team.choice, "team_confidence": team.confidence,
+        "team": team["choice"], "team_confidence": team["confidence"],
         "refund": "yes" if refund >= NOUL_YES else "no" if refund <= NOUL_NO else "unsure", "refund_p": refund,
-        "urgency": list(URGENCY)[int(top_level)], "urgency_score": urgency.score,
-        "urgency_confidence": urgency.confidence,
-        "unsure": bool(why), "unsure_why": " ".join(why), "request_id": res.request_id,
-        "input_tokens": res.usage.input_tokens, "error": "",
+        "urgency": list(URGENCY)[int(top_level)], "urgency_score": urgency["score"],
+        "urgency_confidence": urgency["confidence"],
+        "unsure": bool(why), "unsure_why": " ".join(why), "request_id": request_id,
+        "input_tokens": (res.get("usage") or {}).get("input_tokens"), "error": "",
     }
 
 
@@ -151,35 +179,45 @@ class Progress:
         return f"{self.done}/{self.total} ({self.done / self.total:.0%})  {rate}  {eta}  errors {self.errors}"
 
 
-async def run(rows, todo, progress_path, concurrency, progress=None, times=None):
-    queue = asyncio.Queue()
+def run(rows, todo, progress_path, concurrency, progress=None, times=None):
+    work = queue.Queue()
     for row in todo:
-        queue.put_nowait(row)
-    write_lock = asyncio.Lock()
+        work.put_nowait(row)
+    write_lock = threading.Lock()
+    stop = threading.Event()
 
-    async def worker(client, out):
-        while True:
+    def worker(out):
+        while not stop.is_set():
             try:
-                row = queue.get_nowait()
-            except asyncio.QueueEmpty:
+                row = work.get_nowait()
+            except queue.Empty:
                 return
             t0 = time.perf_counter()
             try:
-                res = await client.system_one(state=build_state(row), questions=QUESTIONS)
-                result = to_columns(res)
-            except (TypeSafeError, ValueError) as e:  # 400 too big, 401, 429/5xx after every retry, timeout
+                result = to_columns(*decide(build_state(row)))
+            except (OSError, ValueError) as e:  # 400 too big, 401, 429/5xx after every retry, timeout
                 result = {"error": f"{type(e).__name__}: {str(e)[:200]}"}
-            if times is not None:
-                times.append(time.perf_counter() - t0)
-            async with write_lock:  # one line per finished row, flushed: the checkpoint
+            with write_lock:  # one line per finished row, flushed: the checkpoint
+                if times is not None:
+                    times.append(time.perf_counter() - t0)
                 out.write(json.dumps({"id": row[ID_COLUMN], **result}) + "\n")
                 out.flush()
-            if progress:
-                progress.tick(not result["error"])
+                if progress:
+                    progress.tick(not result["error"])
 
-    async with AsyncTypeSafeClient(timeout=TIMEOUT_S, retry=RETRY) as client:
-        with open(progress_path, "a") as out:
-            await asyncio.gather(*(worker(client, out) for _ in range(concurrency)))
+    with open(progress_path, "a") as out:
+        threads = [threading.Thread(target=worker, args=(out,), daemon=True) for _ in range(concurrency)]
+        for t in threads:
+            t.start()
+        try:
+            for t in threads:
+                while t.is_alive():
+                    t.join(0.5)  # short joins so Ctrl-C reaches the main thread
+        except KeyboardInterrupt:
+            stop.set()  # rows in flight finish and are saved; no new ones start
+            for t in threads:
+                t.join()
+            raise
 
 
 def load_done(progress_path):
@@ -250,7 +288,7 @@ def main():
     out_path = a.out or a.input.with_suffix(".vakyn.csv")
     progress_path = out_path.with_name(out_path.name + ".progress.jsonl")
     review_path = out_path.with_name(out_path.stem + ".review.csv")
-    print(f"Server: {os.environ.get('TYPESAFE_BASE_URL', '(SDK default)')}")
+    print(f"Server: {BASE_URL}")
     print(f"Sent per row: {', '.join(SEND_COLUMNS)}" + (" (emails and phone numbers replaced)" if REDACT else ""))
     print(f"Not sent: {', '.join(c for c in rows[0] if c not in SEND_COLUMNS)}")
 
@@ -269,7 +307,7 @@ def main():
     times, t0 = [], time.monotonic()
     progress = Progress(len(done) + len(todo), len(done), warmup=a.concurrency) if a.full else None
     try:
-        asyncio.run(run(rows, todo, progress_path, a.concurrency, progress, times))
+        run(rows, todo, progress_path, a.concurrency, progress, times)
     except KeyboardInterrupt:
         print("\nStopped. Finished rows are saved; rerun the same command to resume.")
     seconds = time.monotonic() - t0

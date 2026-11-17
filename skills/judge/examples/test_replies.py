@@ -1,7 +1,7 @@
 """CI gate: grade the support bot's replies on saved cases with VAKYN.
 
-    pip install typesafe-sdk pytest
-    TYPESAFE_BASE_URL=... TYPESAFE_API_KEY=... pytest -q test_replies.py
+    pip install pytest
+    VAKYN_API_KEY=... pytest -q test_replies.py   # VAKYN_BASE_URL=... if not VAKYN Cloud
 
 Two levels:
 - each case fails on its own when a must-pass criterion clearly fails (a reply asking for a card
@@ -10,14 +10,12 @@ Two levels:
 Replies that VAKYN is unsure about are counted and printed, never counted as a pass.
 """
 
-import asyncio
 import json
 import pathlib
 
 import pytest
-from typesafe_sdk import AsyncTypeSafeClient
 
-from judge import grade
+from judge import grade_all
 
 CASES = [json.loads(line) for line in open(pathlib.Path(__file__).parent / "ci-cases.sample.jsonl") if line.strip()]
 MIN_PASS_RATE = 0.8  # a named setting: set it from your own history, raise it as the bot improves
@@ -30,17 +28,8 @@ def produce(case):
 
 @pytest.fixture(scope="session")
 def grades():
-    async def run():
-        client = AsyncTypeSafeClient(timeout=60.0)
-        gate = asyncio.Semaphore(4)
-
-        async def one(case):
-            async with gate:
-                return await grade(client, {**case, "output": produce(case)})
-
-        return {g["id"]: g for g in await asyncio.gather(*(one(c) for c in CASES))}
-
-    return asyncio.run(run())
+    graded = grade_all([{**case, "output": produce(case)} for case in CASES], concurrency=4)
+    return {g["id"]: g for g in graded}
 
 
 @pytest.mark.parametrize("case", CASES, ids=[c["id"] for c in CASES])

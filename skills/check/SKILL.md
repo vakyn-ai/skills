@@ -10,7 +10,7 @@ on the person's own records, how they compare with the chat model in use today, 
 threshold for unsure answers, and what the code needs before production.
 
 Write small scripts **into the person's project**, in their language (Python or TypeScript, with
-the official SDK; see the [SDK guide](../get-started/references/sdk.md)). The files in
+plain HTTP calls; see the [HTTP guide](../get-started/references/http.md)). The files in
 [examples/](examples/) are templates to adapt, not tools to run from these skills.
 
 ## Pick the step

@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "policy": "Refunds: full refund within 30 days of purchase. After 30 days, store credit only. Agents may not promise dates for engineering fixes.",
     "customer_message": "I bought the annual plan 10 days ago and it does not work with our scanner. I want my money back.",

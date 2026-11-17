@@ -1,38 +1,55 @@
-"""Flag messages that need a person: one noul per risk, combined in code. pip install typesafe-sdk
+"""Flag messages that need a person: one noul per risk, combined in code. Standard library only.
 
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 """
 
-from typesafe_sdk import Noul, TypeSafeClient
+import json
+import os
+import urllib.request
 
 RISKS = {  # several risks can be true at once, so each is its own noul (not one choice)
-    "refund_demand": Noul(
-        instructions="Does state.message ask for money back?",
-        criteria={"true": "Asks for a refund, a chargeback or compensation in money",
-                  "false": "Asks for something else, such as a repair, a swap or information"}),
-    "legal_threat": Noul(
-        instructions="Does state.message threaten legal action?",
-        criteria={"true": "Mentions a lawyer, court, a claim, or reporting the company to an authority",
-                  "false": "Complains without any legal step"}),
-    "safety_issue": Noul(
-        instructions="Does state.message describe a danger to the safety of people?",
-        criteria={"true": "Fire, smoke, burns, electric shock, injury, a child or pet put at risk",
-                  "false": "The problem only affects the product, the order or money"}),
-    "public_complaint": Noul(
-        instructions="Does state.message threaten to complain in public?",
-        criteria={"true": "Threatens a bad review, a social media post or going to the press",
-                  "false": "No public complaint is mentioned"}),
+    "refund_demand": {
+        "type": "noul",
+        "instructions": "Does state.message ask for money back?",
+        "criteria": {"true": "Asks for a refund, a chargeback or compensation in money",
+                     "false": "Asks for something else, such as a repair, a swap or information"}},
+    "legal_threat": {
+        "type": "noul",
+        "instructions": "Does state.message threaten legal action?",
+        "criteria": {"true": "Mentions a lawyer, court, a claim, or reporting the company to an authority",
+                     "false": "Complains without any legal step"}},
+    "safety_issue": {
+        "type": "noul",
+        "instructions": "Does state.message describe a danger to the safety of people?",
+        "criteria": {"true": "Fire, smoke, burns, electric shock, injury, a child or pet put at risk",
+                     "false": "The problem only affects the product, the order or money"}},
+    "public_complaint": {
+        "type": "noul",
+        "instructions": "Does state.message threaten to complain in public?",
+        "criteria": {"true": "Threatens a bad review, a social media post or going to the press",
+                     "false": "No public complaint is mentioned"}},
 }
 FLAG = 0.8   # at or above: the risk is there. Starting value; set yours with check
 CLEAR = 0.2  # at or below: the risk is not there; in between is unsure. Starting value
 # Settings: a missed safety issue costs more than a false alarm, so tune them per risk on your own data.
 
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
 
 
 def screen(message: str, order: dict) -> tuple[str, list[str]]:
-    r = client.system_one(state={"channel": "chat", "order": order, "message": message}, questions=RISKS)
-    p = {k: r.nouls[k].noul for k in RISKS}
+    answers = decide({"channel": "chat", "order": order, "message": message}, RISKS)
+    p = {k: answers[k]["noul"] for k in RISKS}
     flagged = [k for k, v in p.items() if v >= FLAG]
     unsure = [k for k, v in p.items() if CLEAR < v < FLAG]
     if p["safety_issue"] > CLEAR:  # rules in code: safety first, even when unsure

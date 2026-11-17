@@ -37,18 +37,25 @@ graders:
       source: file
       path: "vakyn.env.example"
     criteria: |
-      PASS if the file sets the TypeSafe AI SDK provider's base URL variable to the server WITH /v1,
-      i.e. `TYPESAFE_AI_BASE_URL=http://10.0.4.12:8080/v1`, and names `TYPESAFE_AI_API_KEY` with a
-      placeholder value (no real-looking key). FAIL if the base URL lacks /v1, uses only
-      TYPESAFE_BASE_URL for this provider, or contains a real-looking key.
+      PASS if the file sets VAKYN's own variables: `VAKYN_BASE_URL=http://10.0.4.12:8080` (the
+      server root; a trailing /v1 is wrong when the code appends /v1/systemone) and `VAKYN_API_KEY`
+      with a placeholder value (no real-looking key), plus a model setting for their own server
+      (for example `VAKYN_MODEL`, the name from /v1/models). FAIL if it configures the old SDK
+      provider instead (`TYPESAFE_AI_BASE_URL`, `TYPESAFE_AI_API_KEY`, `TYPESAFE_BASE_URL`), or
+      contains a real-looking key.
   - name: code
     type: llm
     focus:
       source: file
       path: "spam.ts"
     criteria: |
-      PASS if the file keeps `experimental_decide` from "ai" with the same boolean question, and uses
-      the TypeSafe provider from `@ai-sdk/typesafe-ai` (`typeSafeAi.decisionModel(...)` or
-      `createTypeSafeAi(...)`) with model `jev-latest` (or from configuration) instead of the
-      "typesafe-ai/jev" gateway string. A baseURL passed in code must end with /v1. FAIL otherwise,
-      or if a key is written into the file.
+      PASS if all hold:
+      - the file calls VAKYN directly with `fetch`: a POST to `<VAKYN_BASE_URL>/v1/systemone` with the
+        key from `VAKYN_API_KEY` as a Bearer token;
+      - the spam question is kept, with type `noul` (VAKYN has no `boolean` type) and the same
+        instructions;
+      - the model comes from configuration (their own server needs the name from /v1/models), not
+        the "typesafe-ai/jev" gateway string or `jev-latest`;
+      - it checks the HTTP status and returns `answers.spam.noul` (the probability of yes).
+      FAIL if it still uses `experimental_decide`, `@ai-sdk/typesafe-ai` or another SDK package for
+      the call, or if a key is written into the file.

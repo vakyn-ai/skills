@@ -27,7 +27,7 @@ from stored answers with no key.
 Promotion follows check: better on dev and not worse on reserved. The question name and the option
 keys must stay the same; try refuses a candidate that changes them.
 
-Needs TYPESAFE_BASE_URL (default https://api.vakyn.com, or your own server) and TYPESAFE_API_KEY in
+Needs VAKYN_API_KEY (and optionally VAKYN_BASE_URL, default https://api.vakyn.com, or your own server) in
 the environment, unless every answer is already stored. Standard library only.
 """
 
@@ -92,8 +92,8 @@ def keys_of(q):
 
 class Client:
     def __init__(self, run_dir, model, max_calls, concurrency=8, timeout=60):
-        self.base = os.environ.get("TYPESAFE_BASE_URL", "https://api.vakyn.com").rstrip("/")
-        self.key = os.environ.get("TYPESAFE_API_KEY", "")
+        self.base = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com").rstrip("/")
+        self.key = os.environ.get("VAKYN_API_KEY", "")
         self.model, self.max_calls, self.concurrency, self.timeout = model, max_calls, concurrency, timeout
         self.store_path = run_dir / "answers.jsonl"
         self.store, self.lock = {}, threading.Lock()
@@ -117,7 +117,7 @@ class Client:
                     return json.loads(r.read())
             except urllib.error.HTTPError as e:
                 if e.code == 401:
-                    raise Stop("401 from VAKYN: the key in TYPESAFE_API_KEY is missing, wrong or revoked.")
+                    raise Stop("401 from VAKYN: the key in VAKYN_API_KEY is missing, wrong or revoked.")
                 if e.code == 402:
                     raise Stop("402 from VAKYN: the balance is empty. Add balance in the console, then rerun.")
                 if e.code in (429, 503) and attempt < 5:
@@ -138,7 +138,7 @@ class Client:
         todo = self.missing(q, cases)
         if todo:
             if not self.key:
-                raise Stop(f"{len(todo)} answers are not stored and TYPESAFE_API_KEY is not set: no scores. "
+                raise Stop(f"{len(todo)} answers are not stored and VAKYN_API_KEY is not set: no scores. "
                            "Set the key in the environment and rerun.")
             if self.calls + len(todo) > self.max_calls:
                 raise Stop(f"this step needs {len(todo)} calls and {self.calls} are used of --max-calls "

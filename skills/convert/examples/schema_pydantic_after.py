@@ -4,8 +4,9 @@ Before: schema-pydantic-before.py, where the chat model fills all of TicketTriag
 After:  VAKYN answers category, urgent and sentiment; the chat model writes only the summary, plus
         any field VAKYN was unsure about. Code rebuilds the same TicketTriage, so callers do not change.
 
-pip install typesafe-sdk openai pydantic
-Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key) and OPENAI_API_KEY.
+pip install openai pydantic  (VAKYN is called with the standard library)
+Needs VAKYN_API_KEY (a vk_ key) and OPENAI_API_KEY. VAKYN_BASE_URL is optional
+(default https://api.vakyn.com; or your own server).
 
 Settings (environment):
   VAKYN_SCHEMA_MODE  side_by_side (default): the old structured-output call is used, as before;
@@ -20,11 +21,11 @@ import datetime
 import json
 import os
 import sys
+import urllib.request
 from dataclasses import dataclass, field
 from enum import Enum
 
 from pydantic import BaseModel, Field, create_model
-from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
 
 MODE = os.environ.get("VAKYN_SCHEMA_MODE", "side_by_side")
 LOG_PATH = os.environ.get("VAKYN_SCHEMA_LOG", "vakyn-schema.jsonl")
@@ -64,39 +65,42 @@ class TicketTriage(BaseModel):
 QUESTIONS = {
     # enum -> choice. One option per enum value, plus `other`: the enum had no escape, and a
     # forced pick on a sales question or spam would be wrong.
-    "category": Choice(
-        instructions="Which category fits the problem in state.ticket?",
-        criteria={
+    "category": {
+        "type": "choice",
+        "instructions": "Which category fits the problem in state.ticket?",
+        "criteria": {
             "billing": "Charges, invoices, plan changes and refunds, even when a refund is asked for because of a broken label",
             "shipping_label": "Buying, printing or voiding a shipping label: blank, wrong or failed labels",
             "tracking": "Where a parcel is after it shipped: late, stuck or lost parcels",
             "account": "Sign-in, passwords, users and the connection to the customer's online shop",
             "other": "None of these: sales questions, feature ideas, spam, or no clear problem",
         },
-    ),
+    },
     # bool -> noul. True and false described from the field description.
-    "urgent": Noul(
-        instructions="Is the problem in state.ticket urgent for the support team?",
-        criteria={
+    "urgent": {
+        "type": "noul",
+        "instructions": "Is the problem in state.ticket urgent for the support team?",
+        "criteria": {
             "true": "Parcels cannot go out today because of it, or a wrong charge is happening now",
             "false": "Shipping still works today and no money is being taken by mistake",
         },
-    ),
+    },
     # int 1-5 -> score. Five levels in words, lowest first; level 0 is sentiment 1.
-    "sentiment": Score(
-        instructions="How does the customer who wrote state.ticket feel?",
-        criteria=[
+    "sentiment": {
+        "type": "score",
+        "instructions": "How does the customer who wrote state.ticket feel?",
+        "criteria": [
             "Angry: blames, threatens or insults",
             "Unhappy: frustrated or let down, but civil",
             "Neutral: states facts or asks a question with no clear feeling",
             "Positive: friendly or thankful",
             "Delighted: praises the product or the team warmly",
         ],
-    ),
+    },
 }
 VAKYN_FIELDS = list(QUESTIONS)   # answered by VAKYN
 KEPT_FIELDS = ["summary"]        # free text: stays with the chat model
-CATEGORY_OPTIONS = set(QUESTIONS["category"].criteria)
+CATEGORY_OPTIONS = set(QUESTIONS["category"]["criteria"])
 
 # Start-up checks: every enum value is an option, and every field has exactly one owner.
 assert {c.value for c in Category} <= CATEGORY_OPTIONS
@@ -105,26 +109,37 @@ assert set(VAKYN_FIELDS) | set(KEPT_FIELDS) == set(TicketTriage.model_fields)
 
 # ---- VAKYN answers -> field values ----------------------------------------------------------------
 
-vakyn = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state, questions, timeout=30):
+    """POST /v1/systemone; returns (answers by question name, request id)."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"], r.headers.get("x-vakyn-request-id")
 
 
 def ask_vakyn(ticket_text):
-    """Returns (response, {field: (value, confidence, top)}); value is None when VAKYN is unsure,
+    """Returns (request_id, {field: (value, confidence, top)}); value is None when VAKYN is unsure,
     top is VAKYN's top answer either way (for the log). On any VAKYN error: (None, {}), and every
     field goes to the chat model."""
     try:
-        r = vakyn.system_one(state={"ticket": ticket_text}, questions=QUESTIONS)
+        a, rid = decide({"ticket": ticket_text}, QUESTIONS)
     except Exception as e:
         print(f"VAKYN failed: {e}", file=sys.stderr)
         return None, {}
-    cat, p, sent = r.choices["category"], r.nouls["urgent"].noul, r.scores["sentiment"]
-    category = cat.choice if cat.choice in {c.value for c in Category} and cat.confidence >= MIN_CONFIDENCE else None
+    cat, p, sent = a["category"], a["urgent"]["noul"], a["sentiment"]
+    category = cat["choice"] if cat["choice"] in {c.value for c in Category} and cat["confidence"] >= MIN_CONFIDENCE else None
     urgent = True if p >= YES_AT else False if p <= NO_AT else None
-    sentiment = round(sent.score) + 1 if sent.confidence >= MIN_CONFIDENCE else None  # level 0..4 -> 1..5
-    return r, {
-        "category": (category, cat.confidence, cat.choice),   # `other` -> None: no enum value fits
+    sentiment = round(sent["score"]) + 1 if sent["confidence"] >= MIN_CONFIDENCE else None  # level 0..4 -> 1..5
+    return rid, {
+        "category": (category, cat["confidence"], cat["choice"]),   # `other` -> None: no enum value fits
         "urgent": (urgent, round(abs(2 * p - 1), 2), p >= 0.5),
-        "sentiment": (sentiment, sent.confidence, round(sent.score) + 1),
+        "sentiment": (sentiment, sent["confidence"], round(sent["score"]) + 1),
     }
 
 
@@ -159,8 +174,7 @@ class Triaged:
 
 
 def triage(ticket_text) -> Triaged:
-    r, answers = ask_vakyn(ticket_text)
-    rid = r.request_id if r else None
+    rid, answers = ask_vakyn(ticket_text)
     if MODE == "side_by_side":
         old = chat_fill(ticket_text, list(TicketTriage.model_fields))   # exactly as before
         log(rid, answers, old)
@@ -199,9 +213,7 @@ SAMPLES = [
 
 if __name__ == "__main__":
     if "--request" in sys.argv:
-        print(json.dumps({"model": "jev-latest", "state": {"ticket": SAMPLES[0]},
-                          "questions": {k: q.model_dump(exclude_none=True) for k, q in QUESTIONS.items()}},
-                         indent=2))
+        print(json.dumps({"state": {"ticket": SAMPLES[0]}, "questions": QUESTIONS}, indent=2))
         sys.exit()
     for text in SAMPLES:
         t = triage(text)

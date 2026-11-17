@@ -20,7 +20,7 @@ check exits 1 when a limit is broken, so it can fail a CI job. Changes no bigger
 (on every probability) with the same pick are treated as run-to-run noise. Keep --concurrency at
 1 or 2: under heavier concurrent load the numbers can move slightly between runs.
 
-Needs: pip install typesafe-sdk; TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Needs: Python 3 only; VAKYN_API_KEY, and VAKYN_BASE_URL when not VAKYN Cloud.
 """
 
 import argparse
@@ -29,9 +29,20 @@ import concurrent.futures
 import datetime
 import hashlib
 import json
+import os
 import sys
+import urllib.request
 
-from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def call(path, body=None, timeout=60):
+    """GET (no body) or POST JSON to VAKYN. Returns (parsed JSON, request id)."""
+    req = urllib.request.Request(
+        f"{BASE_URL}{path}", data=None if body is None else json.dumps(body).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r), r.headers.get("x-vakyn-request-id")
 
 
 def build_state(record):
@@ -43,18 +54,10 @@ def question_hash(q):
     return hashlib.sha256(json.dumps(q, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
 
 
-def sdk_question(q):
-    if q["type"] == "choice":
-        return Choice(instructions=q["instructions"], criteria=q["criteria"])
-    if q["type"] == "score":
-        return Score(instructions=q["instructions"], criteria=q["criteria"])
-    return Noul(instructions=q["instructions"], criteria=q.get("criteria"))
-
-
-def served_model_file(client, name):
+def served_model_file(name):
     """What /v1/models says about the served model (for open-server: file format and quantization)."""
     try:
-        models = {m.name: m.description for m in client.models.list().models}
+        models = {m["name"]: m.get("description", "") for m in call("/v1/models")[0]["models"]}
     except Exception as e:  # keep going; the model name from each answer is still stored
         return f"unknown ({type(e).__name__})"
     desc = models.get(name, "")
@@ -63,15 +66,17 @@ def served_model_file(client, name):
     return desc
 
 
-def ask(client, template, record):
-    questions = {k: sdk_question(q) for k, q in template["questions"].items()}
-    res = client.system_one(state=build_state(record), questions=questions, model=template.get("model"))
-    answers = res.model_dump()["answers"]
+def ask(template, record):
+    body = {"state": build_state(record), "questions": template["questions"]}
+    if template.get("model"):
+        body["model"] = template["model"]
+    res, request_id = call("/v1/systemone", body)
+    answers = res["answers"]
     rows = []
     for name, q in template["questions"].items():
         a = answers[name]
         row = {"id": record["id"], "question": name, "question_hash": question_hash(q), "type": q["type"],
-               "request_id": res.request_id, "model": res.model}
+               "request_id": request_id, "model": res.get("model")}
         if q["type"] == "noul":
             row.update(noul=a["noul"], pick=a["noul"] >= 0.5, confidence=round(abs(2 * a["noul"] - 1), 2),
                        probabilities={"true": a["noul"], "false": round(1 - a["noul"], 2)})
@@ -93,11 +98,10 @@ def run(a):
     if a.concurrency > 2:
         print(f"Note: concurrency {a.concurrency}. Above 2 in flight, numbers can move slightly between runs; "
               "use 1 or 2 for reference batches.", file=sys.stderr)
-    client = TypeSafeClient(timeout=60.0)
     with concurrent.futures.ThreadPoolExecutor(max_workers=a.concurrency) as pool:
-        results = list(pool.map(lambda r: ask(client, template, r), records))
+        results = list(pool.map(lambda r: ask(template, r), records))
     rows = [row for rs in results for row in rs]
-    model_file = a.model_file or served_model_file(client, rows[0]["model"]) if rows else ""
+    model_file = a.model_file or served_model_file(rows[0]["model"]) if rows else ""
     stamp = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     for row in rows:
         row.update(model_file=model_file, server_version=a.server_version, saved_at=stamp)

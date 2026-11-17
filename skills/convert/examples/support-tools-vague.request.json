@@ -1,5 +1,4 @@
 {
-  "model": "jev-latest",
   "state": {
     "assistant": "Support assistant for Lumen, a reporting app. It calls one tool at a time.",
     "user_request": "it doesnt work again",

@@ -1,42 +1,54 @@
 """Judgments as reusable data: score each listing once, store the raw probabilities, rank many ways.
 
-pip install typesafe-sdk. Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Standard library only, nothing to install. Needs VAKYN_API_KEY; VAKYN_BASE_URL is optional
+(default https://api.vakyn.com).
 """
 
 import json
+import os
 import pathlib
-
-from typesafe_sdk import Noul, Score, TypeSafeClient
+import urllib.request
 
 QUESTIONS = {
-    "quiet": Score(instructions="How quiet does the listing say the flat is?", criteria=[
+    "quiet": {"type": "score", "instructions": "How quiet does the listing say the flat is?", "criteria": [
         "Says it is noisy: busy street, bars, works nearby",
         "Says nothing about noise",
         "Some hint of calm: a side street or upper floor",
-        "Says it is quiet: courtyard side, quiet street, no traffic"]),
-    "light": Score(instructions="How much daylight does the listing say the flat gets?", criteria=[
+        "Says it is quiet: courtyard side, quiet street, no traffic"]},
+    "light": {"type": "score", "instructions": "How much daylight does the listing say the flat gets?", "criteria": [
         "Says it is dark: ground floor facing a wall, small windows",
         "Says nothing about light",
         "Some daylight: windows mentioned, no direction or size",
-        "Very bright: big windows, south or west facing, top floor"]),
-    "condition": Score(instructions="What state is the flat in, from the listing?", criteria=[
+        "Very bright: big windows, south or west facing, top floor"]},
+    "condition": {"type": "score", "instructions": "What state is the flat in, from the listing?", "criteria": [
         "Needs work: damage, old fittings, renovation needed",
         "Not described",
         "Mixed: some parts new, some old but kept up",
-        "New or fully renovated"]),
-    "pets_allowed": Noul(instructions="Does the listing say pets are allowed?"),
+        "New or fully renovated"]},
+    "pets_allowed": {"type": "noul", "instructions": "Does the listing say pets are allowed?"},
 }
 STORE = pathlib.Path("judgments.jsonl")
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> tuple[dict, str]:
+    """POST /v1/systemone; returns the answers by question name and the request id."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"], r.headers.get("x-vakyn-request-id", "")
 
 
 def judge(listing_id: str, text: str) -> dict:
     """Ask once per listing (and again only when its text changes). Keep every probability."""
-    r = client.system_one(state={"listing": text}, questions=QUESTIONS)
-    row = {"id": listing_id, "request_id": r.request_id, "pets_allowed": r.nouls["pets_allowed"].noul}
+    answers, request_id = decide({"listing": text}, QUESTIONS)
+    row = {"id": listing_id, "request_id": request_id, "pets_allowed": answers["pets_allowed"]["noul"]}
     for k in ("quiet", "light", "condition"):
-        s = r.scores[k]
-        row[k] = {"score": s.score, "probabilities": s.probabilities, "confidence": s.confidence}
+        s = answers[k]
+        row[k] = {"score": s["score"], "probabilities": s["probabilities"], "confidence": s["confidence"]}
     return row
 
 

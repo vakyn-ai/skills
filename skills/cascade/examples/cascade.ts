@@ -1,7 +1,7 @@
 // Cheap draft, VAKYN check, expensive model only when the draft fails. Side by side first.
 //
-// npm install @typesafe-ai/sdk openai
-// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key). Outside --demo, also
+// npm install openai   (the chat-model side only; VAKYN is called with the built-in fetch)
+// Needs VAKYN_API_KEY (a vk_ key) and, for your own server, VAKYN_BASE_URL (default https://api.vakyn.com). Outside --demo, also
 // CHEAP_MODEL and EXPENSIVE_MODEL, plus your chat-model key (OPENAI_API_KEY, or CHEAP_API_KEY /
 // EXPENSIVE_API_KEY with CHEAP_BASE_URL / EXPENSIVE_BASE_URL for any OpenAI-compatible endpoint).
 //
@@ -13,7 +13,6 @@
 //
 // `npx tsx cascade.ts --demo` runs sample questions with canned drafts: no chat-model key needed.
 import OpenAI from "openai";
-import { choice, TypeSafeClient } from "@typesafe-ai/sdk";
 import { appendFileSync } from "node:fs";
 
 const MODE = process.env.CASCADE_MODE ?? "side_by_side";
@@ -60,7 +59,33 @@ type Verdict = {
   requestId: string | undefined; claims: Claim[] | null;
 };
 
-const vakyn = new TypeSafeClient({ timeout: 60_000 });
+type Answer = { choice: string; confidence: number; probabilities: Record<string, number> };
+type Question = { type: "choice"; instructions: string; criteria: Record<string, string> };
+
+const BASE_URL = process.env.VAKYN_BASE_URL ?? "https://api.vakyn.com";
+const choice = (instructions: string, criteria: Record<string, string>): Question =>
+  ({ type: "choice", instructions, criteria });
+
+// POST /v1/systemone. Returns the answers by question name and the request id. Retries 429/5xx twice.
+async function decide(state: unknown, questions: Record<string, Question>) {
+  for (let attempt = 0; ; attempt++) {
+    const response = await fetch(`${BASE_URL}/v1/systemone`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${process.env.VAKYN_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ state, questions }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (response.ok) {
+      const answers: Record<string, Answer> = (await response.json()).answers;
+      return { answers, requestId: response.headers.get("x-vakyn-request-id") ?? undefined };
+    }
+    if (attempt === 2 || !(response.status === 429 || response.status >= 500)) {
+      throw new Error(`VAKYN ${response.status}: ${await response.text()}`);
+    }
+    const wait = Number(response.headers.get("retry-after") ?? 2 ** attempt);
+    await new Promise((r) => setTimeout(r, wait * 1000));
+  }
+}
 
 // Keep sources in retrieval order while they fit (about 4 characters per token).
 function trimSources(sources: Source[], budget = SOURCE_BUDGET_TOKENS): Source[] {
@@ -92,7 +117,7 @@ function splitClaims(draft: string): string[] {
 async function check(question: string, sources: Source[], draft: string): Promise<Verdict> {
   const state: { question: string; sources: Source[]; draft: string; claims?: Record<string, string> } =
     { question, sources, draft };
-  const questions: Record<string, ReturnType<typeof choice>> = {
+  const questions: Record<string, Question> = {
     verdict: choice("Is the draft answer in state.draft backed by state.sources, as an answer to state.question?", VERDICT),
   };
   const sentences = PER_CLAIM_FROM > 0 ? splitClaims(draft) : [];
@@ -104,13 +129,13 @@ async function check(question: string, sources: Source[], draft: string): Promis
       questions[key] = choice(`Is the sentence in state.claims.${key} backed by state.sources?`, CLAIM);
     }
   }
-  const { data, requestId } = await vakyn.systemOne({ state, questions }).withResponse();
-  const v = data.answers.verdict;
+  const { answers, requestId } = await decide(state, questions);
+  const v = answers.verdict;
   if (!(v.choice in VERDICT)) throw new Error(`unexpected verdict ${v.choice}`); // an offered option only
   return {
     pick: v.choice, confidence: v.confidence, probabilities: v.probabilities, requestId,
     claims: claims && Object.entries(claims).map(([k, text]) => ({
-      text, pick: data.answers[k].choice, confidence: data.answers[k].confidence,
+      text, pick: answers[k].choice, confidence: answers[k].confidence,
     })),
   };
 }
@@ -121,12 +146,12 @@ const accepted = (v: Verdict) =>
   (v.claims ?? []).every((c) => c.pick === "supported" && c.confidence >= MIN_CONFIDENCE);
 
 async function compare(question: string, draft: string, reference: string): Promise<string> {
-  const { answers } = await vakyn.systemOne({
-    state: { question, reference_answer: reference, draft },
-    questions: {
+  const { answers } = await decide(
+    { question, reference_answer: reference, draft },
+    {
       match: choice("Compared with the reference answer in state.reference_answer, how does the draft in state.draft answer state.question?", MATCH),
     },
-  });
+  );
   return answers.match.choice;
 }
 

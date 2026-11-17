@@ -112,7 +112,7 @@ graders:
     criteria: |
       Judge this Python file.
       PASS if all hold:
-      - it calls VAKYN (typesafe_sdk `TypeSafeClient.system_one`, or an HTTP call to /v1/systemone);
+      - it calls VAKYN directly over HTTP (a POST to /v1/systemone, no SDK package for VAKYN);
       - code builds an `EmailTriage` object from VAKYN's answers (department from the choice,
         needs_callback from the noul, frustration from the score level mapped to 1-5, risks
         built from the nouls), so callers still get an `EmailTriage`;

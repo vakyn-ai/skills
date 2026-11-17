@@ -14,24 +14,27 @@ execution:
     the request it sends as a .json file here.
 
     ```python
-    import csv
-    from typesafe_sdk import TypeSafeClient, Choice, Noul
+    import csv, json, os, urllib.request
 
-    client = TypeSafeClient()
     QUESTIONS = {
-        "category": Choice(instructions="What is the email in state.email about?", criteria={
+        "category": {"type": "choice", "instructions": "What is the email in state.email about?", "criteria": {
             "order": "An order, delivery or return",
             "account": "Signing in or account settings",
             "product": "How a product works or a product fault",
-            "other": "None of these"}),
-        "angry": Noul(instructions="Is the sender of state.email angry?"),
+            "other": "None of these"}},
+        "angry": {"type": "noul", "instructions": "Is the sender of state.email angry?"},
     }
     out = []
     with open("emails.csv") as f:
         for row in csv.DictReader(f):
-            r = client.system_one(state={"email": row["body"]}, questions=QUESTIONS)
-            out.append({"id": row["id"], "category": r.choices["category"].choice,
-                        "angry": r.nouls["angry"].noul})
+            req = urllib.request.Request(
+                "https://api.vakyn.com/v1/systemone",
+                data=json.dumps({"state": {"email": row["body"]}, "questions": QUESTIONS}).encode(),
+                headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}",
+                         "Content-Type": "application/json"})
+            answers = json.load(urllib.request.urlopen(req))["answers"]
+            out.append({"id": row["id"], "category": answers["category"]["choice"],
+                        "angry": answers["angry"]["noul"]})
     with open("tagged.csv", "w") as f:
         w = csv.DictWriter(f, fieldnames=["id", "category", "angry"])
         w.writeheader()
@@ -57,8 +60,8 @@ graders:
          failed are recorded with an error (not silently dropped) and can be retried.
       3. It prints progress with done/total (or %), a rows-per-second rate and an ETA, and an error count.
       4. Requests are sent with bounded concurrency (at most 32 in flight) or the answer explains why it
-         stays sequential; 429 is retried after retry-after, and the timeout is raised above the
-         SDK's 10 s default.
+         stays sequential; 429 is retried after retry-after, and every request has a timeout of
+         10 s or more.
       5. The output keeps the confidence or probability next to each answer (category confidence and
          the angry probability), not only the pick.
       FAIL if any point is missing.

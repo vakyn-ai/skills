@@ -7,7 +7,7 @@ OpenAI's current reference before relying on this: the API is new and may change
 
 Usage:
     python3 openai_decisions_map.py openai-decisions.before.json > openai-decisions.request.json
-    python3 openai_decisions_map.py openai-decisions.before.json --send   # VAKYN_BASE_URL, VAKYN_API_KEY
+    python3 openai_decisions_map.py openai-decisions.before.json --send   # VAKYN_API_KEY; VAKYN_BASE_URL, VAKYN_MODEL optional
 """
 
 import json
@@ -29,9 +29,11 @@ def _text(content):
     return "\n".join(parts)
 
 
-def to_systemone(req, model="jev-latest"):
+def to_systemone(req, model=None):
     """OpenAI Decisions request -> VAKYN request. Returns (body, names) where names keeps the
-    original question names (None when unnamed) and choice values (which may be booleans)."""
+    original question names (None when unnamed) and choice values (which may be booleans).
+    No model by default: on VAKYN Cloud vakyn-max answers; on your own open-server pass the name
+    from /v1/models."""
     inp = req["input"]
     state = inp if isinstance(inp, str) else [_text(m["content"]) for m in inp]
     questions, meta = {}, []
@@ -58,7 +60,10 @@ def to_systemone(req, model="jev-latest"):
         else:
             raise ValueError(f"unknown question type {kind!r}")
     # safety_identifier has no VAKYN field; it is dropped.
-    return {"model": model, "state": state, "questions": questions}, meta
+    body = {"state": state, "questions": questions}
+    if model:
+        body = {"model": model, **body}
+    return body, meta
 
 
 def to_openai_answers(resp, meta):
@@ -89,7 +94,7 @@ def send(body):
 
 
 if __name__ == "__main__":
-    body, meta = to_systemone(json.load(open(sys.argv[1])))
+    body, meta = to_systemone(json.load(open(sys.argv[1])), os.environ.get("VAKYN_MODEL"))
     if "--send" in sys.argv:
         print(json.dumps(to_openai_answers(send(body), meta), indent=2))
     else:

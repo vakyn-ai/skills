@@ -1,15 +1,28 @@
 """Pick instead of generate: code finds the candidates, VAKYN picks one, code copies it exactly.
 
 Two uses: the amount and due date in an email, and the role of each line in pasted text.
-pip install typesafe-sdk. Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
+Standard library only, nothing to install. Needs VAKYN_API_KEY; VAKYN_BASE_URL is optional
+(default https://api.vakyn.com).
 """
 
+import json
+import os
 import re
-
-from typesafe_sdk import Choice, TypeSafeClient
+import urllib.request
 
 MIN_CONFIDENCE = 0.7  # starting value; set yours with check
-client = TypeSafeClient(timeout=30.0)
+BASE_URL = os.environ.get("VAKYN_BASE_URL", "https://api.vakyn.com")
+
+
+def decide(state: dict, questions: dict, timeout: float = 30.0) -> dict:
+    """POST /v1/systemone; returns the answers by question name."""
+    req = urllib.request.Request(
+        f"{BASE_URL}/v1/systemone",
+        data=json.dumps({"state": state, "questions": questions}).encode(),
+        headers={"Authorization": f"Bearer {os.environ['VAKYN_API_KEY']}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)["answers"]
 
 AMOUNT_RE = re.compile(r"€\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?")
 DATE_RE = re.compile(r"\b\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December)\b")
@@ -28,11 +41,11 @@ def candidates(text: str, pattern: re.Pattern) -> dict[str, dict]:
 def pick(text: str, field: str, question: str, cands: dict[str, dict]) -> str | None:
     options = {k: f'{c["value"]}, in: "{c["sentence"]}"' for k, c in cands.items()}
     options["none_of_these"] = f"None of these is the {field}, or the text does not say"
-    r = client.system_one(state={"supplier_email": text}, questions={field: Choice(instructions=question, criteria=options)})
-    a = r.choices[field]
-    if a.choice not in cands or a.confidence < MIN_CONFIDENCE:
+    answers = decide({"supplier_email": text}, {field: {"type": "choice", "instructions": question, "criteria": options}})
+    a = answers[field]
+    if a["choice"] not in cands or a["confidence"] < MIN_CONFIDENCE:
         return None  # none_of_these or unsure: a person fills the field
-    return cands[a.choice]["value"]  # copied from the text by code, character for character
+    return cands[a["choice"]]["value"]  # copied from the text by code, character for character
 
 
 def payment_due(email: str) -> dict:
@@ -57,13 +70,14 @@ LINE_ROLES = {
 def recover_structure(pasted: str) -> str:
     """Rebuild Markdown from text that lost its formatting. The words are never rewritten."""
     lines = [line.strip() for line in pasted.splitlines() if line.strip()]
-    questions = {f"line_{i}": Choice(instructions=f'In the pasted text, what is the line "{line}"?', criteria=LINE_ROLES)
+    questions = {f"line_{i}": {"type": "choice", "instructions": f'In the pasted text, what is the line "{line}"?',
+                               "criteria": LINE_ROLES}
                  for i, line in enumerate(lines, 1)}
-    r = client.system_one(state={"pasted_text": "\n".join(lines)}, questions=questions)
+    answers = decide({"pasted_text": "\n".join(lines)}, questions)
     out = []
     for i, line in enumerate(lines, 1):
-        a = r.choices[f"line_{i}"]
-        role = a.choice if a.choice in LINE_ROLES and a.confidence >= MIN_CONFIDENCE else "paragraph"  # safe default
+        a = answers[f"line_{i}"]
+        role = a["choice"] if a["choice"] in LINE_ROLES and a["confidence"] >= MIN_CONFIDENCE else "paragraph"  # safe default
         if role == "heading":
             out.append(f"\n## {line}")
         elif role == "list_item":

@@ -5,7 +5,7 @@ yourself; no script is needed. Fix every **must**; fix or consciously accept eve
 
 ## Must (VAKYN refuses otherwise)
 
-1. Top level has `model`, `state`, `questions` and nothing else.
+1. Top level has `state`, `questions`, optionally `model`, and nothing else (open-server needs `model`).
 2. `state` is a string, object or array, not null.
 3. `questions` is a non-empty object; each value has `type` and `instructions`, nothing beyond
    `type`, `instructions`, `criteria`. `instructions` is a non-empty string, or an object or list

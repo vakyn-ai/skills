@@ -18,7 +18,7 @@ Ask, in one message:
 5. **Are there person labels?** Records where someone already said what is right. They are worth
    more than any agreement number.
 
-Confirm where VAKYN runs (`TYPESAFE_BASE_URL`) before sending. On VAKYN Cloud
+Confirm where VAKYN runs (`VAKYN_BASE_URL`) before sending. On VAKYN Cloud
 (`https://api.vakyn.com`) the records go to VAKYN Cloud and the 30 requests spend a little of the
 person's balance; say both in the plan. On their own server the records stay on their network.
 
@@ -42,10 +42,10 @@ person's balance; say both in the plan. On their own server the records stay on 
 
 ## 4. Write the script into their project
 
-Write it in their language (Python or TypeScript) with the official SDK, in their repo (for
+Write it in their language (Python or TypeScript) with plain HTTP calls, in their repo (for
 example `scripts/vakyn_smoke_test.py`). Template: [smoke_test.py](../examples/smoke_test.py), with
 the request [smoke-test.request.json](../examples/smoke-test.request.json). In TypeScript use
-`@typesafe-ai/sdk` the same way ([SDK guide](../../get-started/references/sdk.md)).
+the built-in `fetch` the same way ([HTTP guide](../../get-started/references/http.md)).
 
 The script must:
 

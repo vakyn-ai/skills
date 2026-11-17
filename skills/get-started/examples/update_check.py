@@ -2,7 +2,7 @@
 
 GET /v1/models (free, no key) returns `skills.latest` and the update commands. Prints one line when this copy
 is older, and nothing otherwise; never fails the caller (no network, a self-hosted server without the field).
-Base URL from VAKYN_BASE_URL or TYPESAFE_BASE_URL, default https://api.vakyn.com.
+Base URL from VAKYN_BASE_URL, default https://api.vakyn.com.
 """
 
 import json
@@ -33,7 +33,7 @@ def update_notice(models, version=VERSION):
 
 
 def main():
-    base = os.environ.get("VAKYN_BASE_URL") or os.environ.get("TYPESAFE_BASE_URL") or "https://api.vakyn.com"
+    base = os.environ.get("VAKYN_BASE_URL") or "https://api.vakyn.com"
     try:
         with urllib.request.urlopen(f"{base.rstrip('/')}/v1/models", timeout=5) as r:
             notice = update_notice(json.load(r))

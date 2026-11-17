@@ -1,7 +1,8 @@
 // Tool pick with VAKYN in an Anthropic SDK app: pick-then-fill, side by side first.
 //
-// npm install @typesafe-ai/sdk @anthropic-ai/sdk
-// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY (https://api.vakyn.com or your own server, and a vk_ key) and ANTHROPIC_API_KEY.
+// npm install @anthropic-ai/sdk   (VAKYN is called with the built-in fetch, nothing to install)
+// Needs VAKYN_API_KEY (a vk_ key) and ANTHROPIC_API_KEY. VAKYN_BASE_URL is optional
+// (default https://api.vakyn.com; or your own server).
 //
 // Settings (environment):
 //   VAKYN_TOOL_MODE            side_by_side (default): the chat model still picks and acts; both picks
@@ -11,7 +12,6 @@
 //
 // `npx tsx tool_pick_anthropic.ts --dry` shows VAKYN's picks without a chat-model key.
 import Anthropic from "@anthropic-ai/sdk";
-import { choice, TypeSafeClient } from "@typesafe-ai/sdk";
 import { appendFileSync, readFileSync } from "node:fs";
 
 const MODE = process.env.VAKYN_TOOL_MODE ?? "side_by_side";
@@ -40,7 +40,7 @@ type Pick = keyof typeof OPTIONS;
 const INSTRUCTIONS = "Which tool should the helpdesk assistant call next to handle state.user_request? " +
   "Use state.last_tool_result: a tool already called does not need to be called again.";
 
-const vakyn = new TypeSafeClient({ timeout: 30_000 });
+const BASE_URL = process.env.VAKYN_BASE_URL ?? "https://api.vakyn.com";
 const chat = DRY ? null : new Anthropic();
 
 interface VakynPick {
@@ -70,15 +70,34 @@ function buildState(messages: Anthropic.MessageParam[]) {
   };
 }
 
+interface ChoiceAnswer {
+  choice: string;
+  confidence: number;
+  probabilities: Record<string, number>;
+}
+
+// POST /v1/systemone; returns the answers by question name and the request id.
+async function decide(state: unknown, questions: Record<string, unknown>) {
+  const response = await fetch(`${BASE_URL}/v1/systemone`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.VAKYN_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ state, questions }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) throw new Error(`VAKYN ${response.status}: ${await response.text()}`);
+  const body = (await response.json()) as { answers: Record<string, ChoiceAnswer> };
+  return { answers: body.answers, requestId: response.headers.get("x-vakyn-request-id") ?? undefined };
+}
+
 // VAKYN's pick, or null when the server cannot answer (the chat model then picks).
 async function vakynPick(messages: Anthropic.MessageParam[]): Promise<VakynPick | null> {
   try {
-    const { data, requestId } = await vakyn
-      .systemOne({ state: buildState(messages), questions: { next_tool: choice(INSTRUCTIONS, OPTIONS) } })
-      .withResponse();
-    const a = data.answers.next_tool;
+    const { answers, requestId } = await decide(buildState(messages), {
+      next_tool: { type: "choice", instructions: INSTRUCTIONS, criteria: OPTIONS },
+    });
+    const a = answers.next_tool;
     if (!(a.choice in OPTIONS)) return null; // code checks the pick is an offered option
-    return { pick: a.choice, confidence: a.confidence, probabilities: { ...a.probabilities }, requestId };
+    return { pick: a.choice as Pick, confidence: a.confidence, probabilities: a.probabilities, requestId };
   } catch (err) {
     console.error("VAKYN unavailable:", err); // never block the app on VAKYN
     return null;

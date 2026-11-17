@@ -1,6 +1,5 @@
-// Triage a batch of repair requests by trade and urgency, many at a time. npm install @typesafe-ai/sdk
-// Needs TYPESAFE_BASE_URL and TYPESAFE_API_KEY.
-import { choice, RateLimitError, score, TypeSafeClient } from "@typesafe-ai/sdk";
+// Triage a batch of repair requests by trade and urgency, many at a time. Built-in fetch only, nothing to install.
+// Needs VAKYN_API_KEY. VAKYN_BASE_URL is optional (default https://api.vakyn.com).
 
 const TRADES = {
   plumbing: "Leaks, taps, toilets, drains, water pressure",
@@ -19,23 +18,48 @@ const URGENCY = [
 ] as const;
 // Both questions only need the request text, so they go in ONE request per record.
 const QUESTIONS = {
-  trade: choice("Which trade is needed for the repair request in state.request?", TRADES),
-  urgency: score("How soon does the repair in state.request need someone on site?", URGENCY),
+  trade: { type: "choice", instructions: "Which trade is needed for the repair request in state.request?", criteria: TRADES },
+  urgency: { type: "score", instructions: "How soon does the repair in state.request need someone on site?", criteria: URGENCY },
 };
 const MAX_IN_FLIGHT = 8; // VAKYN Cloud: under 60 requests/s per key; own server: below --max-queue
 const MIN_CONFIDENCE = 0.6; // starting value; set yours with check
 
 type Rec = { unit: string; text: string };
-// Retries 429 after the delay VAKYN asks for.
-const client = new TypeSafeClient({ timeout: 30_000, retry: { maxRetries: 4 } });
+const BASE_URL = process.env.VAKYN_BASE_URL ?? "https://api.vakyn.com";
+const MAX_RETRIES = 4; // retries 429 after the delay VAKYN asks for, and 5xx after a short wait
+
+class RateLimitError extends Error {}
+
+type Answers = {
+  trade: { choice: string; confidence: number };
+  urgency: { score: number; confidence: number; probabilities: Record<string, number> };
+};
+
+async function decide(state: unknown, questions: Record<string, unknown>): Promise<Answers> {
+  for (let attempt = 0; ; attempt++) {
+    const response = await fetch(`${BASE_URL}/v1/systemone`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${process.env.VAKYN_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ state, questions }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (response.ok) return (await response.json()).answers;
+    const retryable = response.status === 429 || response.status >= 500;
+    if (!retryable || attempt === MAX_RETRIES) {
+      if (response.status === 429) throw new RateLimitError("still 429 after retries");
+      throw new Error(`VAKYN ${response.status}: ${await response.text()}`);
+    }
+    const wait = Number(response.headers.get("retry-after")) || 2 ** attempt;
+    await new Promise((resolve) => setTimeout(resolve, wait * 1000));
+  }
+}
 
 async function triage(rec: Rec) {
   try {
-    const { answers } = await client.systemOne({ state: { building: "Elm Court", unit: rec.unit, request: rec.text }, questions: QUESTIONS });
-    const { trade, urgency } = answers;
+    const { trade, urgency } = await decide({ building: "Elm Court", unit: rec.unit, request: rec.text }, QUESTIONS);
     const unsure = trade.choice === "other" || Math.min(trade.confidence, urgency.confidence) < MIN_CONFIDENCE;
     // A rule in code: any real chance of an emergency goes to on-call.
-    const queue = (urgency.probabilities[3] ?? 0) > 0.2 ? "on_call_now" : unsure ? "dispatcher_review" : trade.choice;
+    const queue = (urgency.probabilities["3"] ?? 0) > 0.2 ? "on_call_now" : unsure ? "dispatcher_review" : trade.choice;
     return { ...rec, urgency: urgency.score, queue };
   } catch (e) {
     if (e instanceof RateLimitError) return { ...rec, urgency: 0, queue: "retry_later" }; // still 429 after retries
@@ -65,3 +89,5 @@ const records: Rec[] = [
 for (const r of await triageAll(records)) {
   console.log(r.unit.padEnd(4), r.queue.padEnd(18), r.urgency.toFixed(2), r.text.slice(0, 60));
 }
+
+export {}; // a module, so top-level await works
