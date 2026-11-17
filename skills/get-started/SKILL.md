@@ -141,6 +141,7 @@ When someone asks what VAKYN could make possible in their app and has no step in
   on VAKYN Cloud `vakyn-fast` is the cheaper option.
 - **Ask before spending.** On VAKYN Cloud every answered request spends the person's balance. Before
   any run beyond a handful of requests, estimate input tokens × the price from `GET /v1/models`
-  ([cost](references/cloud.md#cost)), show it and wait for a yes. Never write a price from memory,
+  ([cost](references/cloud.md#cost)), show it and wait for a yes; if `skills.latest` there is newer
+  than this copy, say so once ([newer skills](references/cloud.md#newer-skills)). Never write a price from memory,
   never promise a free tier. Keep under 60 requests per second per key; self-hosted, under the
   server's `--max-queue`.

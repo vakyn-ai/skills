@@ -180,8 +180,8 @@ def main():
     where = os.environ.get("TYPESAFE_BASE_URL", "(SDK default)")
     print(f"VAKYN time per call: median {statistics.median(vms):.0f} ms, max {max(vms)} ms ({where}, one at a time)")
     vtin = sum(r.get("vakyn_tokens_in", 0) for r in results)
-    print(f"VAKYN input tokens: {vtin} for {len(results)} calls (VAKYN Cloud cost: x the price per billion "
-          "input tokens from GET /v1/models)")
+    print(f"VAKYN input tokens: {vtin} for {len(results)} calls (VAKYN Cloud cost: x the price per million "
+          "input tokens from GET /v1/models / 1,000,000)")
     cms = [r["chat_ms"] for r in results if "chat_ms" in r]
     if cms:
         print(f"Chat model time per call: median {statistics.median(cms):.0f} ms, max {max(cms)} ms")

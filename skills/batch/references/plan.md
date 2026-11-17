@@ -54,7 +54,7 @@ Send this before the pilot, in plain words and in this order:
 5. **Pilot first**: 30 rows spread over the data, then a stop to look at the answers and the
    time per row before the full run.
 6. **Cost (VAKYN Cloud)**: rows × input tokens per row (about 4 characters of English per token)
-   × the price per billion input tokens from `GET /v1/models`. Say it is an estimate; the pilot
+   × the price per million input tokens from `GET /v1/models` ÷ 1,000,000. Say it is an estimate; the pilot
    measures `usage.input_tokens`. Never quote a price from memory.
 7. **What you need from them**: a yes, the key set in the environment, a balance on VAKYN Cloud
    (or their server running).

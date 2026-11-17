@@ -1,6 +1,7 @@
 .PHONY: help test test-live eval validate release version
 
 PLUGIN_JSON := .claude-plugin/plugin.json
+UPDATE_CHECK := skills/get-started/examples/update_check.py
 REMOTE      := origin
 BRANCH      := main
 
@@ -31,7 +32,8 @@ release: validate test ## Bump version (VERSION=x.y.z or next patch), commit, ta
 	$(eval NEXT := $(shell echo $(CURRENT) | awk -F. '{print $$1"."$$2"."$$3+1}'))
 	$(eval VERSION := $(or $(VERSION),$(NEXT)))
 	@sed -i 's/"version": *"[^"]*"/"version": "$(VERSION)"/' $(PLUGIN_JSON)
-	@git add $(PLUGIN_JSON)
+	@sed -i 's/^VERSION = "[^"]*"/VERSION = "$(VERSION)"/' $(UPDATE_CHECK)
+	@git add $(PLUGIN_JSON) $(UPDATE_CHECK)
 	@git commit -m "chore(release): v$(VERSION)"
 	@git tag -a "v$(VERSION)" -m "chore(release): v$(VERSION)"
 	@git push $(REMOTE) $(BRANCH) && git push $(REMOTE) "v$(VERSION)"

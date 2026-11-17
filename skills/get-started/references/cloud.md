@@ -73,10 +73,18 @@ A key pasted into the chat anyway: do not repeat it; they revoke it on the
 curl -s https://api.vakyn.com/v1/models
 ```
 
-Free, and it needs no key. It lists the models, the aliases and each model's live price per
-billion input tokens (`price_per_billion_input_tokens`). It does not check the key: the
-[first call](../SKILL.md#first-call) does. A `401` there means a missing, wrong or revoked key,
-and costs nothing.
+Free, and it needs no key. It lists the models, the aliases, each model's live price per
+million input tokens (`price_per_million_input_tokens`) and the newest release of these skills
+(`skills.latest`). It does not check the key: the [first call](../SKILL.md#first-call) does. A
+`401` there means a missing, wrong or revoked key, and costs nothing.
+
+### Newer skills
+
+This copy of the skills is the version in [`update_check.py`](../examples/update_check.py). When
+`skills.latest` is newer, tell the person once per conversation, with the command in
+`skills.update` (Claude Code) or `skills.update_other_agents` (other agents); then carry on.
+`python3 examples/update_check.py` does the same check and prints nothing when the copy is
+current.
 
 ## Models
 
@@ -99,7 +107,7 @@ should run on both, and mention `vakyn-fast` when price matters most.
   questions about the same record in one request.
 - **Before more than a handful of requests**, estimate: input tokens per request (about 4
   characters of English per token, or `usage.input_tokens` from a pilot) × number of requests ×
-  price per billion from `/v1/models` ÷ 1,000,000,000. Show the estimate and wait for a yes.
+  price per million from `/v1/models` ÷ 1,000,000. Show the estimate and wait for a yes.
 
 ## Rate limit
 

@@ -155,6 +155,14 @@ class CloudFirst(unittest.TestCase):
                 line = text.count("\n", 0, m.start()) + 1
                 self.fail(f"{f.relative_to(ROOT)}:{line}: a price ('{m.group(0)}'); link vakyn.com/docs/models")
 
+    def test_prices_are_per_million(self):
+        # GET /v1/models gives price_per_million_input_tokens; the billion fields are gone.
+        for f in [*PUBLIC_TEXT, *ROOT.glob("skills/**/*.py")]:
+            text = f.read_text()
+            for m in re.finditer(r"price_per_billion|(?i:per billion input tokens)", text):
+                line = text.count("\n", 0, m.start()) + 1
+                self.fail(f"{f.relative_to(ROOT)}:{line}: '{m.group(0)}'; prices are per million input tokens")
+
     def test_no_free_tier_promise(self):
         for f in PUBLIC_TEXT:
             text = f.read_text()

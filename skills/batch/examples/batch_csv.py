@@ -295,7 +295,7 @@ def main():
         if tokens:
             per_row = statistics.mean(tokens)
             print(f"Input tokens per row: mean {per_row:.0f}; whole file about {per_row * len(rows):,.0f}. "
-                  "On VAKYN Cloud, multiply by the price per billion input tokens from GET /v1/models.")
+                  "On VAKYN Cloud, multiply by the price per million input tokens from GET /v1/models, divided by 1,000,000.")
         print("Review the pilot rows above. Then run again with --full.")
     summary(rows, results, seconds, len(times))
     print(f"Output: {out_path}  Review file: {review_path}")
